@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: gc-gateway
+  rabbitmq:
+    host: 172.16.80.132
+    port: 5672
+    username: guest
+    password: mq2019!
+
+  # redis配置
+  redis:
+    password: jfyxow!22##
+    host: 172.16.80.106
+    port: 6379
+
+# 为特定hystrix命令设置超时时间。mycmd为对应的命令
+hystrix.command.mycmd.execution.isolation.thread.timeoutInMilliseconds: 15000
+
+
+server:
+  port: 8086

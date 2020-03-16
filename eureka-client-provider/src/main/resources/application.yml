@@ -1,0 +1,35 @@
+spring:
+  profiles: provider1
+  application:
+    name: server-provider
+server:
+  port: 8081
+
+  #datasource: # 数据库配置
+  #    driver-class-name: com.mysql.jdbc.Driver
+  #    url: jdbc:mysql://localhost/vfc_sptsm?useUnicode=true&characterEncoding=utf-8
+  #    username: root
+  #    password:
+  #jpa:
+  #    hibernate:
+  #      ddl-auto: none
+  #    show-sql: true
+  #redis:
+  #    host: localhost
+  #    password: root
+---
+spring:
+  profiles: provider2
+  application:
+    name: server-provider
+server:
+  port: 8082
+---
+#eureka:
+  #client:
+    #serviceUrl:
+      #defaultZone: http://localhost:8088/eureka/, http://192.168.0.109:8089/eureka/    # 注册中心地址
+
+spring:
+  profiles:
+    active: provider1
