@@ -16,6 +16,11 @@ spring:
 # 为特定hystrix命令设置超时时间。mycmd为对应的命令
 hystrix.command.mycmd.execution.isolation.thread.timeoutInMilliseconds: 15000
 
+logging:
+  level:
+    com.*: debug
+    org.*: debug
+    reactor.*: debug
 
 server:
   port: 8086

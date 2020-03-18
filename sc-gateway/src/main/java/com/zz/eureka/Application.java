@@ -1,7 +1,9 @@
 package com.zz.eureka;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.gateway.route.RouteLocator;
@@ -10,7 +12,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+
+import java.net.URI;
+import java.util.UUID;
 
 /**
  * Created by Francis.zz on 2018/2/27.
@@ -45,19 +51,19 @@ public class Application {
     public RouteLocator myRoutes(RouteLocatorBuilder builder) {
         String httpUri = "http://baidu.com:80";
         return builder.routes()
-                .route(p -> p
+                .route("route-demo-2", p -> p
                         .path("/get")
                         .filters(f -> f.addRequestHeader("Hello", "World"))
                         .uri(httpUri))
-                .route(p -> p
+                /*.route(p -> p
                         .path("/hystrix")
                         .filters(f -> f
                                 .hystrix(config -> config
                                         .setName("mycmd")
                                         .setFallbackUri("forward:/fallback"))
                                         .retry(2))  // 默认只支持5XX错误并且是GET请求的场景
-                        .uri("http://localhost:8081"))
-                .route(p -> p
+                        .uri("http://localhost:8081"))*/
+                /*.route(p -> p
                         // 获取psot请求体
                         .readBody(Object.class, body -> {
                             log.info("request json:{}", JSON.toJSONString(body));
@@ -67,17 +73,60 @@ public class Application {
                         .method(HttpMethod.POST)
                         .uri(httpUri)
                         .order(-100)
+                )*/
+                .route("route-demo-1", p -> p
+                        //.path("/sptsm/dispacher")
+                        .method(HttpMethod.POST)
+                        .and()
+                        .readBody(String.class, body -> {
+                            // 不能读多次
+                            log.info("request json:{}", JSON.toJSONString(body));
+                            JSONObject jsonObject = JSONObject.parseObject(body);
+                            String issureId;
+                            if ((issureId = jsonObject.getString("issuerid")) != null && "oneplus_xian".equalsIgnoreCase(issureId)) {
+                                return true;
+                            } else {
+                                return false;
+                            }
+                        })
+                        .filters(filterSpec -> {
+                            return filterSpec
+                                    .setPath("/sptsm/dispacher")
+                                    .modifyRequestBody(String.class, String.class, ((serverWebExchange, s) -> {
+                                        // modify request body, add traceID
+                                        JSONObject jsonObject = JSONObject.parseObject(s);
+                                        String traceId = getTraceId(serverWebExchange);
+                                        log.info("[{}] modify request body...", traceId);
+                                        
+                                        if(StringUtils.isEmpty(jsonObject.getString("transactionid"))) {
+                                            jsonObject.put("transactionid", traceId);
+                                        }
+                                        return Mono.just(jsonObject.toJSONString());
+                                    }));
+                        })
+                        // uri中不能包含path
+                        .uri(URI.create("http://172.16.80.103:9087/"))
+                        .order(-100)
                 )
-                .route(p -> p
+                /*.route(p -> p
                         .readBody(Object.class, b -> true)
                         .uri("https://sina.cn/")
                         .order(100)
-                )
+                )*/
                 .build();
     }
 
-    @RequestMapping("/fallback")
+    /*@RequestMapping("/fallback")
     public Mono<String> fallback() {
         return Mono.just("fallback");
+    }*/
+    
+    private String getTraceId(ServerWebExchange serverWebExchange) {
+        String traceId = null;
+        if(serverWebExchange != null) {
+            traceId = serverWebExchange.getRequest().getHeaders().getFirst("traceId");
+        }
+        
+        return StringUtils.isEmpty(traceId) ? UUID.randomUUID().toString().replaceAll("-", "").toUpperCase() : traceId;
     }
 }

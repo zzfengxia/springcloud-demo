@@ -3,6 +3,8 @@ package com.zz.eureka.config;
 import org.junit.Test;
 import org.springframework.cloud.gateway.route.RouteDefinition;
 
+import java.net.URI;
+
 /**
  * ************************************
  * create by Intellij IDEA
@@ -17,5 +19,7 @@ public class RouteDefinitionTest {
         String text = "route1=http://127.0.0.1,Host=**.addrequestparameter.org,Path=/get";
         RouteDefinition routeDefinition = new RouteDefinition(text);
         System.out.println(routeDefinition.toString());
+    
+        URI uri = URI.create("http://localhost:8083/mq/demo");
     }
 }

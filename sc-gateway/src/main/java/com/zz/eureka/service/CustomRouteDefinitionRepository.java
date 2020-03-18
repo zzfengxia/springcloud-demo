@@ -40,14 +40,15 @@ public class CustomRouteDefinitionRepository implements RouteDefinitionRepositor
             log.error("not found routing config");
             return Flux.fromIterable(routeDefinitions);
         }
-        redisTemplate.opsForValue().multiGet(routeKeys).stream().forEach(routeInfoJson -> {
+        /*redisTemplate.opsForValue().multiGet(routeKeys).stream().forEach(routeInfoJson -> {
             RouteInfo routeInfo = JSON.parseObject(routeInfoJson, RouteInfo.class);
             // text格式： route1=http://127.0.0.1,Host=baidu.com,Path=/get
             // eg： routeId=http://127.0.0.1,Host=**.addrequestparameter.org,Path=/get
-            String defineText = StringUtils.join(routeInfo.genId(), "=", routeInfo.getServerUrl(), ",Path=", routeInfo.getCardExternalCode());
+            String defineText = StringUtils.join(routeInfo.genId(), "=", routeInfo.getServerUrl(), ",Path=/", routeInfo.getCardExternalCode());
             RouteDefinition routeDefinition = new RouteDefinition(defineText);
+            routeDefinition.setOrder(-100);
             routeDefinitions.add(routeDefinition);
-        });
+        });*/
         return Flux.fromIterable(routeDefinitions);
     }
     
