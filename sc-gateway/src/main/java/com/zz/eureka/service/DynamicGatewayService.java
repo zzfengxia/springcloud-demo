@@ -48,7 +48,7 @@ public class DynamicGatewayService implements ApplicationEventPublisherAware {
         definition.setPredicates(Arrays.asList(predicate));
         URI uri = UriComponentsBuilder.fromHttpUrl("https://www.google.com/").build().toUri();
         definition.setUri(uri);
-        // 必须要调用subscribe才能生效
+        // InMemoryRouteDefinitionRepository的save方法必须要调用subscribe才能生效。参考 ReactorTest的 testFaltMap 测试用例来验证。
         routeDefinitionWriter.save(Mono.just(definition)).subscribe();
         // 调用刷新事件，更新路由缓存
         this.publisher.publishEvent(new RefreshRoutesEvent(this));

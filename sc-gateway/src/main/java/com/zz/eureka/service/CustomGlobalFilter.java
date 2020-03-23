@@ -2,11 +2,9 @@ package com.zz.eureka.service;
 
 import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
-import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.core.Ordered;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
@@ -45,7 +43,7 @@ public class CustomGlobalFilter implements GlobalFilter, Ordered {
         String traceId = null;
         // 每次请求的ID
         String reqId = UUID.randomUUID().toString().replaceAll("-", "").toUpperCase();
-        log.info("[{}] custom global filter exec [pre]...", reqId);
+        log.info("custom global filter exec [pre]...");
         /**
          * 获取body的方法参考{@link org.springframework.cloud.gateway.filter.factory.rewrite.ModifyRequestBodyGatewayFilterFactory}
          * 或者{@link org.springframework.cloud.gateway.handler.predicate.ReadBodyPredicateFactory}
@@ -61,7 +59,10 @@ public class CustomGlobalFilter implements GlobalFilter, Ordered {
                 log.warn("cache origin request body is not string");
             }
         }
+        // 流控标识
+        String flowCtrlFlag = "false";
         if(StringUtils.isEmpty(traceId)) {
+            flowCtrlFlag = "true";
             traceId = UUID.randomUUID().toString().replaceAll("-", "").toUpperCase();
         }
         /**
@@ -71,11 +72,12 @@ public class CustomGlobalFilter implements GlobalFilter, Ordered {
         ServerHttpRequest request = exchange.getRequest().mutate()
                 .header("traceId", traceId)
                 .header("reqId", reqId)
+                .header("flowCtrlFlag", flowCtrlFlag)
                 .build();
-    
+        log.info("[{}] custom global filter exec [post]...", traceId);
         return chain.filter(exchange.mutate().request(request).build()).then(Mono.fromRunnable(() -> {
             // post执行
-            log.info("[{}] custom global filter exec [post]...", reqId);
+            
         }));
     }
     
@@ -86,6 +88,7 @@ public class CustomGlobalFilter implements GlobalFilter, Ordered {
      */
     @Override
     public int getOrder() {
-        return 0;
+        // 在SentinelGatewayFilter之前
+        return -100;
     }
 }

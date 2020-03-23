@@ -9,15 +9,24 @@ import com.alibaba.csp.sentinel.adapter.gateway.common.rule.GatewayFlowRule;
 import com.alibaba.csp.sentinel.adapter.gateway.common.rule.GatewayParamFlowItem;
 import com.alibaba.csp.sentinel.adapter.gateway.common.rule.GatewayRuleManager;
 import com.alibaba.csp.sentinel.adapter.gateway.sc.SentinelGatewayFilter;
+import com.alibaba.csp.sentinel.adapter.gateway.sc.callback.GatewayCallbackManager;
 import com.alibaba.csp.sentinel.adapter.gateway.sc.exception.SentinelGatewayBlockExceptionHandler;
+import com.alibaba.csp.sentinel.datasource.ReadableDataSource;
+import com.alibaba.csp.sentinel.datasource.nacos.NacosDataSource;
 import com.alibaba.csp.sentinel.slots.block.RuleConstant;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.TypeReference;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerCodecConfigurer;
+import org.springframework.web.reactive.function.BodyInserters;
+import org.springframework.web.reactive.function.server.ServerResponse;
 import org.springframework.web.reactive.result.view.ViewResolver;
 
 import javax.annotation.PostConstruct;
@@ -47,23 +56,44 @@ public class SentinelConfigForGateway {
         this.serverCodecConfigurer = serverCodecConfigurer;
     }
     
+    /**
+     * 注入限流异常处理
+     * 可定制限流响应信息，默认为{@link com.alibaba.csp.sentinel.adapter.gateway.sc.callback.DefaultBlockRequestHandler}
+     *
+     * @return
+     */
     @Bean
     @Order(Ordered.HIGHEST_PRECEDENCE)
     public SentinelGatewayBlockExceptionHandler sentinelGatewayBlockExceptionHandler() {
+        // 定制限流后的响应信息, 默认处理类为 DefaultBlockRequestHandler
+        GatewayCallbackManager.setBlockHandler((exchange, t) -> {
+            // JSON result by default.
+            return ServerResponse.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(BodyInserters.fromValue("服务器繁忙，请稍后重试"));
+        });
+        
         // Register the block exception handler for Spring Cloud Gateway.
         return new SentinelGatewayBlockExceptionHandler(viewResolvers, serverCodecConfigurer);
     }
     
     @Bean
-    @Order(-1)
     public GlobalFilter sentinelGatewayFilter() {
-        return new SentinelGatewayFilter();
+        // 参数为执行顺序ordered,顺序越小越优先
+        return new SentinelGatewayFilter(-1);
     }
     
     @PostConstruct
     public void doInit() {
         initCustomizedApis();
-        initGatewayRules();
+        //initGatewayRules();
+        
+        // 注册动态资源推送。接入nacos配置中心推送
+        ReadableDataSource<String, Set<GatewayFlowRule>> flowRuleDataSource = new NacosDataSource<Set<GatewayFlowRule>>(
+                "172.16.80.132:8848", "sentinel:demo", "demo.gateway.flow.rule",
+                source -> JSON.parseObject(source, new TypeReference<Set<GatewayFlowRule>>() {
+                }));
+        GatewayRuleManager.register2Property(flowRuleDataSource.getProperty());
     }
     
     /**
@@ -92,7 +122,7 @@ public class SentinelConfigForGateway {
      * 网关限流规则 GatewayFlowRule 的字段解释如下(<url>https://github.com/alibaba/Sentinel/wiki/%E7%BD%91%E5%85%B3%E9%99%90%E6%B5%81</url>)：
      * resource：可以是自定义api分组名、gateway route id
      * resourceMode：规则是针对 API Gateway 的 route（RESOURCE_MODE_ROUTE_ID）还是用户在 Sentinel 中定义的 API 分组（RESOURCE_MODE_CUSTOM_API_NAME），默认是 route。
-     * grade：限流指标维度，同限流规则的 grade 字段。
+     * grade：限流指标维度，同限流规则的 grade 字段。其中，0 代表根据并发数量来限流，1 代表根据 QPS 来进行流量控制
      * count：限流阈值
      * intervalSec：统计时间窗口，单位是秒，默认是 1 秒。
      * controlBehavior：流量整形的控制效果，同限流规则的 controlBehavior 字段，目前支持快速失败和匀速排队两种模式，默认是快速失败。
@@ -104,14 +134,16 @@ public class SentinelConfigForGateway {
      *      pattern：参数值的匹配模式，只有匹配该模式的请求属性值会纳入统计和流控；若为空则统计该请求属性的所有值。（1.6.2 版本开始支持）
      *      matchStrategy：参数值的匹配策略，目前支持精确匹配（PARAM_MATCH_STRATEGY_EXACT）、子串匹配（PARAM_MATCH_STRATEGY_CONTAINS）和正则匹配（PARAM_MATCH_STRATEGY_REGEX）。（1.6.2 版本开始支持）
      *      用户可以通过 GatewayRuleManager.loadRules(rules) 手动加载网关规则，或通过 GatewayRuleManager.register2Property(property) 注册动态规则源动态推送（推荐方式）
+     *
+     * 同一资源配置多个规则时，会遍历规则任何一个满足都会生效
      */
     private void initGatewayRules() {
         Set<GatewayFlowRule> rules = new HashSet<>();
-        rules.add(new GatewayFlowRule("route-demo-1")
+        rules.add(new GatewayFlowRule("route-demo-2")
                 .setCount(10)
                 .setIntervalSec(1)
         );
-        rules.add(new GatewayFlowRule("route-demo-1")
+        rules.add(new GatewayFlowRule("route-demo-2")
                 .setCount(2)
                 .setIntervalSec(2)
                 .setBurst(2)
@@ -137,14 +169,16 @@ public class SentinelConfigForGateway {
                         .setFieldName("pa")
                 )
         );
-        rules.add(new GatewayFlowRule("route-demo-2")
+        rules.add(new GatewayFlowRule("route-demo-1")
                 .setCount(2)
-                .setIntervalSec(30)
+                .setIntervalSec(5)
+                // QPS=并发数/平均响应时间
+                //.setGrade()
                 .setParamItem(new GatewayParamFlowItem()
-                        .setParseStrategy(SentinelGatewayConstants.PARAM_PARSE_STRATEGY_URL_PARAM)
-                        .setFieldName("type")
-                        .setPattern("warn")
-                        .setMatchStrategy(SentinelGatewayConstants.PARAM_MATCH_STRATEGY_CONTAINS)
+                        .setParseStrategy(SentinelGatewayConstants.PARAM_PARSE_STRATEGY_HEADER)
+                        .setFieldName("flowctrlflag")
+                        .setPattern("true")
+                        .setMatchStrategy(SentinelGatewayConstants.PARAM_MATCH_STRATEGY_EXACT)
                 )
         );
         
