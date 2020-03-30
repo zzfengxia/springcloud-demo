@@ -1,8 +1,6 @@
 package com.zz.eureka.config;
 
-import com.zz.eureka.service.CustomRouteDefinitionRepository;
 import org.springframework.amqp.core.Queue;
-import org.springframework.cloud.gateway.route.RouteDefinitionRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

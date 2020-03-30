@@ -46,7 +46,7 @@ public class Application {
      * 而其中的参数 List<RouteDefinitionLocator> routeDefinitionLocators 就是{@link RouteDefinitionLocator}的实现类集合(需要注入到spring),
      * 比如 {@link org.springframework.cloud.gateway.config.GatewayAutoConfiguration#propertiesRouteDefinitionLocator}(接收属性文件配置的路由信息)
      * 以及 inMemoryRouteDefinitionRepository 的覆盖类，我们自定义的动态路由实现 {@link CustomRouteDefinitionRepository}从redis或者DB中获取配置路由信息。
-     * 这里就会分别调用实现类的 {@link RouteDefinitionLocator#getRouteDefinitions}，然后再讲结果合并。
+     * 这里就会分别调用实现类的 {@link RouteDefinitionLocator#getRouteDefinitions}，然后再将结果合并。
      *
      * 4. 将步骤2合并的结果保存在本地缓存中
      *

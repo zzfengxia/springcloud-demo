@@ -1,21 +1,15 @@
 package com.zz.eureka.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
-import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;
 import org.springframework.cloud.gateway.route.RouteDefinition;
 import org.springframework.cloud.gateway.route.RouteDefinitionWriter;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.stereotype.Service;
-import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Mono;
-
-import java.net.URI;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * ************************************
@@ -26,33 +20,42 @@ import java.util.Map;
  * ************************************
  */
 @Service
+@Slf4j
 public class DynamicGatewayService implements ApplicationEventPublisherAware {
     @Autowired
     private RouteDefinitionWriter routeDefinitionWriter;
     private ApplicationEventPublisher publisher;
+    
+    @Value("nacos.config.serverAddr")
+    private String serverAddr;
+    @Value("nacos.config.groupId")
+    private String groupId;
+    @Value("nacos.config.dataId")
+    private String dataId;
     
     /**
      * 动态添加路由
      *
      * @return
      */
-    public String save() {
-        RouteDefinition definition = new RouteDefinition();
-        PredicateDefinition predicate = new PredicateDefinition();
-        Map<String, String> predicateParams = new HashMap<>(8);
-        definition.setId("baiduRoute");
-        predicate.setName("Path");
-        predicateParams.put("pattern", "/google");
-        predicate.setArgs(predicateParams);
-        
-        definition.setPredicates(Arrays.asList(predicate));
-        URI uri = UriComponentsBuilder.fromHttpUrl("https://www.google.com/").build().toUri();
-        definition.setUri(uri);
+    public void save() {
+        log.info("save invoke...");
         // InMemoryRouteDefinitionRepository的save方法必须要调用subscribe才能生效。参考 ReactorTest的 testFaltMap 测试用例来验证。
-        routeDefinitionWriter.save(Mono.just(definition)).subscribe();
-        // 调用刷新事件，更新路由缓存
+        //routeDefinitionWriter.save(Mono.just(definition)).subscribe();
+        // 调用刷新事件，更新路由缓存。由于没有使用 RouteDefinitionWriter 创建路由，所以这里无需清空操作
         this.publisher.publishEvent(new RefreshRoutesEvent(this));
-        return "success";
+    }
+    
+    public void update() {
+        // 调用刷新事件，更新路由缓存。由于没有使用 RouteDefinitionWriter 创建路由，所以这里无需清空操作
+        this.publisher.publishEvent(new RefreshRoutesEvent(this));
+    }
+    
+    public void delete() {
+        /*log.info("delete invoke...");
+        return this.routeDefinitionWriter.delete(Mono.just(id))
+                .then(Mono.defer(() -> Mono.just(ResponseEntity.ok().build())))
+                .onErrorResume(t -> t instanceof NotFoundException, t -> Mono.just(ResponseEntity.notFound().build()));*/
     }
     
     @Override

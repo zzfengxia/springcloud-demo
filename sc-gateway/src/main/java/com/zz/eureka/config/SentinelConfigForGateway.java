@@ -17,6 +17,7 @@ import com.alibaba.csp.sentinel.slots.block.RuleConstant;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -83,14 +84,19 @@ public class SentinelConfigForGateway {
         return new SentinelGatewayFilter(-1);
     }
     
+    private String serverAddr = "172.16.80.132:8848";
+    private String groupId = "sentinel:demo";
+    //@Value("nacos.config.dataId")
+    private String dataId = "sentinel.txt";
+    
     @PostConstruct
     public void doInit() {
         initCustomizedApis();
         //initGatewayRules();
         
         // 注册动态资源推送。接入nacos配置中心推送
-        ReadableDataSource<String, Set<GatewayFlowRule>> flowRuleDataSource = new NacosDataSource<Set<GatewayFlowRule>>(
-                "172.16.80.132:8848", "sentinel:demo", "demo.gateway.flow.rule",
+        ReadableDataSource<String, Set<GatewayFlowRule>> flowRuleDataSource = new NacosDataSource<>(
+                serverAddr, groupId, dataId,
                 source -> JSON.parseObject(source, new TypeReference<Set<GatewayFlowRule>>() {
                 }));
         GatewayRuleManager.register2Property(flowRuleDataSource.getProperty());

@@ -12,7 +12,8 @@
     <artifactId>sc-gateway</artifactId>
 
     <properties>
-        <alibaba.version>1.7.1</alibaba.version>
+        <alibaba.sentinel.version>1.7.1</alibaba.sentinel.version>
+        <alibaba.nacos.version>0.2.4</alibaba.nacos.version>
     </properties>
 
     <dependencies>
@@ -25,14 +26,21 @@
         <dependency>
             <groupId>com.alibaba.csp</groupId>
             <artifactId>sentinel-spring-cloud-gateway-adapter</artifactId>
-            <version>${alibaba.version}</version>
+            <version>${alibaba.sentinel.version}</version>
         </dependency>
 
         <!-- nacos扩展,实现动态限流规则推送 -->
         <dependency>
             <groupId>com.alibaba.csp</groupId>
             <artifactId>sentinel-datasource-nacos</artifactId>
-            <version>${alibaba.version}</version>
+            <version>${alibaba.sentinel.version}</version>
+        </dependency>
+
+        <!-- nacos 配置中心 -->
+        <dependency>
+            <groupId>com.alibaba.boot</groupId>
+            <artifactId>nacos-config-spring-boot-starter</artifactId>
+            <version>${alibaba.nacos.version}</version>
         </dependency>
 
         <dependency>

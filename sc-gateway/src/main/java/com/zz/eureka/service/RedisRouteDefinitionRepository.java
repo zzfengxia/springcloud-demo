@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.config.PropertiesRouteDefinitionLocator;
+import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
 import org.springframework.cloud.gateway.route.CachingRouteLocator;
 import org.springframework.cloud.gateway.route.CompositeRouteLocator;
 import org.springframework.cloud.gateway.route.Route;
@@ -14,7 +15,6 @@ import org.springframework.cloud.gateway.route.RouteDefinitionLocator;
 import org.springframework.cloud.gateway.route.RouteDefinitionRepository;
 import org.springframework.cloud.gateway.route.RouteDefinitionRouteLocator;
 import org.springframework.cloud.gateway.route.RouteLocator;
-import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
@@ -36,8 +36,7 @@ import java.util.Set;
  * ************************************
  */
 @Slf4j
-@Component
-public class CustomRouteDefinitionRepository implements RouteDefinitionRepository {
+public class RedisRouteDefinitionRepository implements RouteDefinitionRepository {
     @Autowired
     private RedisTemplate<String, String> redisTemplate;
     
@@ -54,12 +53,12 @@ public class CustomRouteDefinitionRepository implements RouteDefinitionRepositor
      * {@link org.springframework.cloud.gateway.config.GatewayAutoConfiguration#routeDefinitionLocator}中注入的，
      * 而其中的参数 List<RouteDefinitionLocator> routeDefinitionLocators 就是{@link RouteDefinitionLocator}的实现类集合(需要注入到spring),
      * 比如 {@link org.springframework.cloud.gateway.config.GatewayAutoConfiguration#propertiesRouteDefinitionLocator}(接收属性文件配置的路由信息)
-     * 以及 inMemoryRouteDefinitionRepository 的覆盖类，我们自定义的动态路由实现 {@link CustomRouteDefinitionRepository}从redis或者DB中获取配置路由信息。
-     * 这里就会分别调用实现类的 {@link RouteDefinitionLocator#getRouteDefinitions}，然后再讲结果合并。
+     * 以及 inMemoryRouteDefinitionRepository 的覆盖类，我们自定义的动态路由实现 {@link RedisRouteDefinitionRepository}从redis或者DB中获取配置路由信息。
+     * 这里就会分别调用实现类的 {@link RouteDefinitionLocator#getRouteDefinitions}，然后再将结果合并。
      *
      * 4. 将步骤2合并的结果保存在本地缓存中
      *
-     *
+     * 发布刷新{@link RefreshRoutesEvent}事件，会调用调用{@link CachingRouteLocator#fetch}方法，最终调用到{@link RouteDefinitionLocator#getRouteDefinitions}
      * @return
      */
     @Override
