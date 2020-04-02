@@ -48,7 +48,7 @@ public class DynamicGatewayService implements ApplicationEventPublisherAware {
     
     public void update() {
         // 调用刷新事件，更新路由缓存。由于没有使用 RouteDefinitionWriter 创建路由，所以这里无需清空操作
-        this.publisher.publishEvent(new RefreshRoutesEvent(this));
+        // this.publisher.publishEvent(new RefreshRoutesEvent(this));
     }
     
     public void delete() {

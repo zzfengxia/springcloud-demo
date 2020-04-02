@@ -1,0 +1,67 @@
+package com.zz.eureka.config.predicaterule;
+
+import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.cloud.gateway.route.builder.BooleanSpec;
+import org.springframework.cloud.gateway.route.builder.PredicateSpec;
+
+import java.time.ZonedDateTime;
+
+/**
+ * ************************************
+ * create by Intellij IDEA
+ * 生效时间规则
+ *
+ * @author Francis.zz
+ * @date 2020-03-26 15:51
+ * ************************************
+ */
+@Slf4j
+public class EffectiveDateRule implements IRule {
+    /**
+     * before和after同时存在的话，则会自动使用between规则
+     */
+    @Getter
+    @Setter
+    private String after;
+    @Getter
+    @Setter
+    private String before;
+    
+    private ZonedDateTime afterTime;
+    private ZonedDateTime beforeTime;
+    @Override
+    public boolean validate() {
+        try {
+            if(StringUtils.isNotEmpty(before)) {
+                beforeTime = ZonedDateTime.parse(before);
+            }
+            if(StringUtils.isNotEmpty(after)) {
+                afterTime = ZonedDateTime.parse(after);
+            }
+        } catch (Exception e) {
+            log.warn("DateRule must be ZonedDateTime, eg: 2020-03-31T13:56:28.082+08:00[Asia/Shanghai] ");
+            return false;
+        }
+        if(afterTime != null && beforeTime != null && afterTime.isBefore(beforeTime)) {
+            log.warn("illegal params, [after] less then [before], so EffectiveDateRule config is invalid");
+            return false;
+        }
+        return true;
+    }
+    
+    @Override
+    public BooleanSpec predicate(PredicateSpec predicateSpec) {
+        if(after != null && before != null) {
+            return predicateSpec.between(beforeTime, afterTime);
+        }
+        if(before != null) {
+            return predicateSpec.before(beforeTime);
+        }
+        
+        return predicateSpec.after(afterTime);
+    }
+}

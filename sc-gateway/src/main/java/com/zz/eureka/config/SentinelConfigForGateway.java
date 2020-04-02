@@ -91,15 +91,78 @@ public class SentinelConfigForGateway {
     
     @PostConstruct
     public void doInit() {
-        initCustomizedApis();
+        //initCustomizedApis();
         //initGatewayRules();
         
         // 注册动态资源推送。接入nacos配置中心推送
+        /**
+         * 动态限流规则配置参考
+         * <pre>
+         * [
+         *     {
+         *       "resource": "route-demo-1",
+         *       "count": 2.0,
+         *       "intervalSec": 1.0,
+         *       "paramItem": {
+         *           "parseStrategy": 2,
+         *           "fieldName": "flowctrlflag",
+         *           "pattern": "true",
+         *           "matchStrategy": 0
+         *       }
+         *     }
+         * ]
+         * </pre>
+         */
         ReadableDataSource<String, Set<GatewayFlowRule>> flowRuleDataSource = new NacosDataSource<>(
                 serverAddr, groupId, dataId,
                 source -> JSON.parseObject(source, new TypeReference<Set<GatewayFlowRule>>() {
                 }));
         GatewayRuleManager.register2Property(flowRuleDataSource.getProperty());
+    
+        // API分组动态配置
+        /**
+         * API分组动态配置参考
+         * <pre>
+         * [
+         *      {
+         *          "apiName": "customized_api1",
+         *          "predicateItems": [{
+         *              "pattern": "/dispatcher",
+         *              "matchStrategy": 0
+         *          }]
+         *      }
+         * ]
+         * </pre>
+         */
+        ReadableDataSource<String, Set<ApiDefinition>> apiDefDataSource = new NacosDataSource<>(
+                serverAddr, groupId, "sentinel2.txt",
+                source -> {
+                    // 将Set<CustomApiDefinition>转成Set<ApiDefinition> todo 简单实现
+                    Set<CustomApiDefinition> apiDefinitionSet = JSON.parseObject(source, new TypeReference<Set<CustomApiDefinition>>() {});
+                    Set<ApiDefinition> result = new HashSet<>(apiDefinitionSet.size());
+                    if(apiDefinitionSet.isEmpty()) {
+                        return result;
+                    }
+                    apiDefinitionSet.forEach(item -> {
+                        ApiDefinition definition = new ApiDefinition();
+                        definition.setApiName(item.getApiName());
+                        if(item.getPredicateItems() != null) {
+                            item.getPredicateItems().forEach(t -> {
+                                ApiPathPredicateItem apiPredicateItem = new ApiPathPredicateItem();
+                                apiPredicateItem.setPattern(t.getPattern());
+                                apiPredicateItem.setMatchStrategy(t.getMatchStrategy());
+                                if(definition.getPredicateItems() == null) {
+                                    definition.setPredicateItems(new HashSet<>());
+                                }
+                                definition.getPredicateItems().add(apiPredicateItem);
+                            });
+                        }
+                        
+                        result.add(definition);
+                    });
+                    return result;
+                });
+        GatewayApiDefinitionManager.register2Property(apiDefDataSource.getProperty());
     }
     
     /**

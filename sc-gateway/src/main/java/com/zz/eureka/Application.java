@@ -57,7 +57,7 @@ public class Application {
      * @param builder
      * @return
      */
-    @Bean
+    //@Bean
     public RouteLocator myRoutes(RouteLocatorBuilder builder) {
         String httpUri = "http://baidu.com:80";
         return builder.routes()

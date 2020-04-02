@@ -22,7 +22,7 @@ import java.lang.reflect.Field;
 public class PredicateGroup implements IRule {
     private BodyRule bodyRule;
     private HeaderRule headerRule;
-    private InterfaceRule interfaceRule;
+    private EffectiveDateRule dateRule;
     private PathRule pathRule;
     private QueryRule queryRule;
     

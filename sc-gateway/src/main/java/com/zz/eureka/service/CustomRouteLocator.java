@@ -1,6 +1,7 @@
 package com.zz.eureka.service;
 
 import com.zz.eureka.config.RouteRuleProp;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.route.RouteLocator;
@@ -17,6 +18,7 @@ import reactor.core.publisher.Flux;
  * ************************************
  */
 @Component
+@Slf4j
 public class CustomRouteLocator implements RouteLocator {
     @Autowired
     private RouteLocatorBuilder routeLocatorBuilder;
@@ -29,9 +31,7 @@ public class CustomRouteLocator implements RouteLocator {
             return Flux.empty();
         }
         RouteLocatorBuilder.Builder builder = routeLocatorBuilder.routes();
-        routeRuleProp.getRules().forEach(routeRule -> {
-            routeRule.getRoute(builder);
-        });
-        return builder.build().getRoutes();
+        
+        return routeRuleProp.getRoute(builder);
     }
 }

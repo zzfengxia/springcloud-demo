@@ -5,9 +5,11 @@ import com.zz.eureka.config.predicaterule.PredicateGroup;
 import com.zz.eureka.config.predicaterule.RuleCheck;
 import lombok.Data;
 import org.springframework.cloud.gateway.route.builder.BooleanSpec;
+import org.springframework.cloud.gateway.route.builder.PredicateSpec;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 
 import java.net.URI;
+import java.util.function.Function;
 
 /**
  * ************************************
@@ -32,17 +34,63 @@ public class RouteRule implements RuleCheck {
      */
     private int order;
     
+    /**
+     * 使用公共配置标识。为true并且公共配置存在时，会使用“与”逻辑合并公共配置。默认为 true
+     */
+    private boolean useCommonConfig = true;
+    
     public void getRoute(RouteLocatorBuilder.Builder builder) {
+        this.getRoute(builder, null);
+    }
+    
+    public void getRoute(RouteLocatorBuilder.Builder builder, PredicateGroup commonPredicate) {
         if(!this.validate()) {
             return;
         }
+    
         if(predicate != null) {
             builder.route(id, p -> {
-                BooleanSpec uriSpec = predicate.predicate(p);
+                BooleanSpec uriSpec;
+                if(useCommonConfig && commonPredicate != null) {
+                    uriSpec = commonPredicate.predicate(p);
+                    if(uriSpec != null) {
+                        p = uriSpec.and();
+                    }
+                }
+                uriSpec = predicate.predicate(p);
                 if(filter != null) {
                     uriSpec.filters(f -> filter.filter(f));
                 }
+            
+                return uriSpec.uri(URI.create(uri))
+                        .order(order);
+            });
+        }
+    }
     
+    /**
+     * 组装路由规则
+     *
+     * @param builder
+     * @param commonPredicate 共用的predicate
+     */
+    public void getRouteWithCommon(RouteLocatorBuilder.Builder builder, Function<PredicateSpec, BooleanSpec> commonPredicate) {
+        if(!this.validate()) {
+            return;
+        }
+        
+        if(predicate != null) {
+            builder.route(id, p -> {
+                BooleanSpec uriSpec;
+                if(commonPredicate != null) {
+                    uriSpec = commonPredicate.apply(p);
+                    p = uriSpec.and();
+                }
+                uriSpec = predicate.predicate(p);
+                if(filter != null) {
+                    uriSpec.filters(f -> filter.filter(f));
+                }
+                
                 return uriSpec.uri(URI.create(uri))
                         .order(order);
             });

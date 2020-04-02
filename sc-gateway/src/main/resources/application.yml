@@ -12,6 +12,12 @@ spring:
     password: jfyxow!22##
     host: 172.16.80.106
     port: 6379
+  cloud:
+    gateway:
+      # 设置gateway转发到后台服务器的请求参数，超时时间等
+      httpclient:
+        response-timeout: PT5.1S
+        connect-timeout: 5000
 
 
 # 为特定hystrix命令设置超时时间。mycmd为对应的命令

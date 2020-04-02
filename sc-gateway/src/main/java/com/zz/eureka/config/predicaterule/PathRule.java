@@ -4,9 +4,6 @@ import lombok.Data;
 import org.springframework.cloud.gateway.route.builder.BooleanSpec;
 import org.springframework.cloud.gateway.route.builder.PredicateSpec;
 
-import java.util.Arrays;
-import java.util.List;
-
 /**
  * ************************************
  * create by Intellij IDEA

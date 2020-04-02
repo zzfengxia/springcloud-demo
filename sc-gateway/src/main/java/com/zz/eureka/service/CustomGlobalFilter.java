@@ -1,5 +1,6 @@
 package com.zz.eureka.service;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -51,6 +52,7 @@ public class CustomGlobalFilter implements GlobalFilter, Ordered {
          */
         Object cachedBody = exchange.getAttribute(CACHE_REQUEST_BODY_OBJECT_KEY);
         if(cachedBody != null) {
+            log.info("request json:{}", JSON.toJSONString(cachedBody));
             if(cachedBody instanceof String) {
                 JSONObject jsonObject = JSONObject.parseObject((String) cachedBody);
                 traceId = jsonObject.getString("transactionid");
