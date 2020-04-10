@@ -1,4 +1,4 @@
-package com.zz.eureka.config.predicaterule;
+package com.zz.eureka.routedefine.predicaterule;
 
 import org.springframework.cloud.gateway.route.builder.BooleanSpec;
 import org.springframework.cloud.gateway.route.builder.PredicateSpec;

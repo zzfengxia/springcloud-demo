@@ -1,9 +1,9 @@
-package com.zz.eureka.config;
+package com.zz.eureka.routedefine;
 
 import com.alibaba.nacos.api.config.ConfigType;
 import com.alibaba.nacos.api.config.annotation.NacosConfigurationProperties;
-import com.zz.eureka.config.predicaterule.PredicateGroup;
-import com.zz.eureka.config.predicaterule.RuleCheck;
+import com.zz.eureka.common.GatewayConstans;
+import com.zz.eureka.routedefine.predicaterule.PredicateGroup;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.route.Route;
@@ -22,7 +22,7 @@ import java.util.List;
  * @date 2020-03-26 17:46
  * ************************************
  */
-@NacosConfigurationProperties(prefix = "route", dataId = "demo.gateway.flow.rule.yaml", groupId = "sentinel:demo", type = ConfigType.YAML, autoRefreshed = true)
+@NacosConfigurationProperties(prefix = "route", dataId = GatewayConstans.DATA_ID_ROUTE, groupId = GatewayConstans.GROUP_GATEWAY, type = ConfigType.YAML, autoRefreshed = true)
 @Configuration
 @Data
 @Slf4j

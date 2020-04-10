@@ -1,4 +1,4 @@
-package com.zz.eureka.config;
+package com.zz.eureka.routedefine;
 
 import com.alibaba.csp.sentinel.adapter.gateway.common.api.ApiPathPredicateItem;
 

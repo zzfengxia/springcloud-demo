@@ -1,4 +1,4 @@
-package com.zz.eureka.config.filterrule;
+package com.zz.eureka.routedefine.filterrule;
 
 import lombok.Data;
 import org.springframework.cloud.gateway.route.builder.GatewayFilterSpec;

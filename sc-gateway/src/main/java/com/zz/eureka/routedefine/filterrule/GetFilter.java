@@ -1,4 +1,4 @@
-package com.zz.eureka.config.filterrule;
+package com.zz.eureka.routedefine.filterrule;
 
 import org.springframework.cloud.gateway.route.builder.GatewayFilterSpec;
 import org.springframework.cloud.gateway.route.builder.UriSpec;

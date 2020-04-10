@@ -1,6 +1,7 @@
-package com.zz.eureka.config.filterrule;
+package com.zz.eureka.routedefine.filterrule;
 
-import com.zz.eureka.config.predicaterule.RuleCheck;
+
+import com.zz.eureka.routedefine.predicaterule.RuleCheck;
 
 /**
  * ************************************

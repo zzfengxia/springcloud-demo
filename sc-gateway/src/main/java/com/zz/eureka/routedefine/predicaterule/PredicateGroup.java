@@ -1,4 +1,4 @@
-package com.zz.eureka.config.predicaterule;
+package com.zz.eureka.routedefine.predicaterule;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -7,6 +7,7 @@ import org.springframework.cloud.gateway.route.builder.BooleanSpec;
 import org.springframework.cloud.gateway.route.builder.PredicateSpec;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 
 /**
  * ************************************
@@ -32,6 +33,9 @@ public class PredicateGroup implements IRule {
             Field[] allField = this.getClass().getDeclaredFields();
             BooleanSpec booleanSpec = null;
             for (Field field : allField) {
+                if(Modifier.isStatic(field.getModifiers())) {
+                    continue;
+                }
                 if (!IRule.class.isAssignableFrom(field.getType())) {
                     log.warn("field:{} is not extend IRule, so is invalid", field.getName());
                     continue;

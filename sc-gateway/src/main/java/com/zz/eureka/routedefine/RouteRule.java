@@ -1,8 +1,8 @@
-package com.zz.eureka.config;
+package com.zz.eureka.routedefine;
 
-import com.zz.eureka.config.filterrule.FilterGroup;
-import com.zz.eureka.config.predicaterule.PredicateGroup;
-import com.zz.eureka.config.predicaterule.RuleCheck;
+import com.zz.eureka.routedefine.filterrule.FilterGroup;
+import com.zz.eureka.routedefine.predicaterule.PredicateGroup;
+import com.zz.eureka.routedefine.predicaterule.RuleCheck;
 import lombok.Data;
 import org.springframework.cloud.gateway.route.builder.BooleanSpec;
 import org.springframework.cloud.gateway.route.builder.PredicateSpec;

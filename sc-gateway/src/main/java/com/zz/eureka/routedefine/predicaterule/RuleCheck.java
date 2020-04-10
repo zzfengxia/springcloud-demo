@@ -1,4 +1,4 @@
-package com.zz.eureka.config.predicaterule;
+package com.zz.eureka.routedefine.predicaterule;
 
 /**
  * ************************************

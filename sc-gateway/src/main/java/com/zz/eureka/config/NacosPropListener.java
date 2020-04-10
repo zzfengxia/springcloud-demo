@@ -2,6 +2,7 @@ package com.zz.eureka.config;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.nacos.spring.context.event.config.NacosConfigurationPropertiesBeanBoundEvent;
+import com.zz.eureka.routedefine.RouteRuleProp;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.event.RefreshRoutesEvent;

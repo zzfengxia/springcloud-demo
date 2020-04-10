@@ -1,4 +1,4 @@
-package com.zz.eureka.config.filterrule;
+package com.zz.eureka.routedefine.filterrule;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -7,6 +7,7 @@ import org.springframework.cloud.gateway.route.builder.GatewayFilterSpec;
 import org.springframework.cloud.gateway.route.builder.UriSpec;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 
 /**
  * ************************************
@@ -28,6 +29,9 @@ public class FilterGroup implements IFilter {
             Field[] allField = this.getClass().getDeclaredFields();
             UriSpec uriSpec = null;
             for (Field field : allField) {
+                if(Modifier.isStatic(field.getModifiers())) {
+                    continue;
+                }
                 if (!IFilter.class.isAssignableFrom(field.getType())) {
                     log.warn("field:{} is not extend IFilter, so is invalid", field.getName());
                     continue;

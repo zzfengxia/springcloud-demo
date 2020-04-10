@@ -1,6 +1,5 @@
-package com.zz.eureka.service;
+package com.zz.eureka.routedefine;
 
-import com.zz.eureka.routedefine.RouteRuleProp;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.route.Route;
