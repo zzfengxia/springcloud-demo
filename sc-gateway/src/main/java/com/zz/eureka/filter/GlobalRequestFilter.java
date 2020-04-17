@@ -2,14 +2,23 @@ package com.zz.eureka.filter;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.zz.eureka.util.GatewayUtils;
+import com.zz.eureka.util.IPAddrUtils;
+import com.zz.eureka.util.LogUtils;
+import com.zz.eureka.util.UuidUtils;
+import com.zz.sccommon.constant.BizConstans;
+import com.zz.sccommon.exception.ErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.factory.rewrite.ModifyResponseBodyGatewayFilterFactory;
+import org.springframework.cloud.gateway.handler.predicate.ReadBodyPredicateFactory;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
@@ -17,7 +26,6 @@ import reactor.core.publisher.Mono;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 /**
  * ************************************
@@ -32,7 +40,8 @@ import java.util.UUID;
 public class GlobalRequestFilter implements GlobalFilter, Ordered {
     @Autowired
     private ModifyResponseBodyGatewayFilterFactory modifyResponseBodyGatewayFilterFactory;
-    
+    @Autowired
+    private ReadBodyPredicateFactory readBodyPredicateFactory;
     /**
      * 与该值保持一致{@link org.springframework.cloud.gateway.handler.predicate.ReadBodyPredicateFactory#CACHE_REQUEST_BODY_OBJECT_KEY}
      */
@@ -48,64 +57,80 @@ public class GlobalRequestFilter implements GlobalFilter, Ordered {
      */
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-        // 全流程多次交互的事务ID
+        // 全流程多次交互的事务ID,优先从请求体中获取
         String traceId = null;
-        // 每次请求的ID
-        String reqId = generateUuid();
+        // 流控标识
+        String flowCtrlFlag = "false";
+        long startTime = System.currentTimeMillis();
+        ServerHttpRequest request = exchange.getRequest();
         /**
          * 获取body的方法参考{@link org.springframework.cloud.gateway.filter.factory.rewrite.ModifyRequestBodyGatewayFilterFactory}
          * 或者{@link org.springframework.cloud.gateway.handler.predicate.ReadBodyPredicateFactory}
          * 这里默认已经调用过readBody的断言，直接从缓存中获取body
          */
-        Object cachedBody = exchange.getAttribute(CACHE_REQUEST_BODY_OBJECT_KEY);
+        Object cachedBody = GatewayUtils.fetchBody(readBodyPredicateFactory, exchange);
+        boolean isJson = GatewayUtils.isJson(exchange.getRequest().getHeaders().getContentType());
+        String command = null;
         if(cachedBody != null) {
-            log.info("request json:{}", JSON.toJSONString(cachedBody));
-            if(cachedBody instanceof String) {
-                JSONObject jsonObject = JSONObject.parseObject((String) cachedBody);
-                traceId = jsonObject.getString("transactionid");
-                log.info("cache origin request body is:{}", cachedBody);
+            if((cachedBody instanceof String) && isJson) {
+                try {
+                    JSONObject jsonObject = JSONObject.parseObject((String) cachedBody);
+                    traceId = jsonObject.getString("transactionid");
+                    command = jsonObject.getString("command");
+                    if(StringUtils.isEmpty(traceId)) {
+                        flowCtrlFlag = "true";
+                        traceId = UuidUtils.generateUuid();
+                    }
+                }catch (Exception e) {
+                    flowCtrlFlag = "true";
+                    traceId = UuidUtils.generateUuid();
+                    log.info("parse requestJson fail.", e);
+                } finally {
+                    // save trace id to log session
+                    LogUtils.saveSessionIdForLog(traceId);
+                }
             } else {
-                log.warn("cache origin request body is not string");
+                traceId = UuidUtils.generateUuid();
+                flowCtrlFlag = "true";
+                // save trace id to log session
+                LogUtils.saveSessionIdForLog(traceId);
+                log.warn("request body is not string");
             }
-        }
-        // 流控标识
-        String flowCtrlFlag = "false";
-        if(StringUtils.isEmpty(traceId)) {
+        
+            log.info("request data:" + cachedBody);
+        } else {
+            traceId = UuidUtils.generateUuid();
+            // save trace id to log session
+            LogUtils.saveSessionIdForLog(traceId);
+        
             flowCtrlFlag = "true";
-            traceId = generateUuid();
         }
+    
+        String ipstr = IPAddrUtils.getClientIp(request);
+        log.info("client ip:" + ipstr + ", " + GatewayUtils.formatRequest(request));
+        log.info("request headers:" + request.getHeaders().toString());
+    
+        exchange.getAttributes().put(BizConstans.MDC_TRACE_ID, traceId);
+        exchange.getAttributes().put(BizConstans.REQUEST_START_TIME, startTime);
+    
         /**
          * 使用exchange.getRequest().getHeaders()获取到的Headers不支持新增操作
          * 参考 {@link org.springframework.cloud.gateway.filter.factory.AddRequestHeaderGatewayFilterFactory}
          */
-        ServerHttpRequest request = exchange.getRequest().mutate()
-                .header("traceId", traceId)
-                .header("reqId", reqId)
-                .header("flowCtrlFlag", flowCtrlFlag)
-                .build();
-        log.info("[{}] custom global filter exec [post]...", traceId);
-        return chain.filter(exchange.mutate().request(request).build()).then(Mono.fromRunnable(() -> {
-            // post执行
-            modifyResponseBodyGatewayFilterFactory.apply((c -> c.setRewriteFunction(String.class, String.class, (serverWebExchange, body) -> {
-                HttpStatus responseStatus = serverWebExchange.getResponse().getStatusCode();
-                if(responseStatus != null && responseStatus.value() != 200) {
-                    // 后台服务响应不是正常的200状态， 这里只记录异常信息，给客户端响应正常状态码，使用json格式的信息标识错误信息
-                    log.info("服务端响应http status:{}, name:{}, reason:{}", responseStatus.value(), responseStatus.name(), responseStatus.getReasonPhrase());
-                    serverWebExchange.getResponse().setStatusCode(HttpStatus.OK);
-            
-                    Map<String, Object> errorAttributes = new HashMap<>();
-                    errorAttributes.put("returnDesc", "服务器异常");
-                    // returnCode 可以转换为自定义的code
-                    errorAttributes.put("returnCode", "1001");
-                    errorAttributes.put("transactionid", "1234567890");
-                    errorAttributes.put("signType", null);
-                    errorAttributes.put("sign", null);
-            
-                    body = JSON.toJSONString(errorAttributes);
-                }
-                System.out.println("response header:" + serverWebExchange.getResponse().getHeaders());
-                return Mono.just(body);
-            })));
+        ServerHttpRequest.Builder modifyRequestBuilder = request.mutate()
+                .header(BizConstans.HEADER_TRACE_ID, traceId)
+                .header(BizConstans.FLOW_CTRL_FLAG, flowCtrlFlag);
+    
+        if(StringUtils.isNotEmpty(command)) {
+            modifyRequestBuilder.header(BizConstans.COMMAND_ID, command);
+        }
+    
+        // 删除MDC缓存
+        LogUtils.clearSessionForLog();
+    
+        return wrapResponseFilter().filter(exchange.mutate().request(modifyRequestBuilder.build()).build(), chain).then(Mono.fromRunnable(() -> {
+            // post 执行完filter之后执行这里的操作，注意这里跟filter执行的线程是不一样的
+        
         }));
     }
     
@@ -120,7 +145,54 @@ public class GlobalRequestFilter implements GlobalFilter, Ordered {
         return -2;
     }
     
-    public static String generateUuid() {
-        return UUID.randomUUID().toString().replaceAll("-", "").toUpperCase();
+    private GatewayFilter wrapResponseFilter() {
+        return modifyResponseBodyGatewayFilterFactory.apply((c -> c.setRewriteFunction(String.class, String.class, (serverWebExchange, body) -> {
+            /**
+             * 这里的modifyResponseBodyFilter的执行线程也有可能前面执行的filter线程不是同一个。所以traceId要从serverWebExchange缓存中取值
+             */
+            String uid = GatewayUtils.getTraceIdFromCache(serverWebExchange);
+            LogUtils.saveSessionIdForLog(uid);
+            Long startExecTime = serverWebExchange.getAttribute(BizConstans.REQUEST_START_TIME);
+            
+            log.info("response body:" + body);
+            log.info("response header:" + serverWebExchange.getResponse().getHeaders().toString());
+            
+            HttpStatus responseStatus = serverWebExchange.getResponse().getStatusCode();
+            if(responseStatus != null && responseStatus.value() != HttpStatus.OK.value()) {
+                // 后台服务响应不是正常的200状态， 这里只记录异常信息，给客户端响应正常状态码，使用json格式的信息标识错误信息
+                log.info("服务端响应http status:{}, name:{}, reason:{}", responseStatus.value(), responseStatus.name(), responseStatus.getReasonPhrase());
+                serverWebExchange.getResponse().setStatusCode(HttpStatus.OK);
+                serverWebExchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
+                
+                // 保存日志到DB
+                Object cachedBody = GatewayUtils.fetchBody(readBodyPredicateFactory, serverWebExchange);
+                /*if(cachedBody != null) {
+                    logRecordService.saveErrorLog(cachedBody, responseStatus.value() + "",
+                            responseStatus.getReasonPhrase(), startExecTime, uid);
+                }*/
+                
+                Map<String, Object> errorAttributes = new HashMap<>();
+                errorAttributes.put("returnDesc", "服务器开小差啦");
+                // returnCode 可以转换为自定义的code
+                errorAttributes.put("returnCode", ErrorCode.SYSTEM_ERROR.getErrorCode());
+                // 签名
+                /*String signStr = SignatureUtils.sign(errorAttributes, RSASignatureUtil.SIGN_ALGORITHMS_SHA256, privateKeyStr);
+                errorAttributes.put("sign", signStr);
+                errorAttributes.put("signType", RSASignatureUtil.SIGN_ALGORITHMS_SHA256);
+                // 响应头签名信息包装
+                GatewayUtils.wrapRespHeaderWithSign(serverWebExchange, errorAttributes, privateKeyStr);*/
+                
+                body = JSON.toJSONString(errorAttributes);
+            }
+            
+            if(startExecTime != null) {
+                long end = System.currentTimeMillis();
+                log.info("request execute time [" + (end - startExecTime) + "] ms");
+            }
+            // 删除MDC缓存
+            LogUtils.clearSessionForLog();
+            
+            return Mono.just(body);
+        })));
     }
 }

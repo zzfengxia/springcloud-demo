@@ -17,6 +17,10 @@ import com.alibaba.csp.sentinel.slots.block.RuleConstant;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.zz.eureka.routedefine.CustomApiDefinition;
+import com.zz.eureka.util.GatewayUtils;
+import com.zz.eureka.util.LogUtils;
+import com.zz.sccommon.exception.ErrorCode;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.context.annotation.Bean;
@@ -32,8 +36,10 @@ import org.springframework.web.reactive.result.view.ViewResolver;
 
 import javax.annotation.PostConstruct;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -47,6 +53,7 @@ import java.util.Set;
  * ************************************
  */
 @Configuration
+@Slf4j
 public class SentinelConfigForGateway {
     private final List<ViewResolver> viewResolvers;
     private final ServerCodecConfigurer serverCodecConfigurer;
@@ -68,12 +75,27 @@ public class SentinelConfigForGateway {
     public SentinelGatewayBlockExceptionHandler sentinelGatewayBlockExceptionHandler() {
         // 定制限流后的响应信息, 默认处理类为 DefaultBlockRequestHandler
         GatewayCallbackManager.setBlockHandler((exchange, t) -> {
-            // JSON result by default.
-            return ServerResponse.status(HttpStatus.TOO_MANY_REQUESTS)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(BodyInserters.fromValue("服务器繁忙，请稍后重试"));
-        });
+            String uid = GatewayUtils.getTraceIdFromCache(exchange);
+            LogUtils.saveSessionIdForLog(uid);
+            log.info("请求已被限流");
         
+            Map<String, Object> respBody = new HashMap<>();
+            respBody.put("returnDesc", ErrorCode.TOO_MANY_REQUESTS.getReturnMsg());
+            // returnCode 可以转换为自定义的code
+            respBody.put("returnCode", ErrorCode.TOO_MANY_REQUESTS.getErrorCode());
+            // 签名
+            /*String signStr = SignatureUtils.sign(respBody, RSASignatureUtil.SIGN_ALGORITHMS_SHA256, "privateKeyStr");
+            respBody.put("sign", signStr);
+            respBody.put("signType", RSASignatureUtil.SIGN_ALGORITHMS_SHA256);
+            // 响应头签名信息包装
+            GatewayUtils.wrapRespHeaderWithSign(exchange, respBody, "privateKeyStr");*/
+        
+            // JSON result by default.
+            return ServerResponse.status(HttpStatus.OK)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(BodyInserters.fromValue(JSON.toJSONString(respBody)));
+        });
+    
         // Register the block exception handler for Spring Cloud Gateway.
         return new SentinelGatewayBlockExceptionHandler(viewResolvers, serverCodecConfigurer);
     }

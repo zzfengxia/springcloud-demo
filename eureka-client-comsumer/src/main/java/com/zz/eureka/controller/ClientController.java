@@ -1,3 +1,4 @@
+/*
 package com.zz.eureka.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,18 +9,22 @@ import org.springframework.web.client.RestTemplate;
 
 @RestController
 public class ClientController {
-    /**
+    */
+/**
      * 实现rest客户端功能
      * LoadBalanced标识实现负载客户端，此时URI需要使用虚拟主机名（即服务提供者的名称，而不是主机名）
-     */
+     *//*
+
     @Autowired
     @LoadBalanced
     private RestTemplate balanceTemplate;
 
-    /**
+    */
+/**
      * 实现rest客户端功能
      * 无负载功能时，URL需要使用物理主机名(IP或域名，而不是注册到服务中心的服务名)
-     */
+     *//*
+
     @Autowired
     private RestTemplate restTemplate;
 
@@ -34,3 +39,4 @@ public class ClientController {
         return res;
     }
 }
+*/

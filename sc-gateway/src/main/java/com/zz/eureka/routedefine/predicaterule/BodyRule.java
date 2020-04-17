@@ -2,6 +2,7 @@ package com.zz.eureka.routedefine.predicaterule;
 
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
+import com.zz.sccommon.util.JsonUtils;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -48,6 +49,17 @@ public class BodyRule implements IRule {
     private Map<String, List<String>> attrMap;
     
     private String strategy = AND;
+    /**
+     * 标识不判断属性值，只用于读取body体
+     */
+    private Boolean empty;
+    
+    /**
+     * 空对象，用来获取body体。因为还未找到在断言失败且未调用readBody断言的情况获取 POST请求request body的方法
+     */
+    public static BodyRule empty() {
+        return new BodyRule();
+    }
     
     @Override
     public boolean validate() {
@@ -60,6 +72,7 @@ public class BodyRule implements IRule {
     
     /**
      * 由于PredicateSpec.readBody不能调用多次，所以同一个route规则也不能重复配置BodyRule
+     * 如果配置了请求体参数校验，那么对于非json格式的请求会完全阻断
      *
      * @param predicateSpec
      * @return
@@ -67,12 +80,16 @@ public class BodyRule implements IRule {
     @Override
     public BooleanSpec predicate(PredicateSpec predicateSpec) {
         return predicateSpec.readBody(String.class, body -> {
-            JSONObject jsonObject = JSONObject.parseObject(body);
-            boolean predicateFlag = false;
-            
             if(attrMap == null || attrMap.isEmpty()) {
                 return true;
             }
+            if(!JsonUtils.isJson(body)) {
+                log.info("request body is not a json data");
+                // todo 这里先让非json格式数据通过，等可以在外部获取body体后这里需要改为false.
+                return true;
+            }
+            JSONObject jsonObject = JSONObject.parseObject(body);
+            boolean predicateFlag = false;
             
             for (Map.Entry<String, List<String>> entry : attrMap.entrySet()) {
                 String name = entry.getKey();

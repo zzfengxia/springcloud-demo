@@ -89,5 +89,6 @@
         <module>eureka-client-provider</module>
         <module>eureka-client-comsumer</module>
         <module>sc-gateway</module>
+        <module>sc-common</module>
     </modules>
 </project>

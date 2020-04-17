@@ -1,4 +1,4 @@
-package com.zz.eureka.util;
+package com.zz.sccommon.util;
 
 import com.zz.sccommon.constant.BizConstans;
 import org.slf4j.MDC;
