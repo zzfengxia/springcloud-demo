@@ -1,24 +1,31 @@
-package com.zz.eureka.service;
+package com.zz.eureka.handler;
 
-import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Sets;
+import com.zz.eureka.respdefine.IFailResponse;
+import com.zz.eureka.respdefine.ResponseFactoryService;
+import com.zz.eureka.util.GatewayUtils;
+import com.zz.sccommon.util.LogUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.math.NumberUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.web.ErrorProperties;
 import org.springframework.boot.autoconfigure.web.ResourceProperties;
 import org.springframework.boot.autoconfigure.web.reactive.error.DefaultErrorWebExceptionHandler;
 import org.springframework.boot.web.reactive.error.ErrorAttributes;
+import org.springframework.cloud.gateway.handler.predicate.ReadBodyPredicateFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.NestedExceptionUtils;
 import org.springframework.http.HttpStatus;
-import org.springframework.util.StringUtils;
+import org.springframework.http.MediaType;
+import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.server.RequestPredicates;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.RouterFunctions;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import org.springframework.web.server.ResponseStatusException;
+import reactor.core.publisher.Mono;
 
-import java.net.SocketException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -38,7 +45,9 @@ import java.util.Set;
 @Slf4j
 public class JsonErrorWebExceptionHandler extends DefaultErrorWebExceptionHandler {
     private static final Set<String> NOTFOUND_CLIENT_EXCEPTIONS = Sets.newHashSet("NotFoundException");
-    private static final String CACHE_REQUEST_BODY_OBJECT_KEY = "cachedRequestBodyObject";
+    
+    private static final String ATTR_CODE = "returnCode";
+    private static final String ATTR_MSG = "returnDesc";
     
     public JsonErrorWebExceptionHandler(ErrorAttributes errorAttributes,
                                         ResourceProperties resourceProperties,
@@ -47,12 +56,17 @@ public class JsonErrorWebExceptionHandler extends DefaultErrorWebExceptionHandle
         super(errorAttributes, resourceProperties, errorProperties, applicationContext);
     }
     
+    @Autowired
+    private ReadBodyPredicateFactory readBodyPredicateFactory;
+    @Autowired
+    private ResponseFactoryService responseFactoryService;
+    
     /**
      * 异常情况：
      * 1. 后台服务未开启
      * 2. 网关与后台服务通信超时
-     * 3. 网关找不到后台服务的路由
-     * 4. 后台服务报错500
+     * 3. 网关找不到后台服务的路由，predicate false
+     * 4. 后台服务报错500或连接拒绝
      * 5. 后台服务地址错误404。错误3是找不到网关路由规则，而这里是找到了路由规则，但是转发后台服务404
      *
      * 只有网关路由失败，或者与转发的后台服务器通信失败（tcp错误、连接超时、read timeout等）才会走到这里异常处理(错误1,2,3)
@@ -66,37 +80,39 @@ public class JsonErrorWebExceptionHandler extends DefaultErrorWebExceptionHandle
      */
     @Override
     protected Map<String, Object> getErrorAttributes(ServerRequest request, boolean includeStackTrace) {
-        Object cachedBody = request.exchange().getAttribute(CACHE_REQUEST_BODY_OBJECT_KEY);
-        if(cachedBody != null) {
-            log.info("request json:{}", JSON.toJSONString(cachedBody));
-        }
-        // 这里其实可以根据异常类型进行定制化逻辑
-        int code = 500;
-        String message = "系统错误";
+        /**
+         * 这里的modifyResponseBodyFilter的执行线程也有可能前面执行的filter线程不是同一个。所以traceId要从serverWebExchange缓存中取值
+         */
+        String uid = GatewayUtils.getTraceIdFromCache(request.exchange());
+        LogUtils.saveSessionIdForLog(uid);
+        // http status一律 200
+        int code = 200;
+        String message = "服务器开小差啦";
         Throwable error = super.getError(request);
         if(error instanceof ResponseStatusException) {
             if(isNotFoundException(error)) {
                 message = "接口暂未开放";
-                code = 404;
-            } else {
-                code = ((ResponseStatusException) error).getStatus().value();
+            } /*else {
                 message = ((ResponseStatusException) error).getStatus().name();
-            }
-        } else if(error instanceof SocketException) {
+            }*/
+        } /*else if(error instanceof SocketException) {
             // 可以响应给客户端200，使用自定义的returnCode标识错误
-            code = 200;
             message = error.getMessage();
+        }*/
+        
+        Object cachedBody = GatewayUtils.fetchBody(readBodyPredicateFactory, request.exchange());
+        if(cachedBody != null) {
+            log.info("[路由转发失败] request data:" + cachedBody);
         }
         
-        log.info("error msg:{}", super.getErrorAttributes(request, includeStackTrace));
+        // 原始错误响应信息
+        log.info("origin error msg:" + super.getErrorAttributes(request, includeStackTrace));
         
         Map<String, Object> errorAttributes = new HashMap<>();
-        errorAttributes.put("returnDesc", message);
+        errorAttributes.put(ATTR_CODE, code);
         // returnCode 可以转换为自定义的code
-        errorAttributes.put("returnCode", code);
-        errorAttributes.put("transactionid", "1234567890");
-        errorAttributes.put("signType", null);
-        errorAttributes.put("sign", null);
+        errorAttributes.put(ATTR_MSG, message);
+        
         return errorAttributes;
     }
     
@@ -106,25 +122,33 @@ public class JsonErrorWebExceptionHandler extends DefaultErrorWebExceptionHandle
     }
     
     @Override
+    protected Mono<ServerResponse> renderErrorResponse(ServerRequest request) {
+        boolean includeStackTrace = isIncludeStackTrace(request, MediaType.ALL);
+        Map<String, Object> error = getErrorAttributes(request, includeStackTrace);
+        int httpStatus = getHttpStatus(error);
+    
+        IFailResponse.Response failResponseInfo = responseFactoryService.failResponseInfo(request.exchange(), error.get(ATTR_MSG) + "", null);
+        
+        // 响应json格式给客户端
+        return ServerResponse.status(failResponseInfo.getCode())
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(failResponseInfo.getMsg()));
+    }
+    
+    @Override
     protected int getHttpStatus(Map<String, Object> errorAttributes) {
-        return (int) errorAttributes.get("returnCode");
+        return NumberUtils.toInt(errorAttributes.get(ATTR_CODE) + "", HttpStatus.INTERNAL_SERVER_ERROR.value());
     }
     
     @Override
     protected void logError(ServerRequest request, ServerResponse response, Throwable throwable) {
-        log.warn(request.exchange().getLogPrefix() + formatError(throwable, request));
-        log.error(String.format("%s %s Server Error for %s", request.exchange().getLogPrefix(), response.rawStatusCode(), formatRequest(request)));
+        log.error(formatError(throwable, request));
+        log.error(String.format("%s Server Error for %s", response.rawStatusCode(), GatewayUtils.formatRequest(request.exchange().getRequest())));
     }
     
     private String formatError(Throwable ex, ServerRequest request) {
         String reason = ex.getClass().getSimpleName() + ": " + ex.getMessage();
         return "Resolved [" + reason + "] for HTTP " + request.methodName() + " " + request.path();
-    }
-    
-    private String formatRequest(ServerRequest request) {
-        String rawQuery = request.uri().getRawQuery();
-        String query = StringUtils.hasText(rawQuery) ? "?" + rawQuery : "";
-        return "HTTP " + request.methodName() + " \"" + request.path() + query + "\"";
     }
     
     private boolean isNotFoundException(Throwable ex) {

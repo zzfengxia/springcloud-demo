@@ -28,7 +28,10 @@ public class QueryRule implements IRule {
     private Map<String, String> queryMap;
     
     private String strategy = AND;
-    
+    /**
+     * predicate顺序，值越小越优先
+     */
+    private int order;
     @Override
     public boolean validate() {
         if(!AND.equals(strategy) && !OR.equals(strategy)) {

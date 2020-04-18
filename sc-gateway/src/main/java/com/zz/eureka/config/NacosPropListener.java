@@ -1,6 +1,5 @@
 package com.zz.eureka.config;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.nacos.spring.context.event.config.NacosConfigurationPropertiesBeanBoundEvent;
 import com.zz.eureka.routedefine.RouteRuleProp;
 import lombok.extern.slf4j.Slf4j;
@@ -37,7 +36,6 @@ public class NacosPropListener implements ApplicationListener<NacosConfiguration
         if(!(event.getBean() instanceof RouteRuleProp) || predicateRulesList == null) {
             return;
         }
-        System.out.println("predicateRulesList:" + JSON.toJSONString(predicateRulesList.getRules()));
         if(!predicateRulesList.validate(routeLocatorBuilder.routes())) {
             log.error("配置的路由规则有误，无法更新路由规则");
             return;

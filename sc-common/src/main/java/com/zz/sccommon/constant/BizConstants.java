@@ -8,7 +8,7 @@ package com.zz.sccommon.constant;
  * @date 2020-04-08 14:24
  * ************************************
  */
-public final class BizConstans {
+public final class BizConstants {
     /**
      * 日志追踪ID
      */

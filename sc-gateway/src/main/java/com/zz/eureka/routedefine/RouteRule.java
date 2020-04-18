@@ -47,21 +47,37 @@ public class RouteRule implements RuleCheck {
         if(!this.validate()) {
             return;
         }
-    
-        if(predicate != null) {
+        
+        if(useCommonConfig) {
+            if(predicate == null && commonPredicate == null) {
+                return;
+            }
+            builder.route(id, p -> {
+                BooleanSpec uriSpec = null;
+                if(predicate != null) {
+                    uriSpec = predicate.predicate(p, commonPredicate);
+                } else {
+                    uriSpec = commonPredicate.predicate(p);
+                }
+                if(filter != null) {
+                    uriSpec.filters(f -> filter.filter(f));
+                }
+        
+                return uriSpec.uri(URI.create(uri))
+                        .order(order);
+            });
+        } else {
+            if(predicate == null) {
+                return;
+            }
             builder.route(id, p -> {
                 BooleanSpec uriSpec;
-                if(useCommonConfig && commonPredicate != null) {
-                    uriSpec = commonPredicate.predicate(p);
-                    if(uriSpec != null) {
-                        p = uriSpec.and();
-                    }
-                }
+                
                 uriSpec = predicate.predicate(p);
                 if(filter != null) {
                     uriSpec.filters(f -> filter.filter(f));
                 }
-            
+        
                 return uriSpec.uri(URI.create(uri))
                         .order(order);
             });

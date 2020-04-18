@@ -1,6 +1,6 @@
 package com.zz.sccommon.util;
 
-import com.zz.sccommon.constant.BizConstans;
+import com.zz.sccommon.constant.BizConstants;
 import org.slf4j.MDC;
 
 /**
@@ -19,7 +19,7 @@ public class LogUtils {
      */
     public static void saveSessionIdForLog(String sessionId) {
         MDC.clear();
-        MDC.put(BizConstans.MDC_TRACE_ID, sessionId);
+        MDC.put(BizConstants.MDC_TRACE_ID, sessionId);
     }
     
     public static void clearSessionForLog() {

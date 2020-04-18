@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <property name="appName" value="sc-sptsm-gateway"/>
+    <property name="logDir" value="/app/biz_logs/${appName}"/>
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>[%-5level] [%X{sessionId}] [] %d{yyy-MM-dd HH:mm:ss.SSS} %t %class{50}\(%class{0}:%line\) - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="sptsm" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <File>${logDir}/${appName}.log</File>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- daily rollover -->
+            <FileNamePattern>${logDir}/${appName}.log.%d{yyyy-MM-dd}</FileNamePattern>
+        </rollingPolicy>
+        <encoder>
+            <charset>UTF-8</charset>
+            <Pattern>[%-5level] [%X{sessionId}] [] %d{yyy-MM-dd HH:mm:ss.SSS} %t %class{20}\(%class{0}:%line\) - %msg%n</Pattern>
+        </encoder>
+    </appender>
+
+    <logger name="com.vfuchong" level="info" additivity="false">
+        <appender-ref ref="sptsm"/>
+    </logger>
+
+    <root level="info">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="sptsm"/>
+    </root>
+</configuration>

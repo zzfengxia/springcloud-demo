@@ -1,6 +1,6 @@
 package com.zz.eureka.config;
 
-import com.zz.eureka.service.JsonErrorWebExceptionHandler;
+import com.zz.eureka.handler.JsonErrorWebExceptionHandler;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;

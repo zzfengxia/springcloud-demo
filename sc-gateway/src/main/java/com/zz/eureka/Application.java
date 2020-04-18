@@ -2,9 +2,10 @@ package com.zz.eureka;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.nacos.spring.context.annotation.config.NacosPropertySource;
+import com.zz.eureka.common.GatewayConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.gateway.route.CompositeRouteLocator;
@@ -12,7 +13,6 @@ import org.springframework.cloud.gateway.route.RouteDefinitionLocator;
 import org.springframework.cloud.gateway.route.RouteDefinitionRouteLocator;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
-import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ServerWebExchange;
@@ -28,6 +28,7 @@ import java.util.UUID;
 @SpringBootApplication
 @RestController
 @Slf4j
+@NacosPropertySource(dataId = GatewayConstants.DATA_ID_SETTINGS, groupId = GatewayConstants.GROUP_GATEWAY, autoRefreshed = true)
 public class Application {
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);

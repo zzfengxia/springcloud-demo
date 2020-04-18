@@ -17,11 +17,22 @@ public class HeaderRule implements IRule {
     private String headerName;
     private String headerValue;
     
+    /**
+     * predicate顺序，值越小越优先
+     */
+    private int order;
+    
     @Override
     public boolean validate() {
         return true;
     }
     
+    /**
+     * 请求头匹配
+     *
+     * @param predicateSpec
+     * @return
+     */
     @Override
     public BooleanSpec predicate(PredicateSpec predicateSpec) {
         return predicateSpec.header(headerName, headerValue);

@@ -1,10 +1,6 @@
 package com.zz.eureka.service;
 
-import com.alibaba.fastjson.JSON;
-import com.zz.eureka.common.RouteInfo;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.config.PropertiesRouteDefinitionLocator;
 import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
 import org.springframework.cloud.gateway.route.CachingRouteLocator;
@@ -15,14 +11,8 @@ import org.springframework.cloud.gateway.route.RouteDefinitionLocator;
 import org.springframework.cloud.gateway.route.RouteDefinitionRepository;
 import org.springframework.cloud.gateway.route.RouteDefinitionRouteLocator;
 import org.springframework.cloud.gateway.route.RouteLocator;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
 
 /**
  * ************************************
@@ -37,8 +27,7 @@ import java.util.Set;
  */
 @Slf4j
 public class RedisRouteDefinitionRepository implements RouteDefinitionRepository {
-    @Autowired
-    private RedisTemplate<String, String> redisTemplate;
+    //private RedisTemplate<String, String> redisTemplate;
     
     /**
      * 加载解析路由并保存到内存的执行步骤：
@@ -63,7 +52,7 @@ public class RedisRouteDefinitionRepository implements RouteDefinitionRepository
      */
     @Override
     public Flux<RouteDefinition> getRouteDefinitions() {
-        log.info("CustomRouteDefinitionRepository get invoking...");
+        /*log.info("CustomRouteDefinitionRepository get invoking...");
         List<RouteDefinition> routeDefinitions = new ArrayList<>();
         Set<String> routeKeys = redisTemplate.keys("config:card:" + "*");
         if(routeKeys == null || routeKeys.size() == 0) {
@@ -78,8 +67,8 @@ public class RedisRouteDefinitionRepository implements RouteDefinitionRepository
             RouteDefinition routeDefinition = new RouteDefinition(defineText);
             routeDefinition.setOrder(-100);
             routeDefinitions.add(routeDefinition);
-        });
-        return Flux.fromIterable(routeDefinitions);
+        });*/
+        return Flux.empty();
     }
     
     /**

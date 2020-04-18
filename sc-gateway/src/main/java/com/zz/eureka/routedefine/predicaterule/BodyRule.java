@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.cloud.gateway.route.builder.BooleanSpec;
 import org.springframework.cloud.gateway.route.builder.PredicateSpec;
+import org.springframework.core.Ordered;
 
 import java.util.List;
 import java.util.Map;
@@ -53,12 +54,18 @@ public class BodyRule implements IRule {
      * 标识不判断属性值，只用于读取body体
      */
     private Boolean empty;
+    /**
+     * predicate顺序，值越小越优先
+     */
+    private int order;
     
     /**
-     * 空对象，用来获取body体。因为还未找到在断言失败且未调用readBody断言的情况获取 POST请求request body的方法
+     * 空对象，用来获取body体。因为还未找到在断言失败且未调用readBody断言的情况获取 POST请求request body的方法.确保优先级最高
      */
     public static BodyRule empty() {
-        return new BodyRule();
+        BodyRule empty = new BodyRule();
+        empty.setOrder(Ordered.HIGHEST_PRECEDENCE);
+        return empty;
     }
     
     @Override
@@ -125,5 +132,10 @@ public class BodyRule implements IRule {
             
             return predicateFlag;
         });
+    }
+    
+    @Override
+    public int getOrder() {
+        return this.order;
     }
 }

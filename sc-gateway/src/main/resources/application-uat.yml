@@ -1,0 +1,46 @@
+# db配置
+spring:
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+    url: jdbc:mysql://172.16.80.106:3306/vfc_sptsm?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+    username: vfc_sptsm_qa
+    # 生成的加密后的密码
+    password: ftETtJ/EDOIB4MpNwX8+M0ehP9g4XSzo9puATWjsAUzeZszdqW0Em5PruVhwb4ZNocUbduR2vN+IjKMnlBPeqg==
+    # 使用druid连接池
+    type: com.alibaba.druid.pool.DruidDataSource
+    druid:
+      initial-size: 1
+      # 启用数据库密码加密
+      connection-properties: config.decrypt=true;config.decrypt.key=${druid-public-key}
+      filter:
+        stat:
+          enabled: false
+        wall:
+          enabled: false
+        slf4j:
+          enabled: false
+        log4j2:
+          enabled: false
+        log4j:
+          enabled: false
+        commons-log:
+          enabled: false
+        config: # 该配置要启用才能加密数据库密码
+          enabled: true
+      stat-view-servlet:
+        enabled: false # 关闭监控
+      web-stat-filter:
+        enabled: false
+        session-stat-enable: false
+
+druid-public-key: MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAKdU10HP7aNZNvPjR/2bZlx3paIqefCSt3aLjIQdtgLNYla+T/I7UetNof7TymcX4eFuTO6OLiTIMD+jSzS5UTUCAwEAAQ==
+
+nacos:
+  config:
+    server-addr: 172.16.80.132:8848
+
+# logback profile 配置
+logging:
+  config: classpath:logback-prod.xml
+
+

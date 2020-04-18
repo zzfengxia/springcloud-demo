@@ -1,8 +1,12 @@
 package com.zz.eureka.routedefine.predicaterule;
 
+import com.zz.eureka.common.GatewayConstants;
+import com.zz.eureka.handler.CustomPathRoutePredicateFactory;
 import lombok.Data;
 import org.springframework.cloud.gateway.route.builder.BooleanSpec;
 import org.springframework.cloud.gateway.route.builder.PredicateSpec;
+
+import java.util.Arrays;
 
 /**
  * ************************************
@@ -15,6 +19,15 @@ import org.springframework.cloud.gateway.route.builder.PredicateSpec;
 @Data
 public class PathRule implements IRule {
     private String[] path;
+    /**
+     * 配置网关路由异常时的响应策略,跟path绑定
+     */
+    private int respStrategy = GatewayConstants.SP_RESP_STRATEGY;
+    
+    /**
+     * predicate顺序，值越小越优先. path应该优先级比其他predicate高，这样才能使respStrategy参数生效
+     */
+    private int order;
     
     public PathRule(String text) {
         this.path = text.split(",");
@@ -30,6 +43,11 @@ public class PathRule implements IRule {
     
     @Override
     public BooleanSpec predicate(PredicateSpec predicateSpec) {
-        return predicateSpec.path(path);
+        return predicateSpec.asyncPredicate(
+                new CustomPathRoutePredicateFactory().applyAsync(c -> {
+                    c.setPatterns(Arrays.asList(path));
+                    c.setRespStrategy(respStrategy);
+                })
+        );
     }
 }

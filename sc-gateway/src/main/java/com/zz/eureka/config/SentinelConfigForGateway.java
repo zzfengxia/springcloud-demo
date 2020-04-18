@@ -16,18 +16,24 @@ import com.alibaba.csp.sentinel.datasource.nacos.NacosDataSource;
 import com.alibaba.csp.sentinel.slots.block.RuleConstant;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
+import com.zz.eureka.common.GatewayConstants;
+import com.zz.eureka.respdefine.IFailResponse;
+import com.zz.eureka.respdefine.ResponseFactoryService;
 import com.zz.eureka.routedefine.CustomApiDefinition;
+import com.zz.eureka.routedefine.SentinelDefinition;
 import com.zz.eureka.util.GatewayUtils;
-import com.zz.eureka.util.LogUtils;
 import com.zz.sccommon.exception.ErrorCode;
+import com.zz.sccommon.util.LogUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerCodecConfigurer;
 import org.springframework.web.reactive.function.BodyInserters;
@@ -36,10 +42,8 @@ import org.springframework.web.reactive.result.view.ViewResolver;
 
 import javax.annotation.PostConstruct;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -57,6 +61,8 @@ import java.util.Set;
 public class SentinelConfigForGateway {
     private final List<ViewResolver> viewResolvers;
     private final ServerCodecConfigurer serverCodecConfigurer;
+    @Autowired
+    private ResponseFactoryService responseFactoryService;
     
     public SentinelConfigForGateway(ObjectProvider<List<ViewResolver>> viewResolversProvider,
                                 ServerCodecConfigurer serverCodecConfigurer) {
@@ -78,24 +84,15 @@ public class SentinelConfigForGateway {
             String uid = GatewayUtils.getTraceIdFromCache(exchange);
             LogUtils.saveSessionIdForLog(uid);
             log.info("请求已被限流");
-        
-            Map<String, Object> respBody = new HashMap<>();
-            respBody.put("returnDesc", ErrorCode.TOO_MANY_REQUESTS.getReturnMsg());
-            // returnCode 可以转换为自定义的code
-            respBody.put("returnCode", ErrorCode.TOO_MANY_REQUESTS.getErrorCode());
-            // 签名
-            /*String signStr = SignatureUtils.sign(respBody, RSASignatureUtil.SIGN_ALGORITHMS_SHA256, "privateKeyStr");
-            respBody.put("sign", signStr);
-            respBody.put("signType", RSASignatureUtil.SIGN_ALGORITHMS_SHA256);
-            // 响应头签名信息包装
-            GatewayUtils.wrapRespHeaderWithSign(exchange, respBody, "privateKeyStr");*/
-        
-            // JSON result by default.
-            return ServerResponse.status(HttpStatus.OK)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(BodyInserters.fromValue(JSON.toJSONString(respBody)));
-        });
     
+            IFailResponse.Response failResponseInfo = responseFactoryService.failResponseInfo(exchange, ErrorCode.TOO_MANY_REQUESTS.getErrorCode(), ErrorCode.TOO_MANY_REQUESTS.getErrorCode());
+            
+            // JSON result by default.
+            return ServerResponse.status(failResponseInfo.getCode())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(BodyInserters.fromValue(failResponseInfo.getMsg()));
+        });
+        
         // Register the block exception handler for Spring Cloud Gateway.
         return new SentinelGatewayBlockExceptionHandler(viewResolvers, serverCodecConfigurer);
     }
@@ -105,26 +102,22 @@ public class SentinelConfigForGateway {
         // 参数为执行顺序ordered,顺序越小越优先
         return new SentinelGatewayFilter(-1);
     }
-    
-    private String serverAddr = "172.16.80.132:8848";
-    private String groupId = "sentinel:demo";
-    //@Value("nacos.config.dataId")
-    private String dataId = "sentinel.txt";
+    @Value("${nacos.config.server-addr}")
+    private String serverAddr;
+    private String groupId = GatewayConstants.GROUP_GATEWAY;
+    private String dataId = GatewayConstants.DATA_ID_FLOW;
     
     @PostConstruct
     public void doInit() {
-        //initCustomizedApis();
-        //initGatewayRules();
-        
-        // 注册动态资源推送。接入nacos配置中心推送
         /**
          * 动态限流规则配置参考
          * <pre>
          * [
          *     {
-         *       "resource": "route-demo-1",
-         *       "count": 2.0,
-         *       "intervalSec": 1.0,
+         *       "resource": "customized_api1",
+         *       "resourceMode": 1,
+         *       "count": 1.0,
+         *       "intervalSec": 5.0,
          *       "paramItem": {
          *           "parseStrategy": 2,
          *           "fieldName": "flowctrlflag",
@@ -137,8 +130,18 @@ public class SentinelConfigForGateway {
          */
         ReadableDataSource<String, Set<GatewayFlowRule>> flowRuleDataSource = new NacosDataSource<>(
                 serverAddr, groupId, dataId,
-                source -> JSON.parseObject(source, new TypeReference<Set<GatewayFlowRule>>() {
-                }));
+                source -> {
+                    String config = source;
+                    try {
+                        SentinelDefinition definition = JSON.parseObject(config, SentinelDefinition.class);
+                        if(definition != null && StringUtils.isNotEmpty(definition.getFlowRule())) {
+                            config = definition.getFlowRule();
+                        }
+                    } catch (Exception e) {
+                    
+                    }
+                    return JSON.parseObject(config, new TypeReference<Set<GatewayFlowRule>>() {});
+                });
         GatewayRuleManager.register2Property(flowRuleDataSource.getProperty());
     
         // API分组动态配置
@@ -157,10 +160,19 @@ public class SentinelConfigForGateway {
          * </pre>
          */
         ReadableDataSource<String, Set<ApiDefinition>> apiDefDataSource = new NacosDataSource<>(
-                serverAddr, groupId, "sentinel2.txt",
+                serverAddr, groupId, dataId,
                 source -> {
+                    String config = source;
+                    try {
+                        SentinelDefinition definition = JSON.parseObject(config, SentinelDefinition.class);
+                        if(definition != null && StringUtils.isNotEmpty(definition.getApiDefinition())) {
+                            config = definition.getApiDefinition();
+                        }
+                    } catch (Exception e) {
+        
+                    }
                     // 将Set<CustomApiDefinition>转成Set<ApiDefinition> todo 简单实现
-                    Set<CustomApiDefinition> apiDefinitionSet = JSON.parseObject(source, new TypeReference<Set<CustomApiDefinition>>() {});
+                    Set<CustomApiDefinition> apiDefinitionSet = JSON.parseObject(config, new TypeReference<Set<CustomApiDefinition>>() {});
                     Set<ApiDefinition> result = new HashSet<>(apiDefinitionSet.size());
                     if(apiDefinitionSet.isEmpty()) {
                         return result;

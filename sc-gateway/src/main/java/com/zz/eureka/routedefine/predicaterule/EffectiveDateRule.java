@@ -29,6 +29,11 @@ public class EffectiveDateRule implements IRule {
     @Getter
     @Setter
     private String before;
+    /**
+     * predicate顺序，值越小越优先
+     */
+    @Setter
+    private int order;
     
     private ZonedDateTime afterTime;
     private ZonedDateTime beforeTime;
@@ -62,5 +67,10 @@ public class EffectiveDateRule implements IRule {
         }
         
         return predicateSpec.after(afterTime);
+    }
+    
+    @Override
+    public int getOrder() {
+        return this.order;
     }
 }

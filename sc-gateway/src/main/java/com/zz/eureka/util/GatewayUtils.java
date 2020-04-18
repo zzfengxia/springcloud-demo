@@ -1,8 +1,10 @@
 package com.zz.eureka.util;
 
 import com.alibaba.fastjson.JSON;
-import com.zz.eureka.util.sign.RSASignatureUtil;
-import com.zz.sccommon.constant.BizConstans;
+import com.zz.sccommon.constant.BizConstants;
+import com.zz.sccommon.util.UuidUtils;
+import com.zz.sccommon.util.sign.RSASignatureUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.cloud.gateway.handler.predicate.ReadBodyPredicateFactory;
 import org.springframework.http.HttpMethod;
@@ -20,9 +22,10 @@ import java.util.Map;
  * @date 2020-04-08 17:19
  * ************************************
  */
+@Slf4j
 public class GatewayUtils {
     /**
-     * 该值与{@link org.springframework.cloud.gateway.handler.predicate.ReadBodyPredicateFactory}类中的CACHE_REQUEST_BODY_OBJECT_KEY一致
+     * 该值与{@link ReadBodyPredicateFactory}类中的CACHE_REQUEST_BODY_OBJECT_KEY一致
      */
     public static final String CACHE_REQUEST_BODY_OBJECT_KEY = "cachedRequestBodyObject";
     
@@ -34,10 +37,10 @@ public class GatewayUtils {
      * @return
      */
     public static String getTraceIdFromCache(ServerWebExchange exchange) {
-        String traceId = exchange.getAttribute(BizConstans.MDC_TRACE_ID);
+        String traceId = exchange.getAttribute(BizConstants.MDC_TRACE_ID);
         if(StringUtils.isEmpty(traceId)) {
             traceId = UuidUtils.generateUuid();
-            exchange.getAttributes().put(BizConstans.MDC_TRACE_ID, traceId);
+            exchange.getAttributes().put(BizConstants.MDC_TRACE_ID, traceId);
         }
         
         return traceId;
@@ -55,15 +58,19 @@ public class GatewayUtils {
      * @param exchange
      * @param body
      * @param privateKeyStr
-     * @return
+     * @return flag 请求头签名标识
      */
-    public static void wrapRespHeaderWithSign(ServerWebExchange exchange, Map<String, Object> body, String privateKeyStr) {
-        String requestHeaderSignValue = exchange.getRequest().getHeaders().getFirst(BizConstans.SIGNATURE_VALUE);
+    public static boolean wrapRespHeaderWithSign(ServerWebExchange exchange, Map<String, Object> body, String privateKeyStr) {
+        boolean flag = false;
+        String requestHeaderSignValue = exchange.getRequest().getHeaders().getFirst(BizConstants.SIGNATURE_VALUE);
         if (requestHeaderSignValue != null) {
-            exchange.getResponse().getHeaders().add(BizConstans.SIGNATURE_TYPE, RSASignatureUtil.SIGN_ALGORITHMS_SHA256);
-            exchange.getResponse().getHeaders().add(BizConstans.SIGNATURE_VALUE,
+            exchange.getResponse().getHeaders().add(BizConstants.SIGNATURE_TYPE, RSASignatureUtil.SIGN_ALGORITHMS_SHA256);
+            exchange.getResponse().getHeaders().add(BizConstants.SIGNATURE_VALUE,
                     RSASignatureUtil.sign(JSON.toJSONString(body), privateKeyStr, "UTF-8", RSASignatureUtil.SIGN_ALGORITHMS_SHA256));
+    
+            flag = true;
         }
+        return flag;
     }
     
     /**

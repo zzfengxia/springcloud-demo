@@ -2,7 +2,7 @@ package com.zz.eureka.routedefine;
 
 import com.alibaba.nacos.api.config.ConfigType;
 import com.alibaba.nacos.api.config.annotation.NacosConfigurationProperties;
-import com.zz.eureka.common.GatewayConstans;
+import com.zz.eureka.common.GatewayConstants;
 import com.zz.eureka.routedefine.predicaterule.PredicateGroup;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +22,7 @@ import java.util.List;
  * @date 2020-03-26 17:46
  * ************************************
  */
-@NacosConfigurationProperties(prefix = "route", dataId = GatewayConstans.DATA_ID_ROUTE, groupId = GatewayConstans.GROUP_GATEWAY, type = ConfigType.YAML, autoRefreshed = true)
+@NacosConfigurationProperties(prefix = "route", dataId = GatewayConstants.DATA_ID_ROUTE, groupId = GatewayConstants.GROUP_GATEWAY, type = ConfigType.YAML, autoRefreshed = true)
 @Configuration
 @Data
 @Slf4j
@@ -41,7 +41,8 @@ public class RouteRuleProp {
             log.error("路由规则配置失败", e);
             return Flux.empty();
         }
-        return builder.build().getRoutes();
+        return builder.build().getRoutes()
+                .doOnNext(route -> log.info("注册路由id:" + route.getId()));
     }
     
     public boolean validate(RouteLocatorBuilder.Builder builder) {

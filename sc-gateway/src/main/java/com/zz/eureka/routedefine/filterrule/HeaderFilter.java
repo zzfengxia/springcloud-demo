@@ -1,31 +1,31 @@
 package com.zz.eureka.routedefine.filterrule;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.cloud.gateway.route.builder.GatewayFilterSpec;
 import org.springframework.cloud.gateway.route.builder.UriSpec;
+
+import java.util.Map;
 
 /**
  * ************************************
  * create by Intellij IDEA
  *
  * @author Francis.zz
- * @date 2020-03-28 09:49
+ * @date 2020-04-17 14:28
  * ************************************
  */
-@Data
-public class PathFilter implements IFilter {
+@Setter
+@Getter
+public class HeaderFilter implements IFilter {
+    private Map<String, String> headers;
     /**
-     * 具体接口访问path，不要uri
-     * eg： query
-     */
-    private String path;
-    /**
-     * filter顺序，值越小越优先.
+     * filter顺序，值越小越优先
      */
     private int order;
-    
     @Override
     public UriSpec filter(GatewayFilterSpec filterSpec) {
-        return filterSpec.setPath(path);
+        headers.forEach(filterSpec::addRequestHeader);
+        return filterSpec;
     }
 }
