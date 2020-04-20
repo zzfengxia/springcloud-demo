@@ -25,6 +25,9 @@
         <alibaba.nacos.version>0.2.7</alibaba.nacos.version>
         <!-- spring-cloud H.SR3版本匹配springboot2.2.5,版本不能随便修改 -->
         <spring-cloud.version>Hoxton.SR3</spring-cloud.version>
+        <!-- alibaba spring cloud全家桶,与springcloud版本匹配不能随便修改.
+            版本匹配关系参考：https://github.com/alibaba/spring-cloud-alibaba/wiki/%E7%89%88%E6%9C%AC%E8%AF%B4%E6%98%8E -->
+        <spring.cloud.alibaba.version>2.2.1.RELEASE</spring.cloud.alibaba.version>
     </properties>
 
     <dependencies>
@@ -94,23 +97,34 @@
 
             <!-- alibaba sentinel 网关限流-->
             <dependency>
-                <groupId>com.alibaba.csp</groupId>
-                <artifactId>sentinel-spring-cloud-gateway-adapter</artifactId>
-                <version>${alibaba.sentinel.version}</version>
+                <groupId>com.alibaba.cloud</groupId>
+                <artifactId>spring-cloud-alibaba-sentinel-gateway</artifactId>
+                <version>${spring.cloud.alibaba.version}</version>
+            </dependency>
+            <!-- alibaba sentinel 网关限流-->
+            <dependency>
+                <groupId>com.alibaba.cloud</groupId>
+                <artifactId>spring-cloud-starter-alibaba-sentinel</artifactId>
+                <version>${spring.cloud.alibaba.version}</version>
             </dependency>
 
             <!-- nacos扩展,实现动态限流规则推送 -->
             <dependency>
-                <groupId>com.alibaba.csp</groupId>
-                <artifactId>sentinel-datasource-nacos</artifactId>
-                <version>${alibaba.sentinel.version}</version>
+                <groupId>com.alibaba.cloud</groupId>
+                <artifactId>spring-cloud-alibaba-sentinel-datasource</artifactId>
+                <version>${spring.cloud.alibaba.version}</version>
             </dependency>
 
-            <!-- nacos 配置中心 -->
+            <!-- Nacos -->
             <dependency>
-                <groupId>com.alibaba.boot</groupId>
-                <artifactId>nacos-config-spring-boot-starter</artifactId>
-                <version>${alibaba.nacos.version}</version>
+                <groupId>com.alibaba.cloud</groupId>
+                <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+                <version>${spring.cloud.alibaba.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.alibaba.cloud</groupId>
+                <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
+                <version>${spring.cloud.alibaba.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -134,10 +148,11 @@
     </build>
 
     <modules>
-        <module>eureka-server</module>
-        <module>eureka-client-provider</module>
-        <module>eureka-client-comsumer</module>
+        <module>sc-order</module>
+        <module>sc-service</module>
+        <module>sc-service-api</module>
         <module>sc-gateway</module>
+        <module>sc-gateway-new</module>
         <module>sc-common</module>
     </modules>
 </project>
