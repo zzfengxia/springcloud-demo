@@ -33,15 +33,11 @@ spring:
         enabled: false
         session-stat-enable: false
 
-
-  cloud:
-    nacos:
-      config:
-        server-addr: 172.16.80.132
-
 druid-public-key: MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAKdU10HP7aNZNvPjR/2bZlx3paIqefCSt3aLjIQdtgLNYla+T/I7UetNof7TymcX4eFuTO6OLiTIMD+jSzS5UTUCAwEAAQ==
 
-
+nacos:
+  config:
+    server-addr: 172.16.80.132:8848
 
 # logback profile 配置
 logging:

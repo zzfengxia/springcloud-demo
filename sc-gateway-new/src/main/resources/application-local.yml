@@ -33,11 +33,19 @@ spring:
         enabled: false
         session-stat-enable: false
 
-
   cloud:
     nacos:
       config:
-        server-addr: 172.16.80.132
+        server-addr: 172.16.80.132:8848
+    sentinel:
+      datasource:
+        dsnacos:
+          nacos:
+            server-addr: 172.16.80.132:8848
+            data-id: gateway.sentinel.txt
+            group-id: config.gateway
+            data-type: json
+            rule-type: gw-flow
 
 druid-public-key: MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAKdU10HP7aNZNvPjR/2bZlx3paIqefCSt3aLjIQdtgLNYla+T/I7UetNof7TymcX4eFuTO6OLiTIMD+jSzS5UTUCAwEAAQ==
 

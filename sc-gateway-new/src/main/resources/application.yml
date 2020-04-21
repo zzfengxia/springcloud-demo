@@ -1,6 +1,4 @@
 spring:
-  application:
-    name: sptsm-gateway
   cloud:
     gateway:
       # 设置gateway转发到后台服务器的请求参数，超时时间等

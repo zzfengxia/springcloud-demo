@@ -1,0 +1,26 @@
+# 配置参考：https://github.com/alibaba/spring-cloud-alibaba/wiki/Nacos-config
+# spring-cloud-starter-alibaba-nacos-config 在加载配置的时候，不仅仅加载了以 dataid 为 ${spring.application.name}.${file-extension:properties} 为前缀的基础配置，
+# 还加载了dataid为 ${spring.application.name}-${profile}.${file-extension:properties} 的基础配置。
+# ${prefix} - ${spring.profiles.active} . ${file-extension},prefix为${spring.application.name}的值，也可以通过prefix参数配置
+# 在日常开发中如果遇到多套环境下的不同配置，可以通过Spring 提供的 ${spring.profiles.active} 这个配置项来配置。
+
+# Spring Cloud Alibaba Nacos Config 目前提供了三种配置能力从 Nacos 拉取相关的配置。
+# A: 通过 spring.cloud.nacos.config.shared-configs[n].data-id 支持多个共享 Data Id 的配置
+# B: 通过 spring.cloud.nacos.config.extension-configs[n].data-id 的方式支持多个扩展 Data Id 的配置
+# C: 通过内部相关规则(应用名、应用名+ Profile )自动生成相关的 Data Id 配置
+#当三种方式共同使用时，他们的一个优先级关系是:A < B < C
+spring:
+  application:
+    name: sc-alibaba-gateway
+  cloud:
+    nacos:
+      config:
+        server-addr: 172.16.80.132:8848
+        file-extension: yaml
+        extension-configs[0]:
+          data-id: gateway.route.rule.yaml
+          group: config.gateway
+          refresh: true
+
+
+
