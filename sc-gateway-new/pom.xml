@@ -22,7 +22,7 @@
             <artifactId>spring-cloud-starter-gateway</artifactId>
         </dependency>
 
-        <!-- alibaba sentinel 网关限流-->
+        <!-- alibaba sentinel 网关限流,集成spring cloud gateway、zuul、feign、dubbo限流-->
         <dependency>
             <groupId>com.alibaba.cloud</groupId>
             <artifactId>spring-cloud-starter-alibaba-sentinel</artifactId>
@@ -32,6 +32,13 @@
             <groupId>com.alibaba.cloud</groupId>
             <artifactId>spring-cloud-alibaba-sentinel-gateway</artifactId>
         </dependency>
+
+        <!-- sentinel 网关限流,只集成spring cloud gateway限流-->
+        <!--<dependency>
+            <groupId>com.alibaba.csp</groupId>
+            <artifactId>sentinel-spring-cloud-gateway-adapter</artifactId>
+            <version>${alibaba.sentinel.version}</version>
+        </dependency>-->
 
         <!-- sentinel动态数据源-nacos,要单独引入 -->
         <dependency>

@@ -13,4 +13,4 @@ spring:
     active: local #@profileActive@
 
 server:
-  port: 8086
+  port: 8085

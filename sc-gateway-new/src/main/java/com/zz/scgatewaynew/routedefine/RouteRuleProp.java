@@ -15,6 +15,9 @@ import java.util.List;
  * ************************************
  * create by Intellij IDEA
  * 动态路由规则配置
+ * nacso刷新时会调用RefreshEvent，最终会调用refreshAll
+ * @see {@link com.alibaba.cloud.nacos.refresh.NacosContextRefresher#registerNacosListener}
+ * @see {@link org.springframework.cloud.endpoint.event.RefreshEventListener#handle(org.springframework.cloud.endpoint.event.RefreshEvent)}
  *
  * @author Francis.zz
  * @date 2020-03-26 17:46

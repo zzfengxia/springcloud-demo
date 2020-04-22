@@ -85,7 +85,7 @@ public class SentinelConfigForGateway {
             LogUtils.saveSessionIdForLog(uid);
             log.info("请求已被限流");
     
-            IFailResponse.Response failResponseInfo = responseFactoryService.failResponseInfo(exchange, ErrorCode.TOO_MANY_REQUESTS.getErrorCode(), ErrorCode.TOO_MANY_REQUESTS.getErrorCode());
+            IFailResponse.Response failResponseInfo = responseFactoryService.failResponseInfo(exchange, ErrorCode.TOO_MANY_REQUESTS.getReturnMsg(), ErrorCode.TOO_MANY_REQUESTS.getErrorCode());
             
             // JSON result by default.
             return ServerResponse.status(failResponseInfo.getCode())

@@ -34,18 +34,34 @@ spring:
         session-stat-enable: false
 
   cloud:
-    nacos:
-      config:
-        server-addr: 172.16.80.132:8848
+    # spring cloud alibaba sentinel动态数据源配置参考：https://github.com/alibaba/spring-cloud-alibaba/wiki/Sentinel
+    # @see SentinelDataSourceHandler
     sentinel:
+      filter:
+        enabled: true
       datasource:
-        dsnacos:
+        ds1: # sentinel 网关限流规则动态配置
           nacos:
             server-addr: 172.16.80.132:8848
             data-id: gateway.sentinel.txt
             group-id: config.gateway
-            data-type: json
+            # 支持json、xml、custom. 使用custom时必须指定converter-class。
+            data-type: custom
+            converter-class: com.zz.scgatewaynew.routedefine.CustomSentinelRuleConverter
             rule-type: gw-flow
+        ds2: # sentinel api组定义动态配置
+          nacos:
+            server-addr: 172.16.80.132:8848
+            data-id: gateway.sentinel.txt
+            group-id: config.gateway
+            # 支持json、xml、custom. 使用custom时必须指定converter-class。
+            data-type: custom
+            converter-class: com.zz.scgatewaynew.routedefine.CustomeSentinelApiConverter
+            rule-type: gw-api-group
+
+      # @see com.alibaba.cloud.sentinel.gateway.scg.SentinelSCGAutoConfiguration
+      scg:
+        order: -1  # sentinel filter执行顺序，越小越优先不能超过GlobalRequestFilter的执行顺序
 
 druid-public-key: MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAKdU10HP7aNZNvPjR/2bZlx3paIqefCSt3aLjIQdtgLNYla+T/I7UetNof7TymcX4eFuTO6OLiTIMD+jSzS5UTUCAwEAAQ==
 

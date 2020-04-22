@@ -17,10 +17,9 @@ spring:
       config:
         server-addr: 172.16.80.132:8848
         file-extension: yaml
+        # 读取多个配置文件
         extension-configs[0]:
           data-id: gateway.route.rule.yaml
           group: config.gateway
           refresh: true
-
-
 
