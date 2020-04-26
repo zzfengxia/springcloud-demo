@@ -1,12 +1,17 @@
 package com.zz.scgatewaynew.handler;
 
 import com.zz.scgatewaynew.common.GatewayConstants;
+import com.zz.scgatewaynew.util.GatewayUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.handler.predicate.AbstractRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.GatewayPredicate;
+import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.core.style.ToStringCreator;
+import org.springframework.http.codec.HttpMessageReader;
 import org.springframework.http.server.PathContainer;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.reactive.function.server.HandlerStrategies;
+import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.pattern.PathPattern;
 import org.springframework.web.util.pattern.PathPatternParser;
@@ -36,6 +41,8 @@ public class CustomPathRoutePredicateFactory extends AbstractRoutePredicateFacto
     private static final String MATCH_OPTIONAL_TRAILING_SEPARATOR_KEY = "matchOptionalTrailingSeparator";
     
     private PathPatternParser pathPatternParser = new PathPatternParser();
+    private static final List<HttpMessageReader<?>> messageReaders = HandlerStrategies
+            .withDefaults().messageReaders();
     
     public CustomPathRoutePredicateFactory() {
         super(Config.class);
@@ -83,6 +90,19 @@ public class CustomPathRoutePredicateFactory extends AbstractRoutePredicateFacto
                 
                 Optional<PathPattern> optionalPathPattern = pathPatterns.stream()
                         .filter(pattern -> pattern.matches(path)).findFirst();
+                // 获取请求body
+                Object cachedBody = exchange.getAttribute(GatewayUtils.CACHE_REQUEST_BODY_OBJECT_KEY);
+                if(cachedBody == null) {
+                    ServerWebExchangeUtils.cacheRequestBodyAndRequest(exchange,
+                            (serverHttpRequest) -> {
+                        return ServerRequest
+                                    .create(exchange.mutate().request(serverHttpRequest)
+                                            .build(), messageReaders)
+                                    .bodyToMono(String.class)
+                                    .doOnNext(objectValue -> {
+                                        exchange.getAttributes().put(GatewayUtils.CACHE_REQUEST_BODY_OBJECT_KEY, objectValue);
+                                    });});
+                }
                 
                 if (optionalPathPattern.isPresent()) {
                     PathPattern pathPattern = optionalPathPattern.get();
@@ -107,6 +127,30 @@ public class CustomPathRoutePredicateFactory extends AbstractRoutePredicateFacto
             }
         };
     }
+    
+    /*@Override
+    @SuppressWarnings("unchecked")
+    public AsyncPredicate<ServerWebExchange> applyAsync(CustomPathRoutePredicateFactory.Config config) {
+        return new AsyncPredicate<ServerWebExchange>() {
+            @Override
+            public Publisher<Boolean> apply(ServerWebExchange exchange) {
+                Object cachedBody = exchange.getAttribute(GatewayUtils.CACHE_REQUEST_BODY_OBJECT_KEY);
+                log.info("custom predicate applyAsync exec...");
+                if (cachedBody == null) {
+                    return ServerWebExchangeUtils.cacheRequestBodyAndRequest(exchange,
+                            (serverHttpRequest) -> ServerRequest
+                                    .create(exchange.mutate().request(serverHttpRequest)
+                                            .build(), messageReaders)
+                                    .bodyToMono(String.class)
+                                    .doOnNext(objectValue -> exchange.getAttributes().put(
+                                            GatewayUtils.CACHE_REQUEST_BODY_OBJECT_KEY, objectValue))
+                                    .map(objectValue -> true));
+                } else {
+                    return Mono.just(true);
+                }
+            }
+        };
+    }*/
     
     @Validated
     public static class Config {

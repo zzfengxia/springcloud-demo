@@ -26,6 +26,7 @@ import java.util.UUID;
  */
 @SpringBootApplication
 @RestController
+//@EnableDiscoveryClient
 @Slf4j
 public class GatewayNewApplication {
     public static void main(String[] args) {

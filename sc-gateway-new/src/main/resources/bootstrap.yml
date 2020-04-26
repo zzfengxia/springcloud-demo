@@ -22,4 +22,3 @@ spring:
           data-id: gateway.route.rule.yaml
           group: config.gateway
           refresh: true
-

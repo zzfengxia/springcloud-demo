@@ -3,6 +3,7 @@ package com.zz.scgatewaynew.routedefine.predicaterule;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.zz.sccommon.util.JsonUtils;
+import com.zz.scgatewaynew.handler.CustomeReadBodyPredicateFactory;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -16,6 +17,7 @@ import java.util.Map;
  * ************************************
  * create by Intellij IDEA
  * nacos配置中心的配置注入到java bean
+ * 仅支持JSON格式数据的解析
  *
  * nacos解析数据类型的规则：
  * 先从dataId中获取，如果有“.”则取最后一个字符串作为type
@@ -50,10 +52,6 @@ public class BodyRule implements IRule {
     
     private String strategy = AND;
     /**
-     * 标识不判断属性值，只用于读取body体
-     */
-    private Boolean empty;
-    /**
      * predicate顺序，值越小越优先
      */
     private int order;
@@ -62,7 +60,7 @@ public class BodyRule implements IRule {
      * 空对象，用来获取body体。因为还未找到在断言失败且未调用readBody断言的情况获取 POST请求request body的方法.确保优先级最高
      */
     public static BodyRule empty() {
-        BodyRule empty = new BodyRule();
+        BodyRule empty = new CacheBodyRule();
         empty.setOrder(HIGHEST_PRECEDENCE);
         return empty;
     }
@@ -94,7 +92,13 @@ public class BodyRule implements IRule {
                 // todo 这里先让非json格式数据通过，等可以在外部获取body体后这里需要改为false.
                 return true;
             }
-            JSONObject jsonObject = JSONObject.parseObject(body);
+            JSONObject jsonObject = null;
+            try {
+                jsonObject = JSONObject.parseObject(body);
+            } catch (Exception e) {
+                log.error("json parse error", e);
+                return false;
+            }
             boolean predicateFlag = false;
             
             for (Map.Entry<String, List<String>> entry : attrMap.entrySet()) {
@@ -136,5 +140,12 @@ public class BodyRule implements IRule {
     @Override
     public int getOrder() {
         return this.order;
+    }
+    
+    public static class CacheBodyRule extends BodyRule {
+        @Override
+        public BooleanSpec predicate(PredicateSpec predicateSpec) {
+            return predicateSpec.asyncPredicate(new CustomeReadBodyPredicateFactory().applyAsync(c -> {}));
+        }
     }
 }

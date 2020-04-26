@@ -1,35 +1,15 @@
 server:
-  port: 8088
+  port: 8093
 spring:
-  profiles: sever1
   application:
-    name: eureka-server1
+    name: sc-service
 
-eureka:
-  client:
-    register-with-eureka: false # 不向注册中心注册自己
-    fetch-registry: false       # 不需要检索服务
-    serviceUrl:                 # 启动多个Eureka server实例，保证高可用性。注册中心相互注册
-      defaultZone: http://192.168.0.109:8089/eureka/
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 172.16.80.132:8848
 
----
-
-server:
-  port: 8089
-# 通过profiles配置不同的端口、实例名
-spring:
-  profiles: sever2
-  application:
-    name: eureka-server2
-
-eureka:
-  client:
-    register-with-eureka: false # 不向注册中心注册自己
-    fetch-registry: false       # 不需要检索服务
-    serviceUrl:                 # 启动多个Eureka server实例，保证高可用性。注册中心相互注册
-      defaultZone: http://localhost:8088/eureka/
-
----
-spring:
-  profiles:
-    active: sever2
+logging:
+  level:
+    com.*: debug
+    org.*: debug

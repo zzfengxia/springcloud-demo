@@ -11,11 +11,6 @@
 
     <artifactId>sc-gateway</artifactId>
 
-    <properties>
-        <alibaba.sentinel.version>1.7.1</alibaba.sentinel.version>
-        <alibaba.nacos.version>0.2.4</alibaba.nacos.version>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>com.zz</groupId>

@@ -29,12 +29,15 @@ public class CustomRouteLocator implements RouteLocator {
      * nacos刷新时会有refreshAll调用， RouteRefreshListener 会监听到然后重置RefreshRoutesEvent事件，所以这里也会刷新
      *
      * @see {@link org.springframework.cloud.gateway.route.RouteRefreshListener}
+     * @see {@link com.alibaba.cloud.nacos.refresh.NacosContextRefresher}#registerNacosListener
+     * @see {@link org.springframework.cloud.endpoint.event.RefreshEventListener#handle}
      *
      * @return
      */
     @Override
     public Flux<Route> getRoutes() {
         if(routeRuleProp == null || routeRuleProp.getRules() == null || routeRuleProp.getRules().isEmpty()) {
+            log.error("路由配置为空，无法更新路由规则");
             return currentRoute;
         }
         if(!routeRuleProp.validate(routeLocatorBuilder.routes())) {

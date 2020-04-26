@@ -44,7 +44,12 @@
         <dependency>
             <groupId>com.alibaba.csp</groupId>
             <artifactId>sentinel-datasource-nacos</artifactId>
-            <version>${alibaba.sentinel.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.alibaba.nacos</groupId>
+                    <artifactId>nacos-client</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!-- nacos 配置中心 -->
@@ -52,6 +57,12 @@
             <groupId>com.alibaba.cloud</groupId>
             <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
         </dependency>
+
+        <!-- nacos 服务发现 -->
+        <!--<dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+        </dependency>-->
 
         <!--<dependency>
             <groupId>org.springframework.boot</groupId>
@@ -143,6 +154,7 @@
                 <filtering>true</filtering>
                 <includes>
                     <include>application.yml</include>
+                    <include>bootstrap.yml</include>
                     <include>application-${profileActive}.yml</include>
                 </includes>
             </resource>

@@ -1,12 +1,14 @@
 server:
-  port: 8082
+  port: 8091
 
 spring:
   application:
-    name: service-comsumer
+    name: sc-order
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 172.16.80.132:8848
 
-eureka:
-  client:
-    serviceUrl:
-      defaultZone: http://localhost:8088/eureka/, http://192.168.0.109:8089/eureka/    # 注册中心地址,可注册到多台服务实例中
-
+feign:
+  httpclient:
+    enabled: true # 使用apache http client替换feign默认的httpclient

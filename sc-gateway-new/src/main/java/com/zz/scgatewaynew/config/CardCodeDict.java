@@ -1,6 +1,7 @@
 package com.zz.scgatewaynew.config;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
@@ -16,10 +17,13 @@ import java.util.Map;
  */
 @ConfigurationProperties(prefix = "config.dict")
 @Component
-@Data
+@Setter
+@Getter
+//@RefreshScope
 public class CardCodeDict {
     /**
-     * todo nacos刷新存在BUG，当key删掉时，bean不会刷新
+     * nacos刷新存在BUG，当key删掉时，bean不会刷新.
+     * 在bean的类上添加注解@RefreshScope可以解决删除key的刷新问题。但是会变成延迟加载
      */
     private Map<String, String> cardCodeDict;
 }

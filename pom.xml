@@ -55,11 +55,21 @@
 
     <dependencyManagement>
         <dependencies>
-            <!-- 使用import scope解决maven单继承的问题(只能集成一个parent)，类似java的组合；只能在dependencyManagement中使用 -->
+            <!-- 使用import scope解决maven单继承的问题(只能集成一个parent)，类似java的组合；只能在dependencyManagement中使用，集成pom文件配置 -->
+            <!-- spring-cloud集成的一揽子依赖集合，只需在相应模块导入需要的组件即可，无需再一一声明 -->
             <dependency>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-dependencies</artifactId>
                 <version>${spring-cloud.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <!-- spring cloud alibaba集成pom -->
+            <dependency>
+                <groupId>com.alibaba.cloud</groupId>
+                <artifactId>spring-cloud-alibaba-dependencies</artifactId>
+                <version>${spring.cloud.alibaba.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -96,26 +106,26 @@
             </dependency>
 
             <!-- alibaba sentinel 网关限流-->
-            <dependency>
+            <!--<dependency>
                 <groupId>com.alibaba.cloud</groupId>
                 <artifactId>spring-cloud-alibaba-sentinel-gateway</artifactId>
                 <version>${spring.cloud.alibaba.version}</version>
             </dependency>
-            <!-- alibaba sentinel 网关限流-->
+            &lt;!&ndash; alibaba sentinel 网关限流&ndash;&gt;
             <dependency>
                 <groupId>com.alibaba.cloud</groupId>
                 <artifactId>spring-cloud-starter-alibaba-sentinel</artifactId>
                 <version>${spring.cloud.alibaba.version}</version>
             </dependency>
 
-            <!-- nacos扩展,实现动态限流规则推送 -->
+            &lt;!&ndash; sentinel动态规则配置，数据源集合 包括nacos、redis等 &ndash;&gt;
             <dependency>
                 <groupId>com.alibaba.cloud</groupId>
                 <artifactId>spring-cloud-alibaba-sentinel-datasource</artifactId>
                 <version>${spring.cloud.alibaba.version}</version>
             </dependency>
 
-            <!-- Nacos -->
+            &lt;!&ndash; Nacos discovery &ndash;&gt;
             <dependency>
                 <groupId>com.alibaba.cloud</groupId>
                 <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
@@ -125,6 +135,19 @@
                 <groupId>com.alibaba.cloud</groupId>
                 <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
                 <version>${spring.cloud.alibaba.version}</version>
+            </dependency>-->
+
+            <!-- sentinel动态数据源-nacos,要单独引入 -->
+            <dependency>
+                <groupId>com.alibaba.csp</groupId>
+                <artifactId>sentinel-datasource-nacos</artifactId>
+                <version>${alibaba.sentinel.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpclient</artifactId>
+                <version>4.5.3</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

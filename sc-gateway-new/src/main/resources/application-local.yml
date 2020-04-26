@@ -37,8 +37,6 @@ spring:
     # spring cloud alibaba sentinel动态数据源配置参考：https://github.com/alibaba/spring-cloud-alibaba/wiki/Sentinel
     # @see SentinelDataSourceHandler
     sentinel:
-      filter:
-        enabled: true
       datasource:
         ds1: # sentinel 网关限流规则动态配置
           nacos:
@@ -63,6 +61,21 @@ spring:
       scg:
         order: -1  # sentinel filter执行顺序，越小越优先不能超过GlobalRequestFilter的执行顺序
 
+      log:
+        dir: /app/biz_logs/${spring.application.name}/csp # sentinel 日志目录
+      metric:
+        fileTotalCount: 10
+        file-single-size: 1024 * 1024 * 200 # 单个sentinel metric文件大小，200M
+
+    nacos:
+      discovery:
+        server-addr: 172.16.80.132:8848 # 服务注册，可以通过服务名转发
+#    gateway:
+#      discovery:
+#        locator:
+#          enabled: true  # 开启DiscoveryClient gateway integration。自动配置服务注册中心的所有服务列表的路由。对外网关不需要开启这个
+#          url-expression: "'lb://' + serviceId" # 路由的目标地址的表达式，默认为 "'lb://' + serviceId"。lb://标识开启负载均衡
+
 druid-public-key: MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAKdU10HP7aNZNvPjR/2bZlx3paIqefCSt3aLjIQdtgLNYla+T/I7UetNof7TymcX4eFuTO6OLiTIMD+jSzS5UTUCAwEAAQ==
 
 
@@ -70,5 +83,4 @@ druid-public-key: MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAKdU10HP7aNZNvPjR/2bZlx3paIqef
 # logback profile 配置
 logging:
   config: classpath:logback.xml
-
 

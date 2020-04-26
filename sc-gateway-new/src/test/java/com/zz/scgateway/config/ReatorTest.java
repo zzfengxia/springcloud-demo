@@ -59,4 +59,15 @@ public class ReatorTest {
         delegates.flatMap(GetString::test)
                 .subscribe(System.out::println);
     }
+    
+    @Test
+    public void testEmpty() {
+        Mono.empty().map(r -> {
+            System.out.println("11");
+            return "1";
+        }).switchIfEmpty(Mono.just("2")).flatMap(r -> {
+            System.out.println("res:" + r);
+            return Mono.just("3");
+        }).subscribe(System.out::println);
+    }
 }
