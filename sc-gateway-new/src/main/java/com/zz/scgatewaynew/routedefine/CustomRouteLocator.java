@@ -27,11 +27,13 @@ public class CustomRouteLocator implements RouteLocator {
     private Flux<Route> currentRoute = Flux.empty();
     /**
      * nacos刷新时会有refreshAll调用， RouteRefreshListener 会监听到然后重置RefreshRoutesEvent事件，所以这里也会刷新
+     * RouteRefreshListener会监听HeartbeatEvent事件，当开启NacosWatch时会定时发布HeartbeatEvent事件，所以这里也会刷新。
+     * 如果网关不需要自动刷新新服务的路由(即spring.cloud.gateway.discovery.locator.enabled: false)则可以关闭NacosWatch(spring.cloud.nacos.discovery.watch.enabled: false).
      *
      * @see {@link org.springframework.cloud.gateway.route.RouteRefreshListener}
      * @see {@link com.alibaba.cloud.nacos.refresh.NacosContextRefresher}#registerNacosListener
      * @see {@link org.springframework.cloud.endpoint.event.RefreshEventListener#handle}
-     *
+     * @see {@link org.springframework.cloud.client.discovery.event.HeartbeatEvent}
      * @return
      */
     @Override

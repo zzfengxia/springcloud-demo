@@ -22,3 +22,5 @@ spring:
           data-id: gateway.route.rule.yaml
           group: config.gateway
           refresh: true
+      username: nacos # nacos1.2以上版本增加客户端认证，需要认证才能读取配置
+      password: vfc2020!@#

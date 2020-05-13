@@ -14,5 +14,21 @@ spring:
     # 这里的profile激活只用于本地启动，实际线上环境会使用启动参数激活profile
     active: local #@profileActive@
 
+  security:
+    user: # http端点认证用户
+      name: admin
+      password: client2020#
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*' # 暴露web方式访问的所有端点
+    jmx:
+      exposure:
+        exclude: '*' # 关闭端点JMX访问方式
+  endpoint:
+    health:
+      show-details: always
+
 server:
-  port: 8086
+  port: 8087

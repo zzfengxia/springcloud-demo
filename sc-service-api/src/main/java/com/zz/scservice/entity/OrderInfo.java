@@ -16,4 +16,5 @@ public class OrderInfo {
     private Date payTime;
     private String userId;
     private String port;
+    private String issueId;
 }

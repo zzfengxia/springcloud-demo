@@ -66,10 +66,23 @@ spring:
       metric:
         fileTotalCount: 10
         file-single-size: 1024 * 1024 * 200 # 单个sentinel metric文件大小，200M
+      transport:
+        port: 8791
+        dashboard: localhost:8096 # sentinel console地址
 
     nacos:
       discovery:
         server-addr: 172.16.80.132:8848 # 服务注册，可以通过服务名转发
+        metadata:
+          user:
+            name: ${spring.security.user.name}  # 向注册中心注册本服务端点访问认证信息。这里不是配置访问客户端端点的认证信息，是本服务的
+            password: ${spring.security.user.password}
+            # management.context-path= # 访问地址，如果不是默认的actuator则需要配置
+
+        watch:
+          enabled: false # 是否开启NacosWatch,向spring boot admin刷新新注册的服务
+        watch-delay: 10000 # Nacos watch执行时间间隔默认30s
+
 #    gateway:
 #      discovery:
 #        locator:
@@ -82,5 +95,5 @@ druid-public-key: MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAKdU10HP7aNZNvPjR/2bZlx3paIqef
 
 # logback profile 配置
 logging:
-  config: classpath:logback.xml
+  config: classpath:logback-spring.xml
 

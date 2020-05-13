@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.gateway.route.CompositeRouteLocator;
 import org.springframework.cloud.gateway.route.RouteDefinitionLocator;
 import org.springframework.cloud.gateway.route.RouteDefinitionRouteLocator;
@@ -26,7 +27,7 @@ import java.util.UUID;
  */
 @SpringBootApplication
 @RestController
-//@EnableDiscoveryClient
+@EnableDiscoveryClient
 @Slf4j
 public class GatewayNewApplication {
     public static void main(String[] args) {
