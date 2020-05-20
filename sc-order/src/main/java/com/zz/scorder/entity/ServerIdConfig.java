@@ -36,6 +36,10 @@ public class ServerIdConfig {
      * 调用服务的实际服务ID，不同的租户可能会有定制化的服务
      */
     private String serverId;
+    /**
+     * 城市代码
+     */
+    private String cardCode;
     
     private Date createTime;
     private Date updateTime;

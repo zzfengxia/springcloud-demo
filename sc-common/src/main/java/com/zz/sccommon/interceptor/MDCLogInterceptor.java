@@ -1,5 +1,6 @@
 package com.zz.sccommon.interceptor;
 
+import com.zz.sccommon.common.FeignDataThreadLocal;
 import com.zz.sccommon.constant.BizConstants;
 import com.zz.sccommon.util.UuidUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -38,5 +39,7 @@ public class MDCLogInterceptor extends HandlerInterceptorAdapter {
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
         MDC.clear();
+        // 清理线程数据
+        FeignDataThreadLocal.remove();
     }
 }

@@ -21,6 +21,8 @@ import java.util.Map;
 public class RequestExtParams {
     private String issueId;
     private String serverName;
+    private String serverId;
+    private String cardCode;
     private Map<String, List<String>> extHeaders;
     
     public RequestExtParams addHeader(String name, String... value) {

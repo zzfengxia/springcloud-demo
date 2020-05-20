@@ -19,7 +19,7 @@ public enum ErrorCode implements IErrorCode {
     SYSTEM_ERROR("00001", "system error", "system error, %s"),
     
     TOO_MANY_REQUESTS("99998", "服务器繁忙，请稍后重试"),
-
+    SERVER_DEGRADE("99997", "服务降级，请稍后重试"),
     /*==================================其他(比如身份认证、领取发票等) end========================================*/
     ;
 

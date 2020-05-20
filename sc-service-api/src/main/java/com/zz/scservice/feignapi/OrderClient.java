@@ -1,6 +1,8 @@
 package com.zz.scservice.feignapi;
 
+import com.zz.api.common.protocal.ApiResponse;
 import com.zz.scservice.entity.OrderInfo;
+import com.zz.scservice.fallback.OrderClientFactory;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestBody;
  * @date 2020-04-23 14:20
  * ************************************
  */
-@FeignClient(value = "sc-service")
+@FeignClient(value = "sc-service", /*fallback = OrderClientFallback.class, */fallbackFactory = OrderClientFactory.class)
 public interface OrderClient {
     /**
      * FeignClient的configuration默认为 FeignClientsConfiguration
@@ -25,8 +27,8 @@ public interface OrderClient {
      * @return
      */
     @GetMapping("/getOrder")
-    String getOrderInfo(@RequestBody OrderInfo params);
+    ApiResponse<String> getOrderInfo(@RequestBody OrderInfo params);
     
     @PostMapping("/createOrder")
-    OrderInfo createOrder(OrderInfo order);
+    ApiResponse<OrderInfo> createOrder(OrderInfo order);
 }

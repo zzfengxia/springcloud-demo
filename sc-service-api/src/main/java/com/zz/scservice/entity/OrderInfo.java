@@ -9,7 +9,7 @@ import java.util.Date;
 
 @Getter
 @Setter
-@AllArgsConstructor
+@AllArgsConstructor(staticName = "of")
 @NoArgsConstructor
 public class OrderInfo {
     private String orderNo;
@@ -17,4 +17,5 @@ public class OrderInfo {
     private String userId;
     private String port;
     private String issueId;
+    private String cardCode;
 }

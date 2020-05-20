@@ -188,5 +188,6 @@
         <module>sc-gateway-new</module>
         <module>sc-common</module>
         <module>sc-ops-union</module>
+        <module>sc-service-api-common</module>
     </modules>
 </project>
