@@ -1,9 +1,43 @@
 server:
-  port: 7092
+  port: 7093
+
+druid-public-key: MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAKdU10HP7aNZNvPjR/2bZlx3paIqefCSt3aLjIQdtgLNYla+T/I7UetNof7TymcX4eFuTO6OLiTIMD+jSzS5UTUCAwEAAQ==
 
 spring:
   application:
     name: sc-order
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver # com.p6spy.engine.spy.P6SpyDriver #com.mysql.jdbc.Driver
+    type: com.alibaba.druid.pool.DruidDataSource
+    # jdbc:p6spy:mysql://172.16.80.106:3306/vfc_sptsm?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+    url: jdbc:mysql://172.16.80.106:3306/vfc_sptsm?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+    username: vfc_sptsm_qa
+    password: ftETtJ/EDOIB4MpNwX8+M0ehP9g4XSzo9puATWjsAUzeZszdqW0Em5PruVhwb4ZNocUbduR2vN+IjKMnlBPeqg==
+    druid:
+      initial-size: 1
+      # 启用数据库密码加密
+      connection-properties: config.decrypt=true;config.decrypt.key=${druid-public-key}
+      filter:
+        stat:
+          enabled: false
+        wall:
+          enabled: false
+        slf4j:
+          enabled: false
+        log4j2:
+          enabled: false
+        log4j:
+          enabled: false
+        commons-log:
+          enabled: false
+        config: # 该配置要启用才能加密数据库密码
+          enabled: true
+      stat-view-servlet:
+        enabled: false # 关闭监控
+      web-stat-filter:
+        enabled: false
+        session-stat-enable: false
+
   cloud:
     nacos:
       discovery:
@@ -20,6 +54,8 @@ spring:
         port: 8791
         dashboard: localhost:8096 # sentinel console地址
         client-ip: localhost
+      log:
+        dir: /app/biz_logs/${spring.application.name}/csp # sentinel 日志目录
     # spring cloud alibaba sentinel动态数据源配置参考：https://github.com/alibaba/spring-cloud-alibaba/wiki/Sentinel
     # @see SentinelDataSourceHandler
       datasource:
@@ -64,7 +100,14 @@ feign:
 ribbon:
   ReadTimeout: 4000 # feign客户端请求read time out设置
 
+ahas:
+  namespace: default
+  license: d86d37a37296462bb7dd11e688380540
+project:
+  name: ${spring.application.name}
 
+mybatis-plus:
+  mapper-locations: classpath*:com/zz/scorder/dao/mapper/**/*.xml
 
 
 

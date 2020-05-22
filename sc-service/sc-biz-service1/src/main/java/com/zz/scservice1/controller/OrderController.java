@@ -31,7 +31,7 @@ public class OrderController implements OrderClient {
     @Override
     public ApiResponse<String> getOrderInfo(@RequestBody OrderInfo params1) {
         log.info("request params:" + JSON.toJSONStringWithDateFormat(params1, "yyyy-MM-dd HH:mm:ss"));
-        return ApiResponse.success("hi, i'm from " + serverName +  ":" + port + ", orderNo:" + params1.getOrderNo());
+        return ApiResponse.ofSuccessMsg("hi, i'm from " + serverName +  ":" + port + ", orderNo:" + params1.getOrderNo());
     }
     
     @Override
@@ -52,6 +52,6 @@ public class OrderController implements OrderClient {
         params.setPort(port);
         params.setCardCode(CityCodeConstant.GUANGXI);
         
-        return ApiResponse.success(params);
+        return ApiResponse.ofSuccess(params);
     }
 }

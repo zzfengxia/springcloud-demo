@@ -38,6 +38,6 @@ public class OrderController2 {
         params.setOrderNo("11" + System.currentTimeMillis());
         params.setUserId("Tom11");
         params.setCardCode(CityCodeConstant.WUXI);
-        return ApiResponse.success(params);
+        return ApiResponse.ofSuccess(params);
     }
 }

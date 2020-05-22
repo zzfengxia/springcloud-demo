@@ -159,6 +159,34 @@
                 <artifactId>spring-boot-admin-client</artifactId>
                 <version>${spring.boot.admin.version}</version>
             </dependency>
+
+            <!-- mybatisplus集成springboot -->
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-boot-starter</artifactId>
+                <version>3.3.1</version>
+            </dependency>
+
+            <!-- 接入阿里云ahas 云上sentinel流量防护 -->
+            <dependency>
+                <groupId>com.alibaba.csp</groupId>
+                <artifactId>spring-boot-starter-ahas-sentinel-client</artifactId>
+                <version>1.6.1</version>
+            </dependency>
+
+            <!-- 打印sql语句与执行时间 -->
+            <!--<dependency>
+                <groupId>p6spy</groupId>
+                <artifactId>p6spy</artifactId>
+                <version>3.9.0</version>
+            </dependency>-->
+
+            <!-- 阿里云ahas服务 -->
+            <dependency>
+                <groupId>com.alibaba.csp</groupId>
+                <artifactId>spring-cloud-gateway-starter-ahas-sentinel</artifactId>
+                <version>1.1.6</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 

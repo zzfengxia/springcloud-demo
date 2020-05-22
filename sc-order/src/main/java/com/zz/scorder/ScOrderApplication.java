@@ -1,6 +1,7 @@
 package com.zz.scorder;
 
 import com.alibaba.cloud.sentinel.feign.SentinelFeign;
+import com.zz.api.common.config.SentinelMybatisConfig;
 import com.zz.sccommon.config.ClientSecurityConfig;
 import feign.Feign;
 import org.springframework.boot.SpringApplication;
@@ -18,7 +19,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 @EnableDiscoveryClient
 @EnableFeignClients(basePackages = {"com.zz.scservice"})
 //@EnableCircuitBreaker
-@ImportAutoConfiguration({ClientSecurityConfig.class})
+@ImportAutoConfiguration({ClientSecurityConfig.class, SentinelMybatisConfig.class})
 public class ScOrderApplication {
     /**
      * OpenFeign 执行流程分析参考：https://www.cnblogs.com/chiangchou/p/api.html

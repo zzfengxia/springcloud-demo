@@ -35,7 +35,7 @@ public class OrderController /*implements OrderClient*/ {
     public ApiResponse<String> getOrderInfo(@RequestBody OrderInfo params1, @RequestHeader Map<String, String> headers) {
         log.info("request params:" + JSON.toJSONStringWithDateFormat(params1, "yyyy-MM-dd HH:mm:ss"));
         log.info("request headers:" + JSON.toJSON(headers));
-        return ApiResponse.success("hi, i'm from " + serverName +  ":" + port + ", orderNo:" + params1.getOrderNo());
+        return ApiResponse.ofSuccessMsg("hi, i'm from " + serverName +  ":" + port + ", orderNo:" + params1.getOrderNo());
     }
     
     @PostMapping("/createOrder")
@@ -47,6 +47,6 @@ public class OrderController /*implements OrderClient*/ {
         params.setPort(port);
         params.setCardCode(CityCodeConstant.GUIZHOU);
         
-        return ApiResponse.success(params);
+        return ApiResponse.ofSuccess(params);
     }
 }

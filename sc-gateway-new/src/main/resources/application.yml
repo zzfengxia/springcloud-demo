@@ -32,3 +32,10 @@ management:
 
 server:
   port: 8087
+
+ahas:
+  namespace: default
+  license:
+    d86d37a37296462bb7dd11e688380540
+project:
+  name: ${spring.application.name}

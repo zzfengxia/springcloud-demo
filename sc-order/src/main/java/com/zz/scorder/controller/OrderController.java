@@ -6,7 +6,9 @@ import com.zz.api.common.protocal.ApiResponse;
 import com.zz.sccommon.common.FeignDataThreadLocal;
 import com.zz.sccommon.common.RequestExtParams;
 import com.zz.sccommon.constant.BizConstants;
+import com.zz.scorder.entity.ConfigEntity;
 import com.zz.scorder.entity.ServerIdConfig;
+import com.zz.scorder.service.ServerConfigService;
 import com.zz.scservice.entity.OrderInfo;
 import com.zz.scservice.feignapi.OrderClient;
 import lombok.AllArgsConstructor;
@@ -37,6 +39,7 @@ import java.util.stream.Collectors;
 public class OrderController {
     // 使用构造方法注入
     private OrderClient orderClient;
+    private ServerConfigService configService;
     
     @GetMapping("getOrder")
     public ApiResponse<String> getMessage(@RequestParam String orderNo, @RequestParam String issueId) {
@@ -63,7 +66,10 @@ public class OrderController {
     public ApiResponse<OrderInfo> createOrder(@RequestBody OrderInfo json) {
         Date cur = new Date();
         log.info("requst time:" + DateFormatUtils.format(cur, "yyyy-MM-dd HH:mm:ss") + ",body:" + JSON.toJSONString(json));
-        
+        ConfigEntity entity = configService.getByIssueId("t_vfc_jilin");
+        ConfigEntity entity2 = configService.selectByCardCode("000000");
+        System.out.println("entity:" + entity.getServerUrl());
+        System.out.println("entity2:" + entity2.getServerUrl());
         // 保存线程数据
         ServerIdConfig serverConfig = getServerId(json.getIssueId());
         if(serverConfig != null) {
