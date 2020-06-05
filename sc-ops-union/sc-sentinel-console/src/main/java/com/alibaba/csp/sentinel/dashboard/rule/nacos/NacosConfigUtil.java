@@ -24,9 +24,18 @@ public final class NacosConfigUtil {
     public static final String GROUP_ID = "SENTINEL_GROUP";
     
     public static final String FLOW_DATA_ID_POSTFIX = "-flow-rules";
+    public static final String DEGRADE_DATA_ID_POSTFIX = "-degrade-rules";
     public static final String PARAM_FLOW_DATA_ID_POSTFIX = "-param-rules";
     public static final String CLUSTER_MAP_DATA_ID_POSTFIX = "-cluster-map";
-
+    
+    public static final String RULE_ID_MAP_DATA_ID = "sentinel-rule-id-map";
+    
+    /**
+     * 网关规则
+     */
+    public static final String GATEWAY_API_DEFINITION_DATA_ID_POSTFIX = "-api-definition";
+    public static final String GATEWAY_FLOW_DATA_ID_POSTFIX = "-gateway-flow-rules";
+    
     /**
      * cc for `cluster-client`
      */

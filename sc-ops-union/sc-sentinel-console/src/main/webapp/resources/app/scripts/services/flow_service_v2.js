@@ -1,11 +1,9 @@
 var app = angular.module('sentinelDashboardApp');
 
 app.service('FlowServiceV2', ['$http', function ($http) {
-    this.queryMachineRules = function (app, ip, port) {
+    this.queryFlowRules = function (app) {
         var param = {
             app: app,
-            ip: ip,
-            port: port
         };
         return $http({
             url: '/v2/flow/rules',

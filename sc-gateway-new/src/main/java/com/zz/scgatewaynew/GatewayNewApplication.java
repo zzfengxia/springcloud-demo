@@ -30,6 +30,24 @@ import java.util.UUID;
 @EnableDiscoveryClient
 @Slf4j
 public class GatewayNewApplication {
+    /**
+     * <h1>sentinel动态规则</h1>
+     * 参考{@link com.alibaba.csp.sentinel.datasource.nacos.NacosDataSource} nacos数据源属性
+     * {@link com.alibaba.cloud.sentinel.custom.SentinelDataSourceHandler} 注册动态数据源Bean
+     * {@link com.alibaba.cloud.sentinel.datasource.config.AbstractDataSourceProperties#postRegister} 注册数据源
+     * 配置：
+     * 通过定制sentinel-console实现规则持久化，规则data-id参照{@link com.alibaba.csp.sentinel.dashboard.rule.nacos.NacosConfigUtil}
+     * 数据转换参照{@link com.alibaba.csp.sentinel.dashboard.rule.nacos.NacosConfig}
+     *
+     * sentinel-client接收动态数据处理类:{@link com.alibaba.csp.sentinel.adapter.gateway.common.command.UpdateGatewayApiDefinitionGroupCommandHandler}
+     *
+     * <h1>SCG sentinel拦截/过滤器</h1>
+     * @see {@link com.alibaba.csp.sentinel.adapter.gateway.sc.SentinelGatewayFilter} sentinel全局过滤器，实现网关限流、API分组限流
+     * api分组匹配逻辑:
+     * @see {@link com.alibaba.csp.sentinel.adapter.gateway.sc.api.GatewayApiMatcherManager}
+     * @see {@link com.alibaba.csp.sentinel.adapter.gateway.common.api.matcher.AbstractApiMatcher}
+     * 可以看出同一分组下配置的多个匹配规则是“或”的关系
+     */
     public static void main(String[] args) {
         SpringApplication.run(GatewayNewApplication.class, args);
     }

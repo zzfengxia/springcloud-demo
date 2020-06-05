@@ -106,7 +106,7 @@
             <artifactId>spring-boot-starter-jdbc</artifactId>
         </dependency>
 
-        <!-- 阿里云ahas服务 -->
+        <!-- 阿里云ahas服务,与sentinel-starter互斥 -->
         <!--<dependency>
             <groupId>com.alibaba.csp</groupId>
             <artifactId>spring-cloud-gateway-starter-ahas-sentinel</artifactId>

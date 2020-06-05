@@ -15,36 +15,35 @@
  */
 package com.alibaba.csp.sentinel.dashboard.rule.nacos;
 
-import java.util.List;
-
-import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.FlowRuleEntity;
+import com.alibaba.csp.sentinel.dashboard.datasource.entity.gateway.GatewayFlowRuleEntity;
+import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.RuleEntityWrapper;
 import com.alibaba.csp.sentinel.dashboard.rule.DynamicRulePublisher;
 import com.alibaba.csp.sentinel.datasource.Converter;
 import com.alibaba.csp.sentinel.util.AssertUtil;
 import com.alibaba.nacos.api.config.ConfigService;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 /**
- * @author Eric Zhao
- * @since 1.4.0
+ * @author Francis.zz
  */
-@Component("flowRuleNacosPublisher")
-public class FlowRuleNacosPublisher implements DynamicRulePublisher<List<FlowRuleEntity>> {
+@Component("gatewayFlowNacosPublisher")
+public class GatewayFlowRuleNacosPublisher implements DynamicRulePublisher<RuleEntityWrapper<GatewayFlowRuleEntity>> {
 
     @Autowired
     private ConfigService configService;
     @Autowired
-    private Converter<List<FlowRuleEntity>, String> converter;
+    @Qualifier("gatewayFlowEncoder")
+    private Converter<RuleEntityWrapper<GatewayFlowRuleEntity>, String> converter;
 
     @Override
-    public void publish(String app, List<FlowRuleEntity> rules) throws Exception {
+    public void publish(String app, RuleEntityWrapper<GatewayFlowRuleEntity> rules) throws Exception {
         AssertUtil.notEmpty(app, "app name cannot be empty");
         if (rules == null) {
             return;
         }
-        configService.publishConfig(app + NacosConfigUtil.FLOW_DATA_ID_POSTFIX,
+        configService.publishConfig(app + NacosConfigUtil.GATEWAY_FLOW_DATA_ID_POSTFIX,
             NacosConfigUtil.GROUP_ID, converter.convert(rules));
     }
 }

@@ -41,20 +41,20 @@ spring:
         ds1: # sentinel 网关限流规则动态配置
           nacos:
             server-addr: 172.16.80.132:8848
-            data-id: gateway.sentinel.txt
-            group-id: config.gateway
-            # 支持json、xml、custom. 使用custom时必须指定converter-class。
+            data-id: ${spring.application.name}-gateway-flow-rules
+            group-id: SENTINEL_GROUP
+            # 支持json、xml、custom. 使用custom时必须指定converter-class或bean。
             data-type: custom
-            converter-class: com.zz.scgatewaynew.routedefine.CustomSentinelRuleConverter
+            converter-class: gatewayFlowDecoder
             rule-type: gw-flow
         ds2: # sentinel api组定义动态配置
           nacos:
             server-addr: 172.16.80.132:8848
-            data-id: gateway.sentinel.txt
-            group-id: config.gateway
+            data-id: ${spring.application.name}-api-definition
+            group-id: SENTINEL_GROUP
             # 支持json、xml、custom. 使用custom时必须指定converter-class。
             data-type: custom
-            converter-class: com.zz.scgatewaynew.routedefine.CustomeSentinelApiConverter
+            converter-class: apiDefinitionDecoder
             rule-type: gw-api-group
 
       # @see com.alibaba.cloud.sentinel.gateway.scg.SentinelSCGAutoConfiguration
@@ -69,6 +69,7 @@ spring:
       transport:
         port: 8791
         dashboard: localhost:8096 # sentinel console地址
+        client-ip: localhost # 指定本地sentinel客户端的IP
 
     nacos:
       discovery:

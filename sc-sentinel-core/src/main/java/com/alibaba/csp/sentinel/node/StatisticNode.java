@@ -150,7 +150,62 @@ public class StatisticNode implements Node {
     public void reset() {
         rollingCounterInSecond = new ArrayMetric(SampleCountProperty.SAMPLE_COUNT, IntervalProperty.INTERVAL);
     }
-
+    
+    // ************************************* 定制功能start *************************************
+    public StatisticNode() {
+    }
+    
+    public StatisticNode(int interval, int slowRt) {
+        if(interval == 0) {
+            interval = 1;
+        }
+        int sampleCount = calculSampleByInterval(interval);
+        this.rollingCounterInSecond = new ArrayMetric(sampleCount, interval * 1000, false, slowRt);
+    }
+    
+    @Override
+    public void reset(int interval, int slowRt) {
+        if(interval == 0) {
+            interval = 1;
+        }
+        int sampleCount = calculSampleByInterval(interval);
+        rollingCounterInSecond = new ArrayMetric(sampleCount, interval * 1000, false, slowRt);
+    }
+    
+    private int calculSampleByInterval(int interval) {
+        // 60s以内精确到没秒，60s到5min内精确度为5s
+        int sampleCount;
+        if(interval == 1) {
+            sampleCount = 2;
+        }else if(interval <= 60) {
+            sampleCount = interval;
+        }else {
+            sampleCount = Math.min(interval / 5, 60);
+        }
+        return sampleCount;
+    }
+    
+    public int slowRtCount() {
+        return rollingCounterInSecond.slowRtCount();
+    }
+    
+    public long totalRequestCustom() {
+        return rollingCounterInSecond.pass() + rollingCounterInSecond.block();
+    }
+    
+    public long totalSuccessCustom() {
+        return rollingCounterInSecond.success();
+    }
+    
+    public long totalExceptionCustom() {
+        return rollingCounterInSecond.exception();
+    }
+    
+    public long totalPassCustom() {
+        return rollingCounterInSecond.pass();
+    }
+    // ************************************* 定制功能end *************************************
+    
     @Override
     public long totalRequest() {
         return rollingCounterInMinute.pass() + rollingCounterInMinute.block();

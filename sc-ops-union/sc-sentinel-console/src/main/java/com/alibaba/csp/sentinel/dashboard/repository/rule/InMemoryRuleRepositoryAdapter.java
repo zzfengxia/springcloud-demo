@@ -15,14 +15,19 @@
  */
 package com.alibaba.csp.sentinel.dashboard.repository.rule;
 
+import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.RuleEntity;
+import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.RuleEntityWrapper;
+import com.alibaba.csp.sentinel.dashboard.discovery.MachineInfo;
+import com.alibaba.csp.sentinel.dashboard.rule.DynamicRuleProvider;
+import com.alibaba.csp.sentinel.util.AssertUtil;
+import org.apache.commons.lang3.math.NumberUtils;
+
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
-import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.RuleEntity;
-import com.alibaba.csp.sentinel.dashboard.discovery.MachineInfo;
-import com.alibaba.csp.sentinel.util.AssertUtil;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * @author leyou
@@ -36,13 +41,14 @@ public abstract class InMemoryRuleRepositoryAdapter<T extends RuleEntity> implem
     private Map<Long, T> allRules = new ConcurrentHashMap<>(16);
 
     private Map<String, Map<Long, T>> appRules = new ConcurrentHashMap<>(16);
-
+    private static AtomicLong ids = new AtomicLong(0);
+    
     private static final int MAX_RULES_SIZE = 10000;
 
     @Override
     public T save(T entity) {
         if (entity.getId() == null) {
-            entity.setId(nextId());
+            entity.setId(getNextId());
         }
         T processedEntity = preProcess(entity);
         if (processedEntity != null) {
@@ -69,6 +75,24 @@ public abstract class InMemoryRuleRepositoryAdapter<T extends RuleEntity> implem
         }
         List<T> savedRules = new ArrayList<>(rules.size());
         for (T rule : rules) {
+            savedRules.add(save(rule));
+        }
+        return savedRules;
+    }
+    
+    public List<T> saveAll(RuleEntityWrapper<T> rules) {
+        // TODO: check here.
+        allRules.clear();
+        machineRules.clear();
+        appRules.clear();
+        
+        if (rules == null || rules.getRuleEntity() == null) {
+            return null;
+        }
+        ids = new AtomicLong(NumberUtils.toLong(rules.getCurId() + "", 0));
+        
+        List<T> savedRules = new ArrayList<>(rules.getRuleEntity().size());
+        for (T rule : rules.getRuleEntity()) {
             savedRules.add(save(rule));
         }
         return savedRules;
@@ -109,7 +133,26 @@ public abstract class InMemoryRuleRepositoryAdapter<T extends RuleEntity> implem
         }
         return new ArrayList<>(entities.values());
     }
-
+    
+    public RuleEntityWrapper<T> findRuleByApp(String appName) {
+        AssertUtil.notEmpty(appName, "appName cannot be empty");
+        Map<Long, T> entities = appRules.get(appName);
+        if (entities == null) {
+            return null;
+        }
+        return RuleEntityWrapper.of(ids.get(), new Date(), new ArrayList<>(entities.values()));
+    }
+    
+    public RuleEntityWrapper refreshRuleCache(DynamicRuleProvider<RuleEntityWrapper<T>> ruleProvider, String app) {
+        try {
+            RuleEntityWrapper<T> rules = ruleProvider.getRules(app);
+            saveAll(rules);
+            return rules;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+    
     public void clearAll() {
         allRules.clear();
         machineRules.clear();
@@ -125,5 +168,16 @@ public abstract class InMemoryRuleRepositoryAdapter<T extends RuleEntity> implem
      *
      * @return next unused id
      */
-    abstract protected long nextId();
+    protected long nextId() {
+        return ids.incrementAndGet();
+    }
+    
+    /**
+     * Get next unused id.
+     *
+     * @return next unused id
+     */
+    private long getNextId() {
+        return ids.incrementAndGet();
+    }
 }

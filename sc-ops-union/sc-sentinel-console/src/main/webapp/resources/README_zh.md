@@ -24,6 +24,8 @@ npm start
 ## 构建前端资源
 
 ```
+# 进入package.kson所在目录/src/main/webapp/resources
+# 新创建的services目录下的js需要添加到gulpfile.js文件中，确保JS_APP中的文件准确
 npm run build
 ```
 

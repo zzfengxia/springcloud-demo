@@ -80,8 +80,11 @@ public class OrderController {
             extParams.setCardCode(serverConfig.getCardCode());
             FeignDataThreadLocal.set(extParams);
         }
-        
-        return orderClient.createOrder(json);
+        long start = System.currentTimeMillis();
+        ApiResponse<OrderInfo> result = orderClient.createOrder(json);
+        long end = System.currentTimeMillis();
+        System.out.println("create order executed " + (end - start) + "ms");
+        return result;
     }
     
     private static List<ServerIdConfig> serverIdConfig = Lists.newArrayList(

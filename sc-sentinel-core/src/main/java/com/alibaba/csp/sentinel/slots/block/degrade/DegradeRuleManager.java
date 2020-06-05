@@ -15,18 +15,11 @@
  */
 package com.alibaba.csp.sentinel.slots.block.degrade;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
 import com.alibaba.csp.sentinel.config.SentinelConfig;
 import com.alibaba.csp.sentinel.context.Context;
 import com.alibaba.csp.sentinel.log.RecordLog;
 import com.alibaba.csp.sentinel.node.DefaultNode;
+import com.alibaba.csp.sentinel.node.IntervalProperty;
 import com.alibaba.csp.sentinel.property.DynamicSentinelProperty;
 import com.alibaba.csp.sentinel.property.PropertyListener;
 import com.alibaba.csp.sentinel.property.SentinelProperty;
@@ -35,6 +28,14 @@ import com.alibaba.csp.sentinel.slots.block.BlockException;
 import com.alibaba.csp.sentinel.slots.block.RuleConstant;
 import com.alibaba.csp.sentinel.util.AssertUtil;
 import com.alibaba.csp.sentinel.util.StringUtil;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author youji.zj
@@ -173,7 +174,13 @@ public final class DegradeRuleManager {
             }
             RecordLog.info("[DegradeRuleManager] Degrade rules loaded: " + degradeRules);
         }
-
+        
+        private void saveInterval() {
+            if(degradeRules == null || degradeRules.isEmpty()) {
+                return;
+            }
+            RecordLog.info("[DegradeRuleManager] save Degrade interval: ");
+        }
         private Map<String, Set<DegradeRule>> loadDegradeConf(List<DegradeRule> list) {
             Map<String, Set<DegradeRule>> newRuleMap = new ConcurrentHashMap<>();
 
@@ -198,10 +205,34 @@ public final class DegradeRuleManager {
                     ruleSet = new HashSet<>();
                     newRuleMap.put(identity, ruleSet);
                 }
+                
                 ruleSet.add(rule);
             }
-
+            // 保存配置资源的统计时间窗口
+            resetResourceInterval(newRuleMap);
+            
             return newRuleMap;
+        }
+        
+        private void resetResourceInterval(Map<String, Set<DegradeRule>> newRuleMap) {
+            if(newRuleMap == null || newRuleMap.isEmpty()) {
+                return;
+            }
+            newRuleMap.forEach((resourceName, rules) -> {
+                // 同一资源配置多个规则时统计时间窗口、慢调用时间仅保留最小值
+                Integer interval = null;
+                int slowRt = 0;
+                for (DegradeRule r : rules) {
+                    interval = interval != null ? Math.min(interval, r.getStatisticsTimeWindow()) : r.getStatisticsTimeWindow();
+                    if(r.getSlowRt() != 0) {
+                        slowRt = slowRt != 0 ? Math.min(slowRt, r.getSlowRt()) : r.getSlowRt();
+                    }
+                }
+                // 保存配置资源的统计时间窗口
+                if(interval != null) {
+                    IntervalProperty.saveResourceInterval(resourceName, interval, slowRt);
+                }
+            });
         }
     }
 
@@ -227,6 +258,11 @@ public final class DegradeRuleManager {
         // Check exception ratio mode.
         if (rule.getGrade() == RuleConstant.DEGRADE_GRADE_EXCEPTION_RATIO) {
             return rule.getCount() <= 1 && rule.getMinRequestAmount() > 0;
+        }
+        // 统计时间窗口不能大于30min
+        if(rule.getStatisticsTimeWindow() < 1 || rule.getStatisticsTimeWindow() > 1800) {
+            RecordLog.warn("[DegradeRuleManager] WARN: statistics time window must be (0, 1800)s, current value:" + rule.getStatisticsTimeWindow());
+            return false;
         }
         return true;
     }

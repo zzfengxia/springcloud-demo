@@ -49,6 +49,7 @@ const JS_APP = [
   'app/scripts/services/flow_service_v1.js',
   'app/scripts/services/flow_service_v2.js',
   'app/scripts/services/degradeservice.js',
+  'app/scripts/services/degradeservice_nacos.js',
   'app/scripts/services/systemservice.js',
   'app/scripts/services/machineservice.js',
   'app/scripts/services/identityservice.js',
@@ -58,6 +59,8 @@ const JS_APP = [
   'app/scripts/services/cluster_state_service.js',
   'app/scripts/services/gateway/api_service.js',
   'app/scripts/services/gateway/flow_service.js',
+  'app/scripts/services/gateway/api_service_nacos.js',
+  'app/scripts/services/gateway/flow_service_nacos.js',
 ];
 
 gulp.task('lib', function () {

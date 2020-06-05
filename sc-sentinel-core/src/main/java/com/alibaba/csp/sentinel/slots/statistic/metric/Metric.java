@@ -15,11 +15,11 @@
  */
 package com.alibaba.csp.sentinel.slots.statistic.metric;
 
-import java.util.List;
-
 import com.alibaba.csp.sentinel.node.metric.MetricNode;
 import com.alibaba.csp.sentinel.slots.statistic.data.MetricBucket;
 import com.alibaba.csp.sentinel.util.function.Predicate;
+
+import java.util.List;
 
 /**
  * Represents a basic structure recording invocation metrics of protected resources.
@@ -199,4 +199,8 @@ public interface Metric extends DebugSupport {
     long previousWindowBlock();
 
     long previousWindowPass();
+    
+    default int slowRtCount() {
+        return 0;
+    };
 }

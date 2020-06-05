@@ -59,21 +59,23 @@ spring:
     # spring cloud alibaba sentinel动态数据源配置参考：https://github.com/alibaba/spring-cloud-alibaba/wiki/Sentinel
     # @see SentinelDataSourceHandler
       datasource:
-        ds1: # sentinel 网关限流规则动态配置
+        ds1: # sentinel 限流规则动态配置
           nacos:
             server-addr: 172.16.80.132:8848
             data-id: ${spring.application.name}-flow-rules
             group-id: SENTINEL_GROUP
             # 支持json、xml、custom. 使用custom时必须指定converter-class。
-            data-type: json
+            converter-class: flowRuleDecoder
+            data-type: custom
             rule-type: flow
-        ds2: # sentinel api组定义动态配置
+        ds2: # sentinel 降级动态配置
           nacos:
             server-addr: 172.16.80.132:8848
             data-id: ${spring.application.name}-degrade-rules
             group-id: SENTINEL_GROUP
             # 支持json、xml、custom. 使用custom时必须指定converter-class。
-            data-type: json
+            converter-class: degradeRuleDecoder
+            data-type: custom
             rule-type: degrade
 
   security:

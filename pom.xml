@@ -76,6 +76,12 @@
                 <version>${spring.cloud.alibaba.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.alibaba.csp</groupId>
+                        <artifactId>sentinel-core</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
 
             <dependency>
@@ -146,6 +152,17 @@
                 <groupId>com.alibaba.csp</groupId>
                 <artifactId>sentinel-datasource-nacos</artifactId>
                 <version>${alibaba.sentinel.version}</version>
+                <exclusions>
+                    <!--<exclusion>
+                        <groupId>com.alibaba.nacos</groupId>
+                        <artifactId>nacos-client</artifactId>
+                    </exclusion>-->
+                    <!-- 排除sentinel-core,使用定制的sentinel-core -->
+                    <exclusion>
+                        <groupId>com.alibaba.csp</groupId>
+                        <artifactId>sentinel-core</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
 
             <dependency>
@@ -217,5 +234,6 @@
         <module>sc-common</module>
         <module>sc-ops-union</module>
         <module>sc-service-api-common</module>
+        <module>sc-sentinel-core</module>
     </modules>
 </project>

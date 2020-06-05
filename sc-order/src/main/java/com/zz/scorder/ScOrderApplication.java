@@ -49,19 +49,22 @@ public class ScOrderApplication {
      * sentinel feign由{@link com.alibaba.cloud.sentinel.feign.SentinelFeignAutoConfiguration}构建，覆盖默认构建的Feign.Builder
      * {@link SentinelFeign.Builder#build()}创建SentinelInvocationHandler
      * SentinelInvocationHandler实现资源降级操作
-     *
      * 1. 如果实现了fallback，那么只要请求服务报错就会执行fallback的降级方法(不管有没有触发降级配置)
      * @see {@link com.alibaba.cloud.sentinel.feign.SentinelInvocationHandler#invoke}
-     * @see {@link com.alibaba.csp.sentinel.slots.block.degrade.DegradeRule#passCheck}
+     * @see {@link com.alibaba.csp.sentinel.slots.block.degrade.DegradeRule#passCheck} 降级检查实现，可以通过提取sentinel-core模块
      * 2. RT配置：同1s内的请求数大于5({@link com.alibaba.csp.sentinel.slots.block.degrade.DegradeRule#rtSlowRequestAmount})且平均响应时间大于阀值则在接下来的时间窗口触发熔断降级
      * 其余规则配置具体参考：
      * https://mrbird.cc/Sentinel%E6%8E%A7%E5%88%B6%E5%8F%B0%E8%AF%A6%E8%A7%A3.html
      * https://github.com/alibaba/Sentinel/wiki/%E7%86%94%E6%96%AD%E9%99%8D%E7%BA%A7
+     * <h2>DegradeSlot</h2>
+     * 降级插槽{@link com.alibaba.csp.sentinel.slots.block.degrade.DegradeSlot}
+     * {@link com.alibaba.csp.sentinel.slots.clusterbuilder.ClusterBuilderSlot} 初始化统计节点
      *
-     * <h1>限流(FlueRule)异常拦截</h1>
+     * <h1>限流(FlowRule)异常拦截</h1>
      * @see {@link com.alibaba.cloud.sentinel.SentinelWebAutoConfiguration#sentinelWebMvcConfig} 注入BlockExceptionHandler，以及web处理相关参数
      * @see {@link com.alibaba.cloud.sentinel.SentinelWebAutoConfiguration#sentinelWebInterceptor}注入异常处理拦截器，拦截并处理BlockException异常。
-     * 这里是限流控制，降级不会在这里触发，因为这里是此服务的web前置处理，还没执行对其他服务的调用。限流是针对本服务入口进行操作，而降级是对下游服务而言的。
+     * 这里也会获取resourceName对应的所有插槽，包括降级插槽。{@link com.alibaba.csp.sentinel.CtSph#lookProcessChain}.
+     * 也就是说如果接口触发降级也会在这里的preHandler中抛出DegradeException.
      *
      * 可以通过spring.cloud.setinel.blockPage 设置异常响应重定向的页面
      * 否则默认使用{@link com.alibaba.csp.sentinel.adapter.spring.webmvc.callback.DefaultBlockExceptionHandler}类处理
@@ -73,6 +76,22 @@ public class ScOrderApplication {
      * 比如sentinel console实时监控界面获取metric信息的请求<code>metric</code>就是sentinel客户端的{@link com.alibaba.csp.sentinel.command.handler.SendMetricCommandHandler}类处理的。
      * 实际metric数据来源就是从sentinel的metric日志文件中读取的。
      *
+     * <h1>动态规则</h1>
+     * 参考{@link com.alibaba.csp.sentinel.datasource.nacos.NacosDataSource} nacos数据源属性
+     * {@link com.alibaba.cloud.sentinel.custom.SentinelDataSourceHandler} 注册动态数据源Bean
+     * {@link com.alibaba.cloud.sentinel.datasource.config.AbstractDataSourceProperties#postRegister} 注册数据源
+     *
+     * <h1>规则配置说明</h1>
+     * 例如有如下的接口树：
+     * <code>
+     *     /createOrder
+     *     ├── POST:http://sc-service1/320200/createOrder
+     *     ├── mybatis:com.zz.scorder.dao.ConfigMapper.selectByCardCode
+     * </code>
+     * “/createOrder” 接口为当前服务对外接口
+     * “POST:http://sc-service1/320200/createOrder” 为当前服务的createOrder接口需要调用的上游接口
+     * 对“/createOrder”接口可以配置限流、降级，降级也会在prehandler中体现，如果降级的话就不会再执行Controller中的代码。所有如果需要定制客户端响应也需要在`BlockExceptionHandler`中处理
+     * 而对于“POST:http://sc-service1/320200/createOrder”来说就只能配置降级了，因为限流是在Controller之前拦截的，这里的降级执行的就是 `InvocationHandler`。
      * @param args
      */
     public static void main(String[] args) {

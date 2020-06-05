@@ -1,0 +1,83 @@
+# 定制sentinel-console修改文件记录
+	new file:   ava/com/alibaba/csp/sentinel/dashboard/controller/gateway/GatewayApiNacosController.java
+	new file:   ava/com/alibaba/csp/sentinel/dashboard/controller/gateway/GatewayFlowRuleNacosController.java
+	new file:   ava/com/alibaba/csp/sentinel/dashboard/controller/nacos/DegradeControllerNacos.java
+	renamed:    ava/com/alibaba/csp/sentinel/dashboard/controller/v2/FlowControllerV2.java -> ava/com/alibaba/csp/sentinel/dashboard/controller/nacos/FlowControllerV2.java
+	new file:   ava/com/alibaba/csp/sentinel/dashboard/datasource/entity/rule/RuleEntityWrapper.java
+	new file:   ava/com/alibaba/csp/sentinel/dashboard/rule/DegradeRuleApiProvider.java
+	new file:   ava/com/alibaba/csp/sentinel/dashboard/rule/DegradeRuleApiPublisher.java
+	new file:   ava/com/alibaba/csp/sentinel/dashboard/rule/nacos/ApiDefinitionNacosProvider.java
+	new file:   ava/com/alibaba/csp/sentinel/dashboard/rule/nacos/ApiDefinitionNacosPublisher.java
+	new file:   ava/com/alibaba/csp/sentinel/dashboard/rule/nacos/DegradeRuleNacosProvider.java
+	new file:   ava/com/alibaba/csp/sentinel/dashboard/rule/nacos/DegradeRuleNacosPublisher.java
+	new file:   ava/com/alibaba/csp/sentinel/dashboard/rule/nacos/GatewayFlowRuleNacosProvider.java
+	renamed:    test/java/com/alibaba/csp/sentinel/dashboard/rule/nacos/FlowRuleNacosPublisher.java -> ava/com/alibaba/csp/sentinel/dashboard/rule/nacos/GatewayFlowRuleNacosPublisher.java
+	new file:   app/scripts/controllers/degrade_nacos.js
+	new file:   app/scripts/controllers/gateway/api_nacos.js
+	new file:   app/scripts/controllers/gateway/flow_nacos.js
+	new file:   app/scripts/services/degradeservice_nacos.js
+	new file:   app/scripts/services/gateway/api_service_nacos.js
+	new file:   app/scripts/services/gateway/flow_service_nacos.js
+	new file:   app/views/degrade_nacos.html
+	new file:   app/views/gateway/api_nacos.html
+	new file:   app/views/gateway/flow_nacos.html
+	deleted:    dist/css/app.css
+	deleted:    dist/js/app.js
+	deleted:    dist/js/app.vendor.js
+	deleted:    test/java/com/alibaba/csp/sentinel/dashboard/rule/nacos/FlowRuleNacosProvider.java
+	deleted:    test/java/com/alibaba/csp/sentinel/dashboard/rule/nacos/NacosConfig.java
+	deleted:    test/java/com/alibaba/csp/sentinel/dashboard/rule/nacos/NacosConfigUtil.java
+
+	modified:   ava/com/alibaba/csp/sentinel/dashboard/controller/gateway/GatewayApiNacosController.java
+	modified:   ava/com/alibaba/csp/sentinel/dashboard/controller/gateway/GatewayFlowRuleNacosController.java
+	modified:   ava/com/alibaba/csp/sentinel/dashboard/controller/nacos/DegradeControllerNacos.java
+	modified:   ava/com/alibaba/csp/sentinel/dashboard/datasource/entity/rule/DegradeRuleEntity.java
+	modified:   ava/com/alibaba/csp/sentinel/dashboard/repository/rule/InMemoryRuleRepositoryAdapter.java
+	modified:   ava/com/alibaba/csp/sentinel/dashboard/rule/nacos/ApiDefinitionNacosProvider.java
+	modified:   ava/com/alibaba/csp/sentinel/dashboard/rule/nacos/ApiDefinitionNacosPublisher.java
+	modified:   ava/com/alibaba/csp/sentinel/dashboard/rule/nacos/FlowRuleNacosProvider.java
+	modified:   ava/com/alibaba/csp/sentinel/dashboard/rule/nacos/FlowRuleNacosPublisher.java
+	modified:   ava/com/alibaba/csp/sentinel/dashboard/rule/nacos/GatewayFlowRuleNacosProvider.java
+	modified:   ava/com/alibaba/csp/sentinel/dashboard/rule/nacos/GatewayFlowRuleNacosPublisher.java
+	modified:   ava/com/alibaba/csp/sentinel/dashboard/rule/nacos/NacosConfig.java
+	modified:   ava/com/alibaba/csp/sentinel/dashboard/rule/nacos/NacosConfigUtil.java
+	modified:   README_zh.md
+	modified:   app/scripts/app.js
+	modified:   app/scripts/controllers/degrade.js
+	modified:   app/scripts/controllers/degrade_nacos.js
+	modified:   app/scripts/controllers/flow_v2.js
+	modified:   app/scripts/controllers/gateway/api_nacos.js
+	modified:   app/scripts/controllers/gateway/flow_nacos.js
+	modified:   app/scripts/controllers/gateway/identity.js
+	modified:   app/scripts/controllers/identity.js
+	modified:   app/scripts/directives/sidebar/sidebar.html
+	modified:   app/scripts/services/degradeservice_nacos.js
+	modified:   app/scripts/services/flow_service_v2.js
+	modified:   app/scripts/services/gateway/api_service_nacos.js
+	modified:   app/scripts/services/gateway/flow_service_nacos.js
+	modified:   app/views/degrade.html
+	modified:   app/views/degrade_nacos.html
+	modified:   app/views/dialog/degrade-rule-dialog.html
+	modified:   app/views/flow_v1.html
+	modified:   app/views/flow_v2.html
+	modified:   app/views/gateway/api_nacos.html
+	modified:   app/views/gateway/flow_nacos.html
+	modified:   app/views/gateway/identity.html
+	modified:   gulpfile.js
+	modified:   index.htm
+
+
+# 定制sentinel-core修改文件记录
+	new file:   sc-sentinel-core/src/main/java/com/alibaba/csp/sentinel/node/metric/StatisticConfig.java
+    modified:   sc-sentinel-core/src/main/java/com/alibaba/csp/sentinel/node/ClusterNode.java
+    modified:   sc-sentinel-core/src/main/java/com/alibaba/csp/sentinel/node/IntervalProperty.java
+    modified:   sc-sentinel-core/src/main/java/com/alibaba/csp/sentinel/node/Node.java
+    modified:   sc-sentinel-core/src/main/java/com/alibaba/csp/sentinel/node/StatisticNode.java
+    modified:   sc-sentinel-core/src/main/java/com/alibaba/csp/sentinel/node/metric/StatisticConfig.java
+    modified:   sc-sentinel-core/src/main/java/com/alibaba/csp/sentinel/slots/block/degrade/DegradeRule.java
+    modified:   sc-sentinel-core/src/main/java/com/alibaba/csp/sentinel/slots/block/degrade/DegradeRuleManager.java
+    modified:   sc-sentinel-core/src/main/java/com/alibaba/csp/sentinel/slots/clusterbuilder/ClusterBuilderSlot.java
+    modified:   sc-sentinel-core/src/main/java/com/alibaba/csp/sentinel/slots/statistic/data/MetricBucket.java
+    modified:   sc-sentinel-core/src/main/java/com/alibaba/csp/sentinel/slots/statistic/metric/ArrayMetric.java
+    modified:   sc-sentinel-core/src/main/java/com/alibaba/csp/sentinel/slots/statistic/metric/BucketLeapArray.java
+    modified:   sc-sentinel-core/src/main/java/com/alibaba/csp/sentinel/slots/statistic/metric/Metric.java

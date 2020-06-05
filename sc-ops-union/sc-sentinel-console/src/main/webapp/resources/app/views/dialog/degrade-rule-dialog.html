@@ -5,15 +5,35 @@
 			<div class="row">
 				<form role="form" class="form-horizontal">
 					<div class="form-group">
-						<label class="col-sm-2 control-label">资源名</label>
-						<div class="col-sm-9">
+						<label class="col-sm-3 control-label">接口名称</label>
+						<div class="col-sm-8">
 							<input type="text" ng-if="degradeRuleDialog.type == 'edit'" class="form-control" placeholder="资源名" ng-model='currentRule.resource'
 							 disabled="" />
 							<input type="text" ng-if="degradeRuleDialog.type == 'add'" class="form-control highlight-border" placeholder="资源名" ng-model='currentRule.resource'
 							/>
 						</div>
 					</div>
-
+          <div class="form-group">
+            <div>
+              <label class="col-sm-3 control-label">统计时长</label>
+              <div class="col-sm-6">
+                <input type="text" min="1" class="form-control" placeholder="统计时长,单位秒。同一资源下配置多个规则时统计时长窗口总是会使用最小值" ng-model='currentRule.statisticsTimeWindow'/>
+              </div>
+              <div class="col-sm-2">
+                <select ng-model="currentRule.intervalUnit" ng-init="currentRule.intervalUnit"
+                        ng-options="intervalUnit.val as intervalUnit.desc for intervalUnit in intervalUnits" class="form-control">
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="col-sm-3 control-label">最小请求数量</label>
+            <div class="col-sm-8">
+              <input type="number" min="0" class="form-control" placeholder="最小请求数，默认5"
+                     title="触发熔断的临界值(与比例一起控制)，若当前统计窗口请求总数小于此值，即使达到熔断条件规则也不会触发。"
+                     ng-model='currentRule.minRequestAmount'/>
+            </div>
+          </div>
 					<!--<div class="form-group">-->
 						<!--<label class="col-sm-2 control-label">流控应用</label>-->
 						<!--<div class="col-sm-9">-->
@@ -22,30 +42,39 @@
 					<!--</div>-->
 
 					<div class="form-group">
-						<label class="col-sm-2 control-label">降级策略</label>
-						<div class="col-sm-9">
+						<label class="col-sm-3 control-label">降级策略</label>
+						<div class="col-sm-8">
 							<div class="form-control highlight-border" align="center">
-								<input type="radio" name="grade" value="0" checked ng-model='currentRule.grade' title="秒级平均响应时间" />&nbsp;RT&nbsp;&nbsp;
-								<input type="radio" name="grade" value="1" ng-model='currentRule.grade' title="秒级异常比例" />&nbsp;异常比例&nbsp;&nbsp;
-								<input type="radio" name="grade" value="2" ng-model='currentRule.grade' title="分钟级异常数，仅 1.3.0 及以上版本生效" />&nbsp;异常数
+								<input type="radio" name="grade" value="0" checked ng-model='currentRule.grade' />&nbsp;RT比例&nbsp;&nbsp;
+								<input type="radio" name="grade" value="1" ng-model='currentRule.grade'/>&nbsp;异常比例&nbsp;&nbsp;
+								<input type="radio" name="grade" value="2" ng-model='currentRule.grade'/>&nbsp;异常数
 							</div>
 						</div>
 					</div>
-
-					<div class="form-group">
-						<label ng-if="currentRule.grade == 0" class="col-sm-2 control-label">RT</label>
-						<label ng-if="currentRule.grade == 1" class="col-sm-2 control-label">异常比例</label>
-						<label ng-if="currentRule.grade == 2" class="col-sm-2 control-label">异常数</label>
+          <div class="form-group" ng-if="currentRule.grade == 0">
+            <label class="col-sm-3 control-label">慢调用RT(ms)</label>
+            <div class="col-sm-8">
+              <input type="number" min="1" class="form-control" placeholder="请求的响应时间超过该值统计为慢调用，ms"
+                     title="请求的响应时间超过该值统计为慢调用"
+                     ng-model='currentRule.slowRt'/>
+            </div>
+          </div>
+					<div class="form-group" >
+						<label ng-if="currentRule.grade == 0" class="col-sm-3 control-label">慢调用比例</label>
+						<label ng-if="currentRule.grade == 1" class="col-sm-3 control-label">异常比例</label>
+						<label ng-if="currentRule.grade == 2" class="col-sm-3 control-label">异常数</label>
 						<div class="col-sm-3">
-							<input type='number' class="form-control highlight-border" ng-model='currentRule.count' ng-if="currentRule.grade == 0" placeholder="毫秒"/>
+							<input type='number' class="form-control highlight-border" ng-model='currentRule.count' ng-if="currentRule.grade == 0" placeholder="0.0~1.0"/>
 							<input type='number' class="form-control highlight-border" ng-model='currentRule.count' ng-if="currentRule.grade == 1" placeholder="0.0~1.0"/>
 							<input type='number' class="form-control highlight-border" ng-model='currentRule.count' ng-if="currentRule.grade == 2" placeholder="异常数"/>
 						</div>
-						<label class="col-sm-2 control-label">时间窗口</label>
-						<div class="col-sm-4">
-							<input type='number' min="0" class="form-control highlight-border" ng-model='currentRule.timeWindow' placeholder="降级时间间隔, 单位秒" />
-						</div>
 					</div>
+          <div class="form-group">
+            <label class="col-sm-3 control-label">熔断时长</label>
+            <div class="col-sm-8">
+              <input type='number' min="0" class="form-control highlight-border" ng-model='currentRule.timeWindow' placeholder="降级时间间隔, 单位秒" />
+            </div>
+          </div>
 				</form>
 			</div>
 			<div class="separator"></div>

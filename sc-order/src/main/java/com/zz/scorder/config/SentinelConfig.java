@@ -1,8 +1,18 @@
 package com.zz.scorder.config;
 
 import com.alibaba.csp.sentinel.adapter.spring.webmvc.callback.BlockExceptionHandler;
+import com.alibaba.csp.sentinel.datasource.Converter;
+import com.alibaba.csp.sentinel.slots.block.degrade.DegradeException;
+import com.alibaba.csp.sentinel.slots.block.degrade.DegradeRule;
+import com.alibaba.csp.sentinel.slots.block.flow.FlowException;
+import com.alibaba.csp.sentinel.slots.block.flow.FlowRule;
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.TypeReference;
+import com.zz.api.common.nacos.entity.DegradeRuleEntity;
+import com.zz.api.common.nacos.entity.FlowRuleEntity;
+import com.zz.api.common.nacos.entity.RuleEntityWrapper;
 import com.zz.api.common.sentinelfeign.CustomSentinelFeign;
+import com.zz.sccommon.exception.ErrorCode;
 import feign.Feign;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -15,7 +25,9 @@ import org.springframework.web.servlet.HandlerMapping;
 
 import java.io.PrintWriter;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * ************************************
@@ -43,14 +55,28 @@ public class SentinelConfig {
     @Bean
     public BlockExceptionHandler customBlockExceptionHandler() {
         return ((request, response, e) -> {
-            log.info("请求[" + request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE) + "]被限流");
+            Map<String, String> msg = new HashMap<>();
+            if(e instanceof FlowException) {
+                log.info("请求[" + request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE) + "]被限流");
+                
+                msg.put("code", "429");
+                msg.put("message", "请求已被限流");
+                
+            } else if(e instanceof DegradeException) {
+                log.info("请求[" + request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE) + "]已熔断");
+    
+                msg.put("code", ErrorCode.SERVER_DEGRADE.getErrorCode());
+                msg.put("message", ErrorCode.SERVER_DEGRADE.getReturnMsg());
+            } else {
+                log.info("请求[" + request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE) + "]被拦截, " + e.getClass().getSimpleName());
+    
+                msg.put("code", "500");
+                msg.put("message", "error");
+            }
             response.setStatus(200);
             response.setCharacterEncoding("utf-8");
             response.setContentType(MediaType.APPLICATION_JSON_UTF8_VALUE);
             PrintWriter out = response.getWriter();
-            Map<String, String> msg = new HashMap<>();
-            msg.put("code", "429");
-            msg.put("message", "请求已被限流");
             out.print(JSON.toJSONString(msg));
             out.flush();
             out.close();
@@ -68,5 +94,32 @@ public class SentinelConfig {
     @ConditionalOnProperty(name = "feign.sentinel.enabled")
     public Feign.Builder customeFeignSentinelBuilder() {
         return CustomSentinelFeign.builder();
+    }
+    
+    /**
+     * 注册流控配置转换器。nacos中的数据
+     * beanName必须以sentinel-开头，后面字符串则为application.yml中的converter-class配置
+     * <code>
+     *     converter-class: flowRuleDecoder
+     *     data-type: custom
+     * </code>
+     * @see {@link com.alibaba.cloud.sentinel.custom.SentinelDataSourceHandler#registerBean}
+     * 参照 {@link com.alibaba.csp.sentinel.dashboard.rule.nacos.NacosConfig}
+     * @return
+     */
+    @Bean("sentinel-flowRuleDecoder")
+    public Converter<String, List<FlowRule>> flowRuleEntityDecoder() {
+        return s -> {
+            RuleEntityWrapper<FlowRuleEntity> parseRule = JSON.parseObject(s, new TypeReference<RuleEntityWrapper<FlowRuleEntity>>(){});
+            return parseRule.getRuleEntity().stream().map(FlowRuleEntity::toRule).collect(Collectors.toList());
+        };
+    }
+    
+    @Bean("sentinel-degradeRuleDecoder")
+    public Converter<String, List<DegradeRule>> degradeRuleDecoder() {
+        return s -> {
+            RuleEntityWrapper<DegradeRuleEntity> parseRule = JSON.parseObject(s, new TypeReference<RuleEntityWrapper<DegradeRuleEntity>>(){});
+            return parseRule.getRuleEntity().stream().map(DegradeRuleEntity::toRule).collect(Collectors.toList());
+        };
     }
 }

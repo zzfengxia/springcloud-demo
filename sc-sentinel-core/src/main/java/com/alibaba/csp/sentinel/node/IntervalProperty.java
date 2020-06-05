@@ -16,10 +16,15 @@
 package com.alibaba.csp.sentinel.node;
 
 import com.alibaba.csp.sentinel.log.RecordLog;
+import com.alibaba.csp.sentinel.node.metric.StatisticConfig;
 import com.alibaba.csp.sentinel.property.SentinelProperty;
 import com.alibaba.csp.sentinel.property.SimplePropertyListener;
 import com.alibaba.csp.sentinel.slots.block.RuleConstant;
 import com.alibaba.csp.sentinel.slots.clusterbuilder.ClusterBuilderSlot;
+
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * QPS statistics interval.
@@ -39,7 +44,11 @@ public class IntervalProperty {
      * </p>
      */
     public static volatile int INTERVAL = RuleConstant.DEFAULT_WINDOW_INTERVAL_MS;
-
+    /**
+     * 资源对应的统计时间窗口，如果同一资源下有多个规则配置，只会保留统计时间窗口的最小值
+     */
+    public static volatile Map<String, StatisticConfig> RESOURCE_INTERVAL = new ConcurrentHashMap<>();
+    
     public static void register2Property(SentinelProperty<Integer> property) {
         property.addListener(new SimplePropertyListener<Integer>() {
             @Override
@@ -64,5 +73,54 @@ public class IntervalProperty {
         }
         RecordLog.info("[IntervalProperty] INTERVAL updated to: " + INTERVAL);
     }
-
+    
+    public static void saveResourceInterval(String resourceName, int interval, int slowRt) {
+        RESOURCE_INTERVAL.put(resourceName, StatisticConfig.of(interval, slowRt));
+        // 重置统计节点
+        ClusterBuilderSlot.resetClusterNodes(resourceName, interval, slowRt);
+    }
+    
+    public static StatisticConfig getResourceInterval(String resourceName) {
+        return RESOURCE_INTERVAL.get(resourceName);
+    }
+    
+    public static class Resource{
+        private String resourceName;
+        private int resourceType;
+    
+        public Resource(String resourceName, int resourceType) {
+            this.resourceName = resourceName;
+            this.resourceType = resourceType;
+        }
+    
+        public String getResourceName() {
+            return resourceName;
+        }
+    
+        public void setResourceName(String resourceName) {
+            this.resourceName = resourceName;
+        }
+    
+        public int getResourceType() {
+            return resourceType;
+        }
+    
+        public void setResourceType(int resourceType) {
+            this.resourceType = resourceType;
+        }
+    
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            Resource resource = (Resource) o;
+            return Objects.equals(resourceName, resource.resourceName) &&
+                    Objects.equals(resourceType, resource.resourceType);
+        }
+    
+        @Override
+        public int hashCode() {
+            return Objects.hash(resourceName, resourceType);
+        }
+    }
 }

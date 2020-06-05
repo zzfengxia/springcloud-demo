@@ -20,6 +20,26 @@
         <dependency>
             <groupId>com.alibaba.cloud</groupId>
             <artifactId>spring-cloud-starter-alibaba-sentinel</artifactId>
+            <exclusions>
+                <!-- 排除sentinel-core,使用定制的sentinel-core -->
+                <exclusion>
+                    <groupId>com.alibaba.csp</groupId>
+                    <artifactId>sentinel-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.alibaba.csp</groupId>
+                    <artifactId>sentinel-transport-simple-http</artifactId>
+                </exclusion>
+            </exclusions>
+            <!-- 禁止继承到子模块 -->
+            <optional>true</optional>
+        </dependency>
+
+        <!-- 定制sentinel-core -->
+        <dependency>
+            <groupId>com.zz</groupId>
+            <artifactId>sc-sentinel-core</artifactId>
+            <version>1.0-SNAPSHOT</version>
         </dependency>
 
         <dependency>

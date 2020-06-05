@@ -12,20 +12,6 @@ app.controller('FlowControllerV2', ['$scope', '$stateParams', 'FlowServiceV2', '
       totalPage: 1,
       totalCount: 0,
     };
-    $scope.macsInputConfig = {
-      searchField: ['text', 'value'],
-      persist: true,
-      create: false,
-      maxItems: 1,
-      render: {
-        item: function (data, escape) {
-          return '<div>' + escape(data.text) + '</div>';
-        }
-      },
-      onChange: function (value, oldValue) {
-        $scope.macInputModel = value;
-      }
-    };
 
     $scope.generateThresholdTypeShow = (rule) => {
       if (!rule.clusterMode) {
@@ -40,13 +26,9 @@ app.controller('FlowControllerV2', ['$scope', '$stateParams', 'FlowServiceV2', '
       }
     };
 
-    getMachineRules();
-    function getMachineRules() {
-      if (!$scope.macInputModel) {
-        return;
-      }
-      var mac = $scope.macInputModel.split(':');
-      FlowService.queryMachineRules($scope.app, mac[0], mac[1]).success(
+    getFlowRules();
+    function getFlowRules() {
+      FlowService.queryFlowRules($scope.app).success(
         function (data) {
           if (data.code == 0 && data.data) {
             $scope.rules = data.data;
@@ -57,8 +39,7 @@ app.controller('FlowControllerV2', ['$scope', '$stateParams', 'FlowServiceV2', '
           }
         });
     };
-    $scope.getMachineRules = getMachineRules;
-
+    $scope.getFlowRules = getFlowRules();
     var flowRuleDialog;
     $scope.editRule = function (rule) {
       $scope.currentRule = angular.copy(rule);
@@ -77,14 +58,11 @@ app.controller('FlowControllerV2', ['$scope', '$stateParams', 'FlowServiceV2', '
     };
 
     $scope.addNewRule = function () {
-      var mac = $scope.macInputModel.split(':');
       $scope.currentRule = {
         grade: 1,
         strategy: 0,
         controlBehavior: 0,
         app: $scope.app,
-        ip: mac[0],
-        port: mac[1],
         limitApp: 'default',
         clusterMode: false,
         clusterConfig: {
@@ -146,7 +124,7 @@ app.controller('FlowControllerV2', ['$scope', '$stateParams', 'FlowServiceV2', '
     function deleteRule(rule) {
       FlowService.deleteRule(rule).success(function (data) {
         if (data.code == 0) {
-          getMachineRules();
+          setTimeout(getFlowRules, 1000);
           confirmDialog.close();
         } else {
           alert('失败!');
@@ -157,7 +135,7 @@ app.controller('FlowControllerV2', ['$scope', '$stateParams', 'FlowServiceV2', '
     function addNewRule(rule) {
       FlowService.newRule(rule).success(function (data) {
         if (data.code == 0) {
-          getMachineRules();
+          setTimeout(getFlowRules, 1000);
           flowRuleDialog.close();
         } else {
           alert('失败!');
@@ -175,7 +153,7 @@ app.controller('FlowControllerV2', ['$scope', '$stateParams', 'FlowServiceV2', '
     function saveRule(rule, edit) {
       FlowService.saveRule(rule).success(function (data) {
         if (data.code == 0) {
-          getMachineRules();
+          setTimeout(getFlowRules, 1000);
           if (edit) {
             flowRuleDialog.close();
           } else {
@@ -186,7 +164,7 @@ app.controller('FlowControllerV2', ['$scope', '$stateParams', 'FlowServiceV2', '
         }
       });
     }
-    queryAppMachines();
+    //queryAppMachines();
     function queryAppMachines() {
       MachineService.getAppMachines($scope.app).success(
         function (data) {
@@ -213,9 +191,4 @@ app.controller('FlowControllerV2', ['$scope', '$stateParams', 'FlowServiceV2', '
         }
       );
     };
-    $scope.$watch('macInputModel', function () {
-      if ($scope.macInputModel) {
-        getMachineRules();
-      }
-    });
   }]);

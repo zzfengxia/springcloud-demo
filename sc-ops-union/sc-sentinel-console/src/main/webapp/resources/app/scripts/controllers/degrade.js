@@ -24,6 +24,7 @@ app.controller('DegradeCtl', ['$scope', '$stateParams', 'DegradeService', 'ngDia
         $scope.macInputModel = value;
       }
     };
+    $scope.intervalUnits = [{val: 0, desc: '秒'}, {val: 1, desc: '分'}];
     getMachineRules();
     function getMachineRules() {
       if (!$scope.macInputModel) {

@@ -6,9 +6,9 @@
     <button class="btn btn-default-inverse" style="float: right; margin-right: 10px;" ng-click="addNewRule()">
       <i class="fa fa-plus"></i>&nbsp;&nbsp;新增流控规则
     </button>
-    <a class="btn btn-default-inverse" style="float: right; margin-right: 10px;" ui-sref="dashboard.flowV1({app: app})">
+    <!--<a class="btn btn-default-inverse" style="float: right; margin-right: 10px;" ui-sref="dashboard.flowV1({app: app})">
       回到单机页面
-    </a>
+    </a>-->
   </div>
 </div>
 
@@ -19,7 +19,8 @@
     <div class="col-md-12">
       <div class="card">
         <div class="inputs-header">
-          <span class="brand" style="font-size: 13px;">流控规则</span>
+          <span class="brand" style="font-size: 13px;">流控规则-nacos</span>
+          <button class="btn btn-primary" style="float: right; margin-right: 10px; height: 30px;font-size: 12px;" ng-click="getFlowRules()">刷新</button>
           <input class="form-control witdh-200" placeholder="关键字" ng-model="searchKey">
         </div>
 

@@ -8,10 +8,6 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>sc-order</artifactId>
-    <packaging>jar</packaging>
-
-    <name>eureka-client-comsumer</name>
-    <url>http://maven.apache.org</url>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -48,6 +44,29 @@
         </dependency>
 
         <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-sentinel</artifactId>
+            <exclusions>
+                <!-- 排除sentinel-core,使用定制的sentinel-core -->
+                <exclusion>
+                    <groupId>com.alibaba.csp</groupId>
+                    <artifactId>sentinel-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.alibaba.csp</groupId>
+                    <artifactId>sentinel-transport-simple-http</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- 由于sentine-core是基于1.7.2源码定制的，在spring-cloud-starter-alibaba-sentinel引用的sentinel还没到1.7.2之前都需要手动导入 -->
+        <dependency>
+            <groupId>com.alibaba.csp</groupId>
+            <artifactId>sentinel-transport-simple-http</artifactId>
+            <version>1.7.2</version>
+        </dependency>
+
+        <dependency>
             <groupId>com.zz</groupId>
             <artifactId>sc-common</artifactId>
             <version>1.0-SNAPSHOT</version>
@@ -61,6 +80,10 @@
                 <exclusion>
                     <groupId>com.alibaba.nacos</groupId>
                     <artifactId>nacos-client</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.alibaba.csp</groupId>
+                    <artifactId>sentinel-core</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>

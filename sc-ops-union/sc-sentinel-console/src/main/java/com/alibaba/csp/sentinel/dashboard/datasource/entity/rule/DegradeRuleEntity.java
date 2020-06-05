@@ -15,14 +15,20 @@
  */
 package com.alibaba.csp.sentinel.dashboard.datasource.entity.rule;
 
-import java.util.Date;
-
 import com.alibaba.csp.sentinel.slots.block.degrade.DegradeRule;
+
+import java.util.Date;
 
 /**
  * @author leyou
  */
 public class DegradeRuleEntity implements RuleEntity {
+    /**间隔单位*/
+    /**0-秒*/
+    public static final int INTERVAL_UNIT_SECOND = 0;
+    /**1-分*/
+    public static final int INTERVAL_UNIT_MINUTE = 1;
+    
     private Long id;
     private String app;
     private String ip;
@@ -31,13 +37,47 @@ public class DegradeRuleEntity implements RuleEntity {
     private String limitApp;
     private Double count;
     private Integer timeWindow;
+    private Integer minRequestAmount;
+    /**
+     * 统计窗口时长(秒)
+     */
+    private Integer statisticsTimeWindow;
+    /**
+     * 统计窗口单位
+     */
+    private Integer intervalUnit;
+    /**
+     * 慢响应时间(毫秒)
+     */
+    private Integer slowRt;
     /**
      * 0 rt 限流; 1为异常;
      */
     private Integer grade;
     private Date gmtCreate;
     private Date gmtModified;
-
+    
+    public static Integer calIntervalSec(Integer interval, Integer intervalUnit) {
+        switch (intervalUnit) {
+            case INTERVAL_UNIT_SECOND:
+                return interval;
+            case INTERVAL_UNIT_MINUTE:
+                return interval * 60;
+            default:
+                break;
+        }
+        
+        throw new IllegalArgumentException("Invalid intervalUnit: " + intervalUnit);
+    }
+    
+    public static Object[] parseIntervalSec(Integer intervalSec) {
+        if (intervalSec % 60 == 0) {
+            return new Object[] {intervalSec / 60, INTERVAL_UNIT_MINUTE};
+        }
+        
+        return new Object[] {intervalSec, INTERVAL_UNIT_SECOND};
+    }
+    
     public static DegradeRuleEntity fromDegradeRule(String app, String ip, Integer port, DegradeRule rule) {
         DegradeRuleEntity entity = new DegradeRuleEntity();
         entity.setApp(app);
@@ -48,6 +88,11 @@ public class DegradeRuleEntity implements RuleEntity {
         entity.setCount(rule.getCount());
         entity.setTimeWindow(rule.getTimeWindow());
         entity.setGrade(rule.getGrade());
+        Object[] intervalSecResult = parseIntervalSec(rule.getStatisticsTimeWindow());
+        entity.setStatisticsTimeWindow((Integer) intervalSecResult[0]);
+        entity.setIntervalUnit((Integer) intervalSecResult[1]);
+        entity.setMinRequestAmount(rule.getMinRequestAmount());
+        entity.setSlowRt(rule.getSlowRt());
         return entity;
     }
 
@@ -119,7 +164,15 @@ public class DegradeRuleEntity implements RuleEntity {
     public void setTimeWindow(Integer timeWindow) {
         this.timeWindow = timeWindow;
     }
-
+    
+    public Integer getSlowRt() {
+        return slowRt;
+    }
+    
+    public void setSlowRt(Integer slowRt) {
+        this.slowRt = slowRt;
+    }
+    
     public Integer getGrade() {
         return grade;
     }
@@ -144,7 +197,31 @@ public class DegradeRuleEntity implements RuleEntity {
     public void setGmtModified(Date gmtModified) {
         this.gmtModified = gmtModified;
     }
-
+    
+    public Integer getStatisticsTimeWindow() {
+        return statisticsTimeWindow;
+    }
+    
+    public void setStatisticsTimeWindow(Integer statisticsTimeWindow) {
+        this.statisticsTimeWindow = statisticsTimeWindow;
+    }
+    
+    public Integer getIntervalUnit() {
+        return intervalUnit;
+    }
+    
+    public void setIntervalUnit(Integer intervalUnit) {
+        this.intervalUnit = intervalUnit;
+    }
+    
+    public Integer getMinRequestAmount() {
+        return minRequestAmount;
+    }
+    
+    public void setMinRequestAmount(Integer minRequestAmount) {
+        this.minRequestAmount = minRequestAmount;
+    }
+    
     @Override
     public DegradeRule toRule() {
         DegradeRule rule = new DegradeRule();
@@ -153,6 +230,9 @@ public class DegradeRuleEntity implements RuleEntity {
         rule.setCount(count);
         rule.setTimeWindow(timeWindow);
         rule.setGrade(grade);
+        rule.setStatisticsTimeWindow(calIntervalSec(statisticsTimeWindow, intervalUnit));
+        rule.setMinRequestAmount(minRequestAmount);
+        rule.setSlowRt(slowRt);
         return rule;
     }
 }

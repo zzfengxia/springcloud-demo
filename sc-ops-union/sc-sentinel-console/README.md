@@ -62,3 +62,12 @@ java -Dserver.port=8080 \
 
 ## 4. 配置参考
 https://mrbird.cc/Sentinel%E6%8E%A7%E5%88%B6%E5%8F%B0%E8%AF%A6%E8%A7%A3.html
+
+## 5. 定制修改类
+- `FlowControllerV2.java`
+- package: `rule.nacos`
+- `sidebar.html`
+- `app.js`
+- `app/scripts/controllers/identity.js`
+* 
+- ``

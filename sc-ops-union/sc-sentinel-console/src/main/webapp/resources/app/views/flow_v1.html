@@ -2,12 +2,12 @@
   <div class="col-md-6" style="margin-bottom: 10px;">
     <span style="font-size: 30px;font-weight: bold;">{{app}}</span>
   </div>
-  <div class="col-md-6">
+  <!--<div class="col-md-6">
     <button class="btn btn-default-inverse" style="float: right; margin-right: 10px;" ng-disabled="!macInputModel" ng-click="addNewRule()">
       <i class="fa fa-plus"></i>&nbsp;&nbsp;新增流控规则</button>
-    <!--<a class="btn btn-outline-success" style="float: right; margin-right: 10px;" ui-sref="dashboard.flow({app: app})">-->
-      <!--回到集群页面</a>-->
-  </div>
+    &lt;!&ndash;<a class="btn btn-outline-success" style="float: right; margin-right: 10px;" ui-sref="dashboard.flow({app: app})">&ndash;&gt;
+      &lt;!&ndash;回到集群页面</a>&ndash;&gt;
+  </div>-->
 </div>
 
 <div class="separator"></div>
@@ -84,7 +84,7 @@
                   <span ng-if="rule.controlBehavior == 3">预热排队</span>
                 </td>
                 <td>
-                  <button class="btn btn-xs btn-default" type="button" ng-click="editRule(rule)" style="font-size: 12px; height:25px;">编辑</button>
+                  <!--<button class="btn btn-xs btn-default" type="button" ng-click="editRule(rule)" style="font-size: 12px; height:25px;">编辑</button>-->
                   <button class="btn btn-xs btn-default" type="button" ng-click="deleteRule(rule)" style="font-size: 12px; height:25px;">删除</button>
                 </td>
               </tr>

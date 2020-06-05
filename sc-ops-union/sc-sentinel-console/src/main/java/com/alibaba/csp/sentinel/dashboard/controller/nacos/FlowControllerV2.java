@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.alibaba.csp.sentinel.dashboard.controller.v2;
+package com.alibaba.csp.sentinel.dashboard.controller.nacos;
 
 import com.alibaba.csp.sentinel.dashboard.auth.AuthAction;
 import com.alibaba.csp.sentinel.dashboard.auth.AuthService;
 import com.alibaba.csp.sentinel.dashboard.auth.AuthService.PrivilegeType;
 import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.FlowRuleEntity;
+import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.RuleEntityWrapper;
 import com.alibaba.csp.sentinel.dashboard.domain.Result;
 import com.alibaba.csp.sentinel.dashboard.repository.rule.InMemoryRuleRepositoryAdapter;
 import com.alibaba.csp.sentinel.dashboard.rule.DynamicRuleProvider;
@@ -58,10 +59,10 @@ public class FlowControllerV2 {
 
     @Autowired
     @Qualifier("flowRuleNacosProvider")
-    private DynamicRuleProvider<List<FlowRuleEntity>> ruleProvider;
+    private DynamicRuleProvider<RuleEntityWrapper<FlowRuleEntity>> ruleProvider;
     @Autowired
     @Qualifier("flowRuleNacosPublisher")
-    private DynamicRulePublisher<List<FlowRuleEntity>> rulePublisher;
+    private DynamicRulePublisher<RuleEntityWrapper<FlowRuleEntity>> rulePublisher;
 
     @GetMapping("/rules")
     @AuthAction(PrivilegeType.READ_RULE)
@@ -71,17 +72,18 @@ public class FlowControllerV2 {
             return Result.ofFail(-1, "app can't be null or empty");
         }
         try {
-            List<FlowRuleEntity> rules = ruleProvider.getRules(app);
-            if (rules != null && !rules.isEmpty()) {
-                for (FlowRuleEntity entity : rules) {
+            RuleEntityWrapper<FlowRuleEntity> rules = ruleProvider.getRules(app);
+            if (rules != null && !rules.getRuleEntity().isEmpty()) {
+                List<FlowRuleEntity> ruleList = rules.getRuleEntity();
+                for (FlowRuleEntity entity : ruleList) {
                     entity.setApp(app);
                     if (entity.getClusterConfig() != null && entity.getClusterConfig().getFlowId() != null) {
                         entity.setId(entity.getClusterConfig().getFlowId());
                     }
                 }
             }
-            rules = repository.saveAll(rules);
-            return Result.ofSuccess(rules);
+            List<FlowRuleEntity> ruleEntities = repository.saveAll(rules);
+            return Result.ofSuccess(ruleEntities);
         } catch (Throwable throwable) {
             logger.error("Error when querying flow rules", throwable);
             return Result.ofThrowable(-1, throwable);
@@ -141,12 +143,17 @@ public class FlowControllerV2 {
             return checkResult;
         }
         entity.setId(null);
+        entity.setIp(null);
+        entity.setPort(null);
+        
         Date date = new Date();
         entity.setGmtCreate(date);
         entity.setGmtModified(date);
         entity.setLimitApp(entity.getLimitApp().trim());
         entity.setResource(entity.getResource().trim());
         try {
+            // 先刷新缓存
+            repository.refreshRuleCache(ruleProvider, entity.getApp());
             entity = repository.save(entity);
             publishRules(entity.getApp());
         } catch (Throwable throwable) {
@@ -218,7 +225,7 @@ public class FlowControllerV2 {
     }
 
     private void publishRules(/*@NonNull*/ String app) throws Exception {
-        List<FlowRuleEntity> rules = repository.findAllByApp(app);
+        RuleEntityWrapper<FlowRuleEntity> rules = repository.findRuleByApp(app);
         rulePublisher.publish(app, rules);
     }
 }

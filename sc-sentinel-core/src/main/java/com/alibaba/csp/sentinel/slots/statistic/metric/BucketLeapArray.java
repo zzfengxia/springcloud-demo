@@ -27,16 +27,22 @@ import com.alibaba.csp.sentinel.slots.statistic.data.MetricBucket;
  * @see LeapArray
  */
 public class BucketLeapArray extends LeapArray<MetricBucket> {
-
+    private int slowRt;
+    
     public BucketLeapArray(int sampleCount, int intervalInMs) {
         super(sampleCount, intervalInMs);
+    }
+    
+    public BucketLeapArray(int sampleCount, int intervalInMs, int slowRt) {
+        super(sampleCount, intervalInMs);
+        this.slowRt = slowRt;
     }
 
     @Override
     public MetricBucket newEmptyBucket(long time) {
-        return new MetricBucket();
+        return new MetricBucket().setSlowRt(slowRt);
     }
-
+    
     @Override
     protected WindowWrap<MetricBucket> resetWindowTo(WindowWrap<MetricBucket> w, long startTime) {
         // Update the start time and reset value.

@@ -3,6 +3,7 @@ package com.zz.api.common.sentinelfeign;
 import com.alibaba.cloud.sentinel.feign.SentinelContractHolder;
 import com.alibaba.csp.sentinel.Entry;
 import com.alibaba.csp.sentinel.EntryType;
+import com.alibaba.csp.sentinel.ResourceTypeConstants;
 import com.alibaba.csp.sentinel.SphU;
 import com.alibaba.csp.sentinel.Tracer;
 import com.alibaba.csp.sentinel.context.ContextUtil;
@@ -108,7 +109,7 @@ public class CustomSentinelInvocationHandler implements InvocationHandler {
                 Entry entry = null;
                 try {
                     ContextUtil.enter(resourceName);
-                    entry = SphU.entry(resourceName, EntryType.OUT, 1, args);
+                    entry = SphU.entry(resourceName, EntryType.OUT, ResourceTypeConstants.COMMON_WEB, args);
                     result = methodHandler.invoke(args);
                 }
                 catch (Throwable ex) {

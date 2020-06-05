@@ -15,14 +15,14 @@
  */
 package com.alibaba.csp.sentinel.node;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.locks.ReentrantLock;
-
 import com.alibaba.csp.sentinel.ResourceTypeConstants;
 import com.alibaba.csp.sentinel.context.ContextUtil;
 import com.alibaba.csp.sentinel.slots.block.BlockException;
 import com.alibaba.csp.sentinel.util.AssertUtil;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * <p>
@@ -56,7 +56,20 @@ public class ClusterNode extends StatisticNode {
         this.name = name;
         this.resourceType = resourceType;
     }
-
+    
+    /**
+     * 定制功能
+     *
+     * @param name
+     * @param resourceType
+     */
+    public ClusterNode(String name, int resourceType, int interval, int slowRt) {
+        super(interval, slowRt);
+        AssertUtil.notEmpty(name, "name cannot be empty");
+        this.name = name;
+        this.resourceType = resourceType;
+    }
+    
     /**
      * <p>The origin map holds the pair: (origin, originNode) for one specific resource.</p>
      * <p>

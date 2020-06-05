@@ -15,9 +15,6 @@
  */
 package com.alibaba.csp.sentinel.slots.clusterbuilder;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import com.alibaba.csp.sentinel.EntryType;
 import com.alibaba.csp.sentinel.context.Context;
 import com.alibaba.csp.sentinel.context.ContextUtil;
@@ -26,11 +23,15 @@ import com.alibaba.csp.sentinel.node.DefaultNode;
 import com.alibaba.csp.sentinel.node.IntervalProperty;
 import com.alibaba.csp.sentinel.node.Node;
 import com.alibaba.csp.sentinel.node.SampleCountProperty;
+import com.alibaba.csp.sentinel.node.metric.StatisticConfig;
 import com.alibaba.csp.sentinel.slotchain.AbstractLinkedProcessorSlot;
 import com.alibaba.csp.sentinel.slotchain.ProcessorSlotChain;
 import com.alibaba.csp.sentinel.slotchain.ResourceWrapper;
 import com.alibaba.csp.sentinel.slotchain.StringResourceWrapper;
 import com.alibaba.csp.sentinel.spi.SpiOrder;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * <p>
@@ -80,7 +81,13 @@ public class ClusterBuilderSlot extends AbstractLinkedProcessorSlot<DefaultNode>
             synchronized (lock) {
                 if (clusterNode == null) {
                     // Create the cluster node.
-                    clusterNode = new ClusterNode(resourceWrapper.getName(), resourceWrapper.getResourceType());
+                    StatisticConfig intervalConfgi = IntervalProperty.getResourceInterval(resourceWrapper.getName());
+                    if(intervalConfgi != null) {
+                        clusterNode = new ClusterNode(resourceWrapper.getName(), resourceWrapper.getResourceType(),
+                                intervalConfgi.getInterval(), intervalConfgi.getSlowRt());
+                    } else {
+                        clusterNode = new ClusterNode(resourceWrapper.getName(), resourceWrapper.getResourceType());
+                    }
                     HashMap<ResourceWrapper, ClusterNode> newMap = new HashMap<>(Math.max(clusterNodeMap.size(), 16));
                     newMap.putAll(clusterNodeMap);
                     newMap.put(node.getId(), clusterNode);
@@ -160,5 +167,19 @@ public class ClusterBuilderSlot extends AbstractLinkedProcessorSlot<DefaultNode>
         for (ClusterNode node : clusterNodeMap.values()) {
             node.reset();
         }
+    }
+    
+    /**
+     * Reset all {@link ClusterNode}s. Reset is needed when {@link IntervalProperty#INTERVAL} or
+     * {@link SampleCountProperty#SAMPLE_COUNT} is changed.
+     */
+    public static void resetClusterNodes(String resource, int interval, int slowRt) {
+        ClusterNode node = getClusterNode(resource);
+        if(node == null) {
+            return;
+        }
+        // get interval of resource
+        
+        node.reset(interval, slowRt);
     }
 }

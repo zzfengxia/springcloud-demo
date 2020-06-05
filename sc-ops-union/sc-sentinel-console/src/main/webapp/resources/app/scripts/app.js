@@ -250,7 +250,21 @@ angular
           }]
         }
       })
-
+      .state('dashboard.degradeNacos', {
+        templateUrl: 'app/views/degrade_nacos.html',
+        url: '/v2/degrade/:app',
+        controller: 'DegradeNacosCtl',
+        resolve: {
+          loadMyFiles: ['$ocLazyLoad', function ($ocLazyLoad) {
+            return $ocLazyLoad.load({
+              name: 'sentinelDashboardApp',
+              files: [
+                'app/scripts/controllers/degrade_nacos.js',
+              ]
+            });
+          }]
+        }
+      })
       .state('dashboard.system', {
         templateUrl: 'app/views/system.html',
         url: '/system/:app',
@@ -346,7 +360,21 @@ angular
           }]
         }
       })
-
+      .state('dashboard.gatewayApiNacos', {
+        templateUrl: 'app/views/gateway/api_nacos.html',
+        url: '/gateway/nacos/api/:app',
+        controller: 'GatewayApiNacosCtl',
+        resolve: {
+          loadMyFiles: ['$ocLazyLoad', function ($ocLazyLoad) {
+            return $ocLazyLoad.load({
+              name: 'sentinelDashboardApp',
+              files: [
+                'app/scripts/controllers/gateway/api_nacos.js',
+              ]
+            });
+          }]
+        }
+      })
       .state('dashboard.gatewayFlow', {
           templateUrl: 'app/views/gateway/flow.html',
           url: '/gateway/flow/:app',
@@ -361,5 +389,21 @@ angular
                   });
               }]
           }
+      })
+
+      .state('dashboard.gatewayFlowNacos', {
+        templateUrl: 'app/views/gateway/flow_nacos.html',
+        url: '/gateway/nacos/flow/:app',
+        controller: 'GatewayFlowNacosCtl',
+        resolve: {
+          loadMyFiles: ['$ocLazyLoad', function ($ocLazyLoad) {
+            return $ocLazyLoad.load({
+              name: 'sentinelDashboardApp',
+              files: [
+                'app/scripts/controllers/gateway/flow_nacos.js',
+              ]
+            });
+          }]
+        }
       });
   }]);

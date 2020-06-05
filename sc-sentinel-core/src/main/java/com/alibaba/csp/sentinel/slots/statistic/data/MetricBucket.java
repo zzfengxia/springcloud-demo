@@ -19,6 +19,8 @@ import com.alibaba.csp.sentinel.config.SentinelConfig;
 import com.alibaba.csp.sentinel.slots.statistic.MetricEvent;
 import com.alibaba.csp.sentinel.slots.statistic.base.LongAdder;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 /**
  * Represents metrics data in a period of time span.
  *
@@ -38,6 +40,7 @@ public class MetricBucket {
             counters[event.ordinal()] = new LongAdder();
         }
         initMinRt();
+        resetSlowRt();
     }
 
     public MetricBucket reset(MetricBucket bucket) {
@@ -46,6 +49,7 @@ public class MetricBucket {
             counters[event.ordinal()].add(bucket.get(event));
         }
         initMinRt();
+        resetSlowRt();
         return this;
     }
 
@@ -63,6 +67,7 @@ public class MetricBucket {
             counters[event.ordinal()].reset();
         }
         initMinRt();
+        resetSlowRt();
         return this;
     }
 
@@ -130,10 +135,36 @@ public class MetricBucket {
         if (rt < minRt) {
             minRt = rt;
         }
+        // 记录慢请求
+        if(slowRt != 0 && rt > slowRt) {
+            System.out.println("slowRt:" + slowRt + ", rt:" + rt);
+            slowRtCount.incrementAndGet();
+        }
     }
 
     @Override
     public String toString() {
         return "p: " + pass() + ", b: " + block() + ", w: " + occupiedPass();
+    }
+    
+    // ******** 慢调用统计 ********
+    private int slowRt;
+    private volatile AtomicInteger slowRtCount;
+    
+    public void resetSlowRt() {
+        slowRtCount = new AtomicInteger(0);
+    }
+    
+    public int slowRtCount() {
+        return slowRtCount.get();
+    }
+    
+    public int getSlowRt() {
+        return slowRt;
+    }
+    
+    public MetricBucket setSlowRt(int slowRt) {
+        this.slowRt = slowRt;
+        return this;
     }
 }

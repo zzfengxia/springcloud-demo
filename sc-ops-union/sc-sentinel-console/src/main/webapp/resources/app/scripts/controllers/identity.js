@@ -2,10 +2,10 @@ var app = angular.module('sentinelDashboardApp');
 
 // 簇点链路相关操作存入nacos-FlowServiceV2
 app.controller('IdentityCtl', ['$scope', '$stateParams', 'IdentityService',
-  'ngDialog', 'FlowServiceV2', 'DegradeService', 'AuthorityRuleService', 'ParamFlowService', 'MachineService',
+  'ngDialog', 'FlowServiceV2', 'DegradeNacosService', 'AuthorityRuleService', 'ParamFlowService', 'MachineService',
   '$interval', '$location', '$timeout',
   function ($scope, $stateParams, IdentityService, ngDialog,
-    FlowService, DegradeService, AuthorityRuleService, ParamFlowService, MachineService, $interval, $location, $timeout) {
+    FlowService, DegradeNacosService, AuthorityRuleService, ParamFlowService, MachineService, $interval, $location, $timeout) {
 
     $scope.app = $stateParams.app;
 
@@ -96,7 +96,7 @@ app.controller('IdentityCtl', ['$scope', '$stateParams', 'IdentityService',
       FlowService.newRule(flowRuleDialogScope.currentRule).success(function (data) {
         if (data.code === 0) {
           flowRuleDialog.close();
-          let url = '/dashboard/flow/' + $scope.app;
+          let url = '/dashboard/v2/flow/' + $scope.app;
           $location.path(url);
         } else {
           alert('失败：' + data.msg);
@@ -127,10 +127,12 @@ app.controller('IdentityCtl', ['$scope', '$stateParams', 'IdentityService',
       }
       var mac = $scope.macInputModel.split(':');
       degradeRuleDialogScope = $scope.$new(true);
+      degradeRuleDialogScope.intervalUnits = [{val: 0, desc: '秒'}, {val: 1, desc: '分'}];
       degradeRuleDialogScope.currentRule = {
         enable: false,
         grade: 0,
         strategy: 0,
+        intervalUnit: 0,
         resource: resource,
         limitApp: 'default',
         app: $scope.app,
@@ -156,13 +158,14 @@ app.controller('IdentityCtl', ['$scope', '$stateParams', 'IdentityService',
     };
 
     function saveDegradeRule() {
-        if (!DegradeService.checkRuleValid(degradeRuleDialogScope.currentRule)) {
+        if (!DegradeNacosService.checkRuleValid(degradeRuleDialogScope.currentRule)) {
             return;
         }
-      DegradeService.newRule(degradeRuleDialogScope.currentRule).success(function (data) {
+        DegradeNacosService.newRule(degradeRuleDialogScope.currentRule).success(function (data) {
         if (data.code === 0) {
           degradeRuleDialog.close();
-          var url = '/dashboard/degrade/' + $scope.app;
+          // 跳转到degrade_nacos页面
+          var url = '/dashboard/v2/degrade/' + $scope.app;
           $location.path(url);
         } else {
           alert('失败：' + data.msg);
@@ -171,10 +174,10 @@ app.controller('IdentityCtl', ['$scope', '$stateParams', 'IdentityService',
     }
 
     function saveDegradeRuleAndContinue() {
-        if (!DegradeService.checkRuleValid(degradeRuleDialogScope.currentRule)) {
+        if (!DegradeNacosService.checkRuleValid(degradeRuleDialogScope.currentRule)) {
             return;
         }
-      DegradeService.newRule(degradeRuleDialogScope.currentRule).success(function (data) {
+        DegradeNacosService.newRule(degradeRuleDialogScope.currentRule).success(function (data) {
         if (data.code === 0) {
           degradeRuleDialog.close();
         } else {

@@ -2,10 +2,10 @@
   <div class="col-md-6" style="margin-bottom: 10px;">
     <span style="font-size: 30px;font-weight: bold;">{{app}}</span>
   </div>
-  <div class="col-md-6">
+  <!--<div class="col-md-6">
     <button class="btn btn-default-inverse" style="float: right; margin-right: 10px;" ng-disabled="!macInputModel" ng-click="addNewRule()">
       <i class="fa fa-plus"></i>&nbsp;&nbsp;新增降级规则</button>
-  </div>
+  </div>-->
 </div>
 
 <div class="separator"></div>
@@ -31,19 +31,25 @@
             <thead>
               <tr style="background: #F3F5F7;">
                 <td style="width: 40%">
-                  资源名
+                  接口名称
                 </td>
                 <!--<td style="width: 10%;">-->
-                  <!--降级应用-->
+                <!--降级应用-->
                 <!--</td>-->
                 <td style="width: 10%;">
-                  降级模式
+                  降级策略
+                </td>
+                <td style="width: 10%;">
+                  最小请求数
                 </td>
                 <td style="width: 10%;">
                   阈值
                 </td>
                 <td style="width: 10%;">
-                  时间窗口(s)
+                  熔断时长(s)
+                </td>
+                <td style="width: 10%;">
+                  统计时长
                 </td>
                 <!--<td style="width: 8%;">-->
                 <!--状态-->
@@ -64,14 +70,20 @@
                   <span ng-if="rule.grade == 2" title="分钟级异常数">异常数</span>
                 </td>
                 <td style="word-wrap:break-word;word-break:break-all;">
+                  {{rule.minRequestAmount}}
+                </td>
+                <td style="word-wrap:break-word;word-break:break-all;">
                   {{rule.count}}
                 </td>
                 <td style="word-wrap:break-word;word-break:break-all;">
                   {{rule.timeWindow}}s
                 </td>
+                <td style="word-wrap:break-word;word-break:break-all;">
+                  {{rule.statisticsTimeWindow}}{{intervalUnits[rule.intervalUnit].desc}}
+                </td>
 
                 <td>
-                  <button class="btn btn-xs btn-default" type="button" ng-click="editRule(rule)" style="font-size: 12px; height:25px;">编辑</button>
+                  <!--<button class="btn btn-xs btn-default" type="button" ng-click="editRule(rule)" style="font-size: 12px; height:25px;">编辑</button>-->
                   <button class="btn btn-xs btn-default" type="button" ng-click="deleteRule(rule)" style="font-size: 12px; height:25px;">删除</button>
                 </td>
               </tr>

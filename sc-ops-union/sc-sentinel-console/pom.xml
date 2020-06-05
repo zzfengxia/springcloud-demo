@@ -22,10 +22,11 @@
     </properties>
 
     <dependencies>
+        <!-- 定制sentinel-core -->
         <dependency>
-            <groupId>com.alibaba.csp</groupId>
-            <artifactId>sentinel-core</artifactId>
-            <version>${sentinel.current.version}</version>
+            <groupId>com.zz</groupId>
+            <artifactId>sc-sentinel-core</artifactId>
+            <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.alibaba.csp</groupId>
@@ -106,6 +107,7 @@
         <dependency>
             <groupId>com.alibaba.csp</groupId>
             <artifactId>sentinel-datasource-nacos</artifactId>
+            <version>${sentinel.current.version}</version>
         </dependency>
         <!-- for Apollo rule publisher sample -->
         <dependency>

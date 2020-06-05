@@ -15,13 +15,13 @@
  */
 package com.alibaba.csp.sentinel.node;
 
-import java.util.List;
-import java.util.Map;
-
 import com.alibaba.csp.sentinel.Entry;
 import com.alibaba.csp.sentinel.node.metric.MetricNode;
 import com.alibaba.csp.sentinel.slots.statistic.metric.DebugSupport;
 import com.alibaba.csp.sentinel.util.function.Predicate;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * Holds real-time statistics for resources.
@@ -201,4 +201,13 @@ public interface Node extends OccupySupport, DebugSupport {
      * {@link SampleCountProperty#SAMPLE_COUNT} is changed.
      */
     void reset();
+    
+    /**
+     * 重置统计节点的存储桶数量和统计时间窗口
+     *
+     * @param interval
+     */
+    default void reset(int interval, int slowRt) {
+        // no op
+    }
 }
