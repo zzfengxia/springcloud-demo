@@ -17,6 +17,7 @@ angular
     'angular-loading-bar',
     'ngDialog',
     'ui.bootstrap.datetimepicker',
+    'ui.dateTimeInput',
     'ui-notification',
     'rzTable',
     'angular-clipboard',
@@ -49,12 +50,10 @@ angular
   .config(['$stateProvider', '$urlRouterProvider', '$ocLazyLoadProvider', '$httpProvider',
     function ($stateProvider, $urlRouterProvider, $ocLazyLoadProvider, $httpProvider) {
       $httpProvider.interceptors.push('AuthInterceptor');
-
       $ocLazyLoadProvider.config({
         debug: false,
         events: true,
       });
-
       $urlRouterProvider.otherwise('/dashboard/home');
 
       $stateProvider
@@ -401,6 +400,37 @@ angular
               name: 'sentinelDashboardApp',
               files: [
                 'app/scripts/controllers/gateway/flow_nacos.js',
+              ]
+            });
+          }]
+        }
+      })
+      .state('dashboard.gatewayRouteNacos', {
+        templateUrl: 'app/views/gateway/route_nacos.html',
+        url: '/gateway/nacos/route/:app',
+        controller: 'GatewayRouteNacosCtl',
+        resolve: {
+          loadMyFiles: ['$ocLazyLoad', function ($ocLazyLoad) {
+            return $ocLazyLoad.load({
+              name: 'sentinelDashboardApp',
+              files: [
+                'app/scripts/controllers/gateway/route_nacos.js',
+              ]
+            });
+          }]
+        }
+      })
+
+      .state('dashboard.gatewayRoute', {
+        templateUrl: 'app/views/gateway/route_info.html',
+        url: '/gateway/route-info/:app',
+        controller: 'GatewayRouteCtl',
+        resolve: {
+          loadMyFiles: ['$ocLazyLoad', function ($ocLazyLoad) {
+            return $ocLazyLoad.load({
+              name: 'sentinelDashboardApp',
+              files: [
+                'app/scripts/controllers/gateway/route.js',
               ]
             });
           }]

@@ -7,8 +7,11 @@ import com.zz.scservice.entity.OrderInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Map;
 
 /**
  * ************************************
@@ -23,8 +26,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(CityCodeConstant.WUXI)
 public class OrderController2 {
     @PostMapping("/createOrder")
-    public ApiResponse<OrderInfo> createOrder(@RequestBody OrderInfo params) {
+    public ApiResponse<OrderInfo> createOrder(@RequestHeader Map<String, String> header, @RequestBody OrderInfo params) {
         log.info("request Body:" + JSON.toJSON(params));
+        log.info("request header:" + JSON.toJSONString(header));
         if("100".equals(params.getUserId())) {
             throw new IllegalArgumentException();
         }

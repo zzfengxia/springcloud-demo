@@ -1,0 +1,97 @@
+<style type="text/css">
+  /*超长字符使用省略号隐藏*/
+  .card > .card-body > table > tbody > tr > td {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+</style>
+
+<div class="row" style="margin-left: 1px; margin-top:10px; height: 50px;">
+  <div class="col-md-6" style="margin-bottom: 10px;">
+    <span style="font-size: 30px;font-weight: bold;">{{app}}</span>
+  </div>
+  <div class="col-md-6">
+    <button class="btn btn-outline-primary" style="float: right; margin-right: 10px;" ng-click="addNewRoute()">
+      <i class="fa fa-plus"></i>&nbsp;&nbsp;新增网关路由</button>
+  </div>
+</div>
+
+<div class="separator"></div>
+
+<div class="container-fluid">
+  <div class="row" style="margin-top: 20px; margin-bottom: 20px;">
+    <div class="col-md-12">
+      <div class="card">
+        <div class="inputs-header">
+          <span class="brand" style="font-size: 13px;">路由配置信息</span>
+          <button class="btn btn-primary" style="float: right; margin-right: 10px; height: 30px;font-size: 12px;" ng-click="getRoutes()">刷新</button>
+          <input class="form-control witdh-200" placeholder="关键字" ng-model="searchKey">
+        </div>
+
+        <!--.tools-header -->
+        <div class="card-body" style="padding: 0px 0px;">
+          <table class="table" style="border-left: none; border-right:none;margin-top: 10px;table-layout: fixed;">
+            <thead>
+            <tr style="background: #F3F5F7;">
+              <td>
+                路由ID
+              </td>
+              <td>
+                转发URI
+              </td>
+              <td>
+                序号(越小越优先匹配)
+              </td>
+              <td>
+                创建时间
+              </td>
+              <td>
+                更新时间
+              </td>
+              <td>
+                操作
+              </td>
+            </tr>
+            </thead>
+
+            <tbody>
+            <tr dir-paginate="route in routes | filter: searchKey | itemsPerPage: routesPageConfig.pageSize " current-page="routesPageConfig.currentPageIndex"
+                pagination-id="entriesPagination">
+              <td><span class="label label-info">{{route.id}}</span></td>
+              <td>{{route.uri}}</td>
+              <td>{{route.order}}</td>
+              <td>{{route.createTime | date: 'yyyy-MM-dd HH:mm:ss'}}</td>
+              <td>{{route.modifyTime | date: 'yyyy-MM-dd HH:mm:ss'}}</td>
+
+              <td>
+                <button class="btn btn-xs btn-outline-primary" type="button" ng-click="editRoute(route)" style="font-size: 12px; height:25px;">编辑</button>
+                <button class="btn btn-xs btn-outline-primary" type="button" ng-click="deleteRoute(route)" style="font-size: 12px; height:25px;">删除</button>
+              </td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+        <!-- .card-body -->
+        <div class="pagination-footer">
+          <dir-pagination-controls boundary-links="true" template-url="app/views/pagination.tpl.html" pagination-id="entriesPagination"
+                                   on-page-change="">
+          </dir-pagination-controls>
+          <div class="tools" style="">
+            <span>共 {{routesPageConfig.totalCount}} 条记录, </span>
+            <span>
+              每页
+              <input class="form-control" ng-model="routesPageConfig.pageSize"> 条记录
+            </span>
+          </div>
+          <!-- .tools -->
+        </div>
+        <!-- pagination-footer -->
+      </div>
+      <!-- .card -->
+    </div>
+    <!-- .col-md-12 -->
+  </div>
+  <!-- -->
+</div>
+<!-- .container-fluid -->

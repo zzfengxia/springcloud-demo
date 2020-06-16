@@ -25,6 +25,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.alibaba.nacos.api.config.ConfigFactory;
 import com.alibaba.nacos.api.config.ConfigService;
+import com.zz.gateway.common.nacos.entity.route.RouteRuleEntity;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -81,6 +82,21 @@ public class NacosConfig {
     @Bean("gatewayFlowDecoder")
     public Converter<String, RuleEntityWrapper<GatewayFlowRuleEntity>> gatewayFlowDecoder() {
         return s -> JSON.parseObject(s, new TypeReference<RuleEntityWrapper<GatewayFlowRuleEntity>>(){});
+    }
+    
+    /**
+     * 网关路由
+     *
+     * @return
+     */
+    @Bean("gatewayRouteEncoder")
+    public Converter<RuleEntityWrapper<RouteRuleEntity>, String> gatewayRouteEncoder() {
+        return d -> JSON.toJSONStringWithDateFormat(d, "yyyy-MM-dd HH:mm:ss.SSS");
+    }
+    
+    @Bean("gatewayRouteDecoder")
+    public Converter<String, RuleEntityWrapper<RouteRuleEntity>> gatewayRouteDecoder() {
+        return s -> JSON.parseObject(s, new TypeReference<RuleEntityWrapper<RouteRuleEntity>>(){});
     }
     
     @Bean

@@ -1,0 +1,20 @@
+{
+  "properties": [
+    {
+      "name": "spring.cloud.gateway.route.nacos.data-id",
+      "type": "java.lang.String",
+      "description": "nacos config data id for route rule."
+    },
+    {
+      "name": "spring.cloud.gateway.route.nacos.group-id",
+      "type": "java.lang.String",
+      "description": "nacos config group id for route rule."
+    },
+    {
+      "name": "spring.cloud.gateway.route.nacos.server-addr",
+      "type": "java.lang.String",
+      "description": "nacos config server addr for route rule.",
+      "sourceType": "com.zz.scgatewaynew.routedefine.RouteNacosProperties"
+    }
+  ]
+}

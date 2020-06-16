@@ -35,7 +35,7 @@ public final class NacosConfigUtil {
      */
     public static final String GATEWAY_API_DEFINITION_DATA_ID_POSTFIX = "-api-definition";
     public static final String GATEWAY_FLOW_DATA_ID_POSTFIX = "-gateway-flow-rules";
-    
+    public static final String GATEWAY_ROUTE_DATA_ID_POSTFIX = "-gateway-route-rules";
     /**
      * cc for `cluster-client`
      */

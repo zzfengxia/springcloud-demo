@@ -84,6 +84,15 @@ spring:
           enabled: false # 是否开启NacosWatch,向spring boot admin刷新新注册的服务
         watch-delay: 10000 # Nacos watch执行时间间隔默认30s
 
+    gateway:
+      route:
+        nacos:
+          server-addr: 172.16.80.132:8848
+          data-id: sc-alibaba-gateway-gateway-route-rules
+          group-id: SENTINEL_GROUP
+          # 支持json、xml、custom. 使用custom时必须指定converter-class或bean。
+          converter-class: routeRuleDecoder
+
 #    gateway:
 #      discovery:
 #        locator:

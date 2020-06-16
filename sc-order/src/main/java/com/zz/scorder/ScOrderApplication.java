@@ -73,6 +73,7 @@ public class ScOrderApplication {
      * spring.cloud.sentinel.transport.port 配置的端口会在{@link com.alibaba.csp.sentinel.transport.command.SimpleHttpCommandCenter}中用来开启socket监听服务（如果端口被占用，则会自动使用别的端口）.
      * 然后使用{@link com.alibaba.csp.sentinel.transport.command.http.HttpEventTask} 类做实际的处理操作。
      * {@link com.alibaba.csp.sentinel.command.annotation.CommandMapping}注解用来注册接口实际处理逻辑。
+     * {@link com.alibaba.csp.sentinel.command.CommandHandlerProvider} 注册Handler
      * 比如sentinel console实时监控界面获取metric信息的请求<code>metric</code>就是sentinel客户端的{@link com.alibaba.csp.sentinel.command.handler.SendMetricCommandHandler}类处理的。
      * 实际metric数据来源就是从sentinel的metric日志文件中读取的。
      *

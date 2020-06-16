@@ -1,12 +1,16 @@
 package com.zz.scgatewaynew.routedefine;
 
+import com.zz.gateway.common.routedefine.RouteRule;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 import reactor.core.publisher.Flux;
+
+import java.util.List;
 
 /**
  * ************************************
@@ -21,10 +25,8 @@ import reactor.core.publisher.Flux;
 public class CustomRouteLocator implements RouteLocator {
     @Autowired
     private RouteLocatorBuilder routeLocatorBuilder;
-    @Autowired
-    private RouteRuleProp routeRuleProp;
     
-    private Flux<Route> currentRoute = Flux.empty();
+    private volatile Flux<Route> currentRoute = Flux.empty();
     /**
      * nacos刷新时会有refreshAll调用， RouteRefreshListener 会监听到然后重置RefreshRoutesEvent事件，所以这里也会刷新
      * RouteRefreshListener会监听HeartbeatEvent事件，当开启NacosWatch时会定时发布HeartbeatEvent事件，所以这里也会刷新。
@@ -38,17 +40,27 @@ public class CustomRouteLocator implements RouteLocator {
      */
     @Override
     public Flux<Route> getRoutes() {
-        if(routeRuleProp == null || routeRuleProp.getRules() == null || routeRuleProp.getRules().isEmpty()) {
-            log.error("路由配置为空，无法更新路由规则");
-            return currentRoute;
-        }
-        if(!routeRuleProp.validate(routeLocatorBuilder.routes())) {
-            log.error("配置的路由规则有误，无法更新路由规则");
-            return currentRoute;
+        List<RouteRule> currentRules = GatewayRouteManager.latestRouteRule();
+        if(CollectionUtils.isEmpty(currentRules)) {
+            log.error("routeRuleProp is null, unable build route");
+            return Flux.empty();
         }
         RouteLocatorBuilder.Builder builder = routeLocatorBuilder.routes();
-    
-        currentRoute = routeRuleProp.getRoute(builder);
+        String routeId = null;
+        try {
+            for (RouteRule rule : currentRules) {
+                if(!rule.isValid()) {
+                    continue;
+                }
+                routeId = rule.getId();
+                rule.getRoute(builder);
+            }
+            currentRoute = builder.build().getRoutes()
+                    .doOnNext(route -> log.info("注册路由id:" + route.getId()));
+        } catch (Exception e) {
+            log.error("route id [" + routeId + "] build custom route rule error ", e);
+        }
+        
         return currentRoute;
     }
 }

@@ -1,0 +1,45 @@
+<div>
+    <span class="brand" style="font-weight:bold;">路由详情</span>
+    <div class="card" style="margin-top: 20px;margin-bottom: 10px;">
+        <div class="panel-body">
+          <form role="form" class="form-horizontal">
+            <div class="form-group">
+              <label class="col-sm-3 control-label">路由ID</label>
+              <div class="col-sm-7">
+                <p class="form-control-static">{{currentRoute.routeId}}</p>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="col-sm-3 control-label">URI</label>
+              <div class="col-sm-7">
+                <p class="form-control-static">{{currentRoute.uri}}</p>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="col-sm-3 control-label">排序</label>
+              <div class="col-sm-7">
+                <p class="form-control-static">{{currentRoute.order}}</p>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="col-sm-3 control-label">断言</label>
+              <div class="col-sm-7">
+                <p class="form-control-static">{{currentRoute.predicate}}</p>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="col-sm-3 control-label">过滤器</label>
+              <div class="col-sm-7">
+                <p class="form-control-static">{{currentRoute.filters}}</p>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="col-sm-3 control-label">元数据</label>
+              <div class="col-sm-7">
+                <p class="form-control-static">{{currentRoute.metadata}}</p>
+              </div>
+            </div>
+          </form>
+        </div>
+    </div>
+</div>

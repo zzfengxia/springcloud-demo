@@ -13,8 +13,11 @@ const JS_LIBS = [
   'node_modules/angular-loading-bar/build/loading-bar.min.js',
   'node_modules/angular-bootstrap/ui-bootstrap-tpls.min.js',
   'node_modules/moment/moment.js',
+  'node_modules/moment/locale/zh-cn.js',
+  'node_modules/moment-timezone/moment-timezone.js',
   'node_modules/angular-date-time-input/src/dateTimeInput.js',
   'node_modules/angularjs-bootstrap-datetimepicker/src/js/datetimepicker.js',
+  'node_modules/angularjs-bootstrap-datetimepicker/src/js/datetimepicker.templates.js',
   'node_modules/angular-table-resize/dist/angular-table-resize.min.js',
   'node_modules/angular-clipboard/angular-clipboard.js',
   'node_modules/selectize/dist/js/standalone/selectize.js',
@@ -61,6 +64,7 @@ const JS_APP = [
   'app/scripts/services/gateway/flow_service.js',
   'app/scripts/services/gateway/api_service_nacos.js',
   'app/scripts/services/gateway/flow_service_nacos.js',
+  'app/scripts/services/gateway/route_service.js',
 ];
 
 gulp.task('lib', function () {

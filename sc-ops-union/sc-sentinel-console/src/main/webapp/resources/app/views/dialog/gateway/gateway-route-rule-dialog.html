@@ -1,0 +1,321 @@
+<style type="text/css">
+  fieldset {
+    padding: .35em .625em .75em;
+    margin: 0 2px;
+    border: 1px solid #f7d4d4;
+  }
+</style>
+<div>
+	<span class="brand" style="font-weight:bold;">{{gatewayRouteDialog.title}}</span>
+	<div class="card" style="margin-top: 20px;margin-bottom: 10px;">
+		<div class="panel-body">
+			<div class="row">
+				<form role="form" class="form-horizontal">
+					<div class="form-group">
+            <label class="col-sm-2 control-label">路由 ID</label>
+            <div class="col-sm-9">
+              <input type="text" ng-if="gatewayRouteDialog.type == 'edit'" class="form-control" placeholder="请输入" ng-model='currentRoute.id'
+                     disabled="" />
+              <input type="text" ng-if="gatewayRouteDialog.type == 'add'" class="form-control highlight-border" placeholder="请输入" title="唯一标识"
+                     ng-model='currentRoute.id' />
+            </div>
+					</div>
+
+					<div class="form-group">
+						<label class="col-sm-2 control-label">URI</label>
+						<div class="col-sm-9">
+              <input type="text" class="form-control highlight-border" placeholder="转发URI，使用“lb:”开启负载均衡" title="转发URI，使用“lb:”开启负载均衡"
+                     ng-model='currentRoute.uri' />
+						</div>
+					</div>
+
+					<div class="form-group">
+						<label class="col-sm-2 control-label">断言</label>
+						<div class="col-sm-9">
+							<div class="form-control highlight-border" align="center" style="padding-top: 0;" title="路由断言配置">
+                <label class="checkbox-inline" title="request Body">
+                  <input type="checkbox" name="predicate" ng-checked="predicateCheckList.bodyRule==true"
+                         ng-model="predicateCheckList.bodyRule" ng-true-value="true" ng-false-value="false"> &nbsp;Body&nbsp;&nbsp;
+                </label>
+                <label class="checkbox-inline" title="request Path">
+                  <input type="checkbox" name="predicate" ng-checked="predicateCheckList.pathRule==true"
+                         ng-model="predicateCheckList.pathRule" ng-true-value="true" ng-false-value="false"> &nbsp;Path&nbsp;&nbsp;
+                </label>
+                <label class="checkbox-inline" title="请求头">
+                  <input type="checkbox" name="predicate" ng-checked="predicateCheckList.headerRule==true"
+                         ng-model="predicateCheckList.headerRule" ng-true-value="true" ng-false-value="false"> &nbsp;Header&nbsp;&nbsp;
+                </label>
+                <label class="checkbox-inline" title="请求参数">
+                  <input type="checkbox" name="predicate" ng-checked="predicateCheckList.queryRule==true"
+                         ng-model="predicateCheckList.queryRule" ng-true-value="true" ng-false-value="false"> &nbsp;Query 参数&nbsp;&nbsp;
+                </label>
+                <label class="checkbox-inline" title="路由生效时间段">
+                  <input type="checkbox" name="predicate" ng-checked="predicateCheckList.dateRule==true"
+                         ng-model="predicateCheckList.dateRule" ng-true-value="true" ng-false-value="false"> &nbsp;有效期&nbsp;&nbsp;
+                </label>
+							</div>
+						</div>
+					</div>
+
+          <div class="form-group" ng-if="predicateCheckList.bodyRule==true">
+            <label class="col-sm-2 control-label">Body 断言</label>
+            <div class="col-sm-9">
+              <fieldset>
+                <div class="form-group" ng-repeat="bodyAttr in currentRoute.predicate.bodyRule.attrPatternList track by $index">
+                  <label class="col-sm-2 control-label">Key</label>
+                  <div class="col-sm-2 control-label">
+                    <input type="text" class="form-control highlight-border" placeholder="Body内容键值" title="请求体为json格式时的断言"
+                           ng-model="bodyAttr.key" />
+                  </div>
+                  <label class="col-sm-2 control-label">Value</label>
+                  <div class="col-sm-5 control-label">
+                    <input type='text' ng-model="bodyAttr.value" class="form-control highlight-border" title="请求体为json格式时的断言"
+                           placeholder="匹配值，多个使用“,”分隔" />
+                  </div>
+                  <div class="col-sm-1 control-label" align="center">
+                    <button class="btn btn-outline-danger" ng-click="removeBodyMatch($index)"
+                            align="center" ng-if="currentRoute.predicate.bodyRule.attrPatternList.length > 1">X</button>
+                  </div>
+                </div>
+
+                <div class="form-group" style="text-align: center">
+                  <button class="btn btn-outline-primary" ng-click="addNewBodyMatch()">
+                    <i class="fa fa-plus"></i>&nbsp;新增匹配规则
+                  </button>
+                </div>
+                <div class="form-group" >
+                  <label class="col-sm-2 control-label">策略</label>
+                  <div class="col-sm-4 control-label">
+                    <select ng-model="currentRoute.predicate.bodyRule.strategy" ng-init="currentRoute.predicate.bodyRule.strategy"
+                            ng-options="strategy.val as strategy.desc for strategy in strategyList" class="form-control">
+                    </select>
+                  </div>
+                  <label class="col-sm-2 control-label">序号</label>
+                  <div class="col-sm-4 control-label">
+                    <input type="number" class="form-control highlight-border" placeholder="请输入" ng-model='currentRoute.predicate.bodyRule.order' />
+                  </div>
+                </div>
+
+              </fieldset>
+            </div>
+          </div>
+
+          <div class="form-group" ng-if="predicateCheckList.pathRule==true">
+            <label class="col-sm-2 control-label">Path 断言</label>
+            <div class="col-sm-9">
+              <fieldset>
+                <div class="form-group" >
+                  <label class="col-sm-2 control-label">Path</label>
+                  <div class="col-sm-10 control-label">
+                    <input type="text" class="form-control highlight-border" placeholder="请输入,多个使用“,”分隔" title="请求路径断言，多个路径使用','分隔"
+                           ng-model='currentRoute.predicate.pathRule.path' />
+                  </div>
+                </div>
+                <div class="form-group" >
+                  <label class="col-sm-2 control-label">响应模板</label>
+                  <div class="col-sm-4 control-label">
+                    <select ng-model="currentRoute.predicate.pathRule.respStrategy" ng-init="currentRoute.predicate.pathRule.respStrategy"
+                            ng-options="strategy.val as strategy.desc for strategy in respStrategy" class="form-control" title="异常响应数据格式">
+                    </select>
+                  </div>
+                  <label class="col-sm-2 control-label">序号</label>
+                  <div class="col-sm-4 control-label">
+                    <input type="number" class="form-control highlight-border" placeholder="请输入" ng-model='currentRoute.predicate.pathRule.order' />
+                  </div>
+                </div>
+              </fieldset>
+            </div>
+          </div>
+          <div class="form-group" ng-if="predicateCheckList.headerRule==true">
+            <label class="col-sm-2 control-label">Header 断言</label>
+            <div class="col-sm-9">
+              <fieldset>
+                <div class="form-group" >
+                  <label class="col-sm-2 control-label">Header Name</label>
+                  <div class="col-sm-4 control-label">
+                    <input type="text" class="form-control highlight-border" placeholder="请输入" title="请求头参数key"
+                           ng-model='currentRoute.predicate.headerRule.headerName' />
+                  </div>
+                  <label class="col-sm-2 control-label">Header Value</label>
+                  <div class="col-sm-4 control-label">
+                    <input type="text" class="form-control highlight-border" placeholder="请输入" title="请求头参数value"
+                           ng-model='currentRoute.predicate.headerRule.headerValue' />
+                  </div>
+                </div>
+                <div class="form-group" >
+                  <label class="col-sm-2 control-label">序号</label>
+                  <div class="col-sm-4 control-label">
+                    <input type="number" class="form-control highlight-border" placeholder="请输入" ng-model='currentRoute.predicate.headerRule.order' />
+                  </div>
+                </div>
+              </fieldset>
+            </div>
+          </div>
+          <div class="form-group" ng-if="predicateCheckList.queryRule == true">
+            <label class="col-sm-2 control-label">Query 参数断言</label>
+            <div class="col-sm-9">
+              <fieldset>
+                <div class="form-group" ng-repeat="queryMap in currentRoute.predicate.queryRule.queryMapList track by $index">
+                  <label class="col-sm-2 control-label">查询 Key</label>
+                  <div class="col-sm-2 control-label">
+                    <input type="text" class="form-control highlight-border" title="Query参数键值" placeholder="Query参数键值" ng-model="queryMap.key" />
+                  </div>
+                  <label class="col-sm-2 control-label">查询 Value</label>
+                  <div class="col-sm-5 control-label">
+                    <input type='text' ng-model="queryMap.value" class="form-control highlight-border" title="匹配值，支持正则匹配"
+                           placeholder="匹配值，支持正则匹配" />
+                  </div>
+                  <div class="col-sm-1 control-label" align="center">
+                    <button class="btn btn-outline-danger" ng-click="removeQueryMatch($index)"
+                            align="center" ng-if="currentRoute.predicate.queryRule.queryMapList.length > 1">X</button>
+                  </div>
+                </div>
+
+                <div class="form-group" style="text-align: center">
+                  <button class="btn btn-outline-primary" ng-click="addNewQueryMatch()">
+                    <i class="fa fa-plus"></i>&nbsp;新增匹配规则
+                  </button>
+                </div>
+                <div class="form-group" >
+                  <label class="col-sm-2 control-label">策略</label>
+                  <div class="col-sm-4 control-label">
+                    <select ng-model="currentRoute.predicate.queryRule.strategy" ng-init="currentRoute.predicate.queryRule.strategy"
+                            ng-options="strategy.val as strategy.desc for strategy in strategyList" class="form-control">
+                    </select>
+                  </div>
+                  <label class="col-sm-2 control-label">序号</label>
+                  <div class="col-sm-4 control-label">
+                    <input type="number" class="form-control highlight-border" placeholder="请输入" ng-model='currentRoute.predicate.queryRule.order' />
+                  </div>
+                </div>
+              </fieldset>
+            </div>
+          </div>
+          <div class="form-group" ng-if="predicateCheckList.dateRule==true">
+            <label class="col-sm-2 control-label">有效期断言</label>
+            <div class="col-sm-9">
+              <fieldset>
+                <div class="form-group" >
+                  <label class="col-sm-2 control-label">Before</label>
+                  <div class="col-sm-10 control-label dropdown form-group dropdown-start-parent">
+                    <a class="dropdown-toggle" id="dropdownStart" role="button" data-toggle="dropdown" data-target=".dropdown-start-parent"
+                       href="#">
+                      <div class="input-group date">
+                        <input type="text" class="form-control" ng-model="currentRoute.predicate.dateRule.before"
+                               data-date-time-input="YYYY-MM-DD HH:mm:ss" ng-model-options="{timezone: 'Asia/Shanghai'}">
+                        <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+                      </div>
+                    </a>
+                    <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+                      <datetimepicker ng-model="currentRoute.predicate.dateRule.before"
+                                      data-datetimepicker-config="{ dropdownSelector: '#dropdownStart', renderOn: 'end-date-changed' }"
+                                      data-on-set-time="startDateOnSetTime()"
+                                      data-before-render="startDateBeforeRender($dates)"></datetimepicker>
+                    </ul>
+                  </div>
+                </div>
+                <div class="form-group" >
+                  <label class="col-sm-2 control-label">After</label>
+                  <div class="col-sm-10 control-label dropdown form-group dropdown-end-parent">
+                    <a class="dropdown-toggle" id="dropdownEnd" role="button" data-toggle="dropdown" data-target=".dropdown-end-parent"
+                       href="#">
+                      <div class="input-group date">
+                        <input type="text" class="form-control" data-ng-model="currentRoute.predicate.dateRule.after"
+                               data-date-time-input="YYYY-MM-DD HH:mm:ss" ng-model-options="{timezone: 'Asia/Shanghai'}">
+                        <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+                      </div>
+                    </a>
+                    <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+                      <datetimepicker data-ng-model="currentRoute.predicate.dateRule.after"
+                                      data-datetimepicker-config="{ dropdownSelector: '#dropdownEnd', renderOn: 'start-date-changed' }"
+                                      data-on-set-time="endDateOnSetTime()"
+                                      data-before-render="endDateBeforeRender($view, $dates, $leftDate, $upDate, $rightDate)"></datetimepicker>
+                    </ul>
+                  </div>
+                </div>
+                <div class="form-group" >
+                  <label class="col-sm-2 control-label">序号</label>
+                  <div class="col-sm-4 control-label">
+                    <input type="number" class="form-control highlight-border" placeholder="请输入" ng-model='currentRoute.predicate.dateRule.order' />
+                  </div>
+                </div>
+              </fieldset>
+            </div>
+          </div>
+
+
+          <div class="form-group">
+            <label class="col-sm-2 control-label">过滤器</label>
+            <div class="col-sm-9">
+              <div class="form-control highlight-border" align="center" style="padding-top: 0;" title="路由过滤器配置">
+                <label class="checkbox-inline" title="设置 Path">
+                  <input type="checkbox" name="filter" ng-checked="filterCheckList.pathFilter==true"
+                         ng-model="filterCheckList.pathFilter" ng-true-value="true" ng-false-value="false"> &nbsp;Path&nbsp;&nbsp;
+                </label>
+                <label class="checkbox-inline" title="设置 Header">
+                  <input type="checkbox" name="filter" ng-checked="filterCheckList.headerFilter==true"
+                         ng-model="filterCheckList.headerFilter" ng-true-value="true" ng-false-value="false"> &nbsp;Header&nbsp;&nbsp;
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group" ng-if="filterCheckList.pathFilter==true">
+            <label class="col-sm-2 control-label">Path 过滤器</label>
+            <div class="col-sm-9">
+              <fieldset>
+                <div class="form-group" >
+                  <label class="col-sm-3 control-label">设置 Path</label>
+                  <div class="col-sm-8">
+                    <input type="text" class="form-control highlight-border" placeholder="请输入" ng-model='currentRoute.filter.pathFilter.path' />
+                  </div>
+                </div>
+                <div class="form-group" >
+                  <label class="col-sm-3 control-label">序号</label>
+                  <div class="col-sm-4">
+                    <input type="number" class="form-control highlight-border" placeholder="请输入" ng-model='currentRoute.filter.pathFilter.order' />
+                  </div>
+                </div>
+              </fieldset>
+            </div>
+          </div>
+          <div class="form-group" ng-if="filterCheckList.headerFilter==true">
+            <label class="col-sm-2 control-label">Header 过滤器</label>
+            <div class="col-sm-9">
+              <fieldset>
+                <div class="form-group" >
+                  <label class="col-sm-3 control-label">设置请求头</label>
+                  <div class="col-sm-8 control-label">
+                    <input type="text" class="form-control highlight-border" placeholder="json map格式" title="仅支持json格式参数"
+                           ng-model='currentRoute.filter.headerFilter.headers' />
+                  </div>
+                </div>
+                <div class="form-group" >
+                  <label class="col-sm-3 control-label">序号</label>
+                  <div class="col-sm-4 control-label">
+                    <input type="number" class="form-control highlight-border" placeholder="请输入" ng-model='currentRoute.filter.headerFilter.order' />
+                  </div>
+                </div>
+              </fieldset>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="col-sm-2 control-label">排序</label>
+            <div class="col-sm-9">
+              <input type="number" class="form-control highlight-border" placeholder="请输入" title="值越小优先级越高"
+                     ng-model='currentRoute.order' />
+            </div>
+          </div>
+				</form>
+			</div>
+			<div class="separator"></div>
+			<div clss="row" style="margin-top: 20px;">
+				<button class="btn btn-outline-danger" style="float:right; height: 30px;font-size: 12px;margin-left: 10px;" ng-click="closeThisDialog()">取消</button>
+				<button class="btn btn-outline-success" style="float:right; height: 30px;font-size: 12px;margin-left: 10px;" ng-click="saveRoute()">{{gatewayRouteDialog.confirmBtnText}}</button>
+				<!--<button ng-if="gatewayRouteDialog.saveAndContinueBtnText" class="btn btn-default" style="float:right; height: 30px;font-size: 12px;"
+				 ng-click="saveRuleAndContinue()">{{gatewayFlowRuleDialog.saveAndContinueBtnText}}</button>-->
+			</div>
+		</div>
+	</div>
+</div>

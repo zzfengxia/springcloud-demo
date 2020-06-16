@@ -13,6 +13,7 @@ import org.springframework.cloud.gateway.route.RouteDefinitionLocator;
 import org.springframework.cloud.gateway.route.RouteDefinitionRouteLocator;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
+import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ServerWebExchange;
@@ -47,6 +48,9 @@ public class GatewayNewApplication {
      * @see {@link com.alibaba.csp.sentinel.adapter.gateway.sc.api.GatewayApiMatcherManager}
      * @see {@link com.alibaba.csp.sentinel.adapter.gateway.common.api.matcher.AbstractApiMatcher}
      * 可以看出同一分组下配置的多个匹配规则是“或”的关系
+     *
+     * <h1>yml转为javaBean</h1>
+     * yaml解析代码参加{@link com.alibaba.nacos.spring.util.parse.DefaultYamlConfigParse}
      */
     public static void main(String[] args) {
         SpringApplication.run(GatewayNewApplication.class, args);
@@ -58,7 +62,7 @@ public class GatewayNewApplication {
      * 和{@link org.springframework.cloud.gateway.config.GatewayAutoConfiguration#routeDefinitionRouteLocator}注入的实现
      *
      * 2. 调用{@link CachingRouteLocator#fetch}方法，并调用{@link CompositeRouteLocator#getRoutes()}方法。该方法会遍历步骤1中RouteLocator的实现类并分别调用其getRoutes方法，
-     * 然后将返回的结果合并，即{@link Route}集合
+     * 然后将返回的结果合并，即{@link org.springframework.cloud.gateway.route.Route}集合
      *
      * 3. 步骤2调用{@link RouteDefinitionRouteLocator#getRoutes()}方法时，routeDefinitionLocator 的实现类是在
      * {@link org.springframework.cloud.gateway.config.GatewayAutoConfiguration#routeDefinitionLocator}中注入的，
@@ -76,11 +80,11 @@ public class GatewayNewApplication {
      * @param builder
      * @return
      */
-    //@Bean
+    @Bean
     public RouteLocator myRoutes(RouteLocatorBuilder builder) {
         String httpUri = "http://baidu.com:80";
         return builder.routes()
-                .route("route-demo-2", p -> p
+                .route("route-demo-122", p -> p
                         .path("/get")
                         .filters(f -> f.addRequestHeader("Hello", "World"))
                         .uri(httpUri))
@@ -103,7 +107,7 @@ public class GatewayNewApplication {
                         .uri(httpUri)
                         .order(-100)
                 )*/
-                .route("route-demo-1", p -> p
+                .route("route-demo-123", p -> p
                         .path("/testFlowRule")
                         .and()
                         .method(HttpMethod.POST)

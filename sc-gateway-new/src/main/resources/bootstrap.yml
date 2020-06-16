@@ -17,10 +17,10 @@ spring:
       config:
         server-addr: 172.16.80.132:8848
         file-extension: yaml
-        # 读取多个配置文件
-        extension-configs[0]:
-          data-id: gateway.route.rule.yaml
-          group: config.gateway
-          refresh: true
-      username: nacos # nacos1.2以上版本增加客户端认证，需要认证才能读取配置
-      password: vfc2020!@#
+#        # 读取多个配置文件
+#        extension-configs[0]:
+#          data-id: gateway.route.rule.yaml
+#          group: config.gateway
+#          refresh: true
+#      username: nacos # nacos1.2以上版本增加客户端认证，需要认证才能读取配置
+#      password: vfc2020!@#

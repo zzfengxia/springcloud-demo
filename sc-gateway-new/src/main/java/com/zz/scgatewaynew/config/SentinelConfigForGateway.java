@@ -4,18 +4,28 @@ import com.alibaba.csp.sentinel.adapter.gateway.common.api.ApiDefinition;
 import com.alibaba.csp.sentinel.adapter.gateway.common.rule.GatewayFlowRule;
 import com.alibaba.csp.sentinel.adapter.gateway.sc.callback.BlockRequestHandler;
 import com.alibaba.csp.sentinel.datasource.Converter;
+import com.alibaba.csp.sentinel.datasource.nacos.NacosDataSource;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
+import com.zz.gateway.common.nacos.entity.ApiDefinitionEntity;
+import com.zz.gateway.common.nacos.entity.GatewayFlowRuleEntity;
+import com.zz.gateway.common.nacos.entity.RuleEntityWrapper;
+import com.zz.gateway.common.routedefine.RouteRule;
 import com.zz.sccommon.exception.ErrorCode;
+import com.zz.sccommon.util.ContextBeanUtil;
 import com.zz.sccommon.util.LogUtils;
-import com.zz.scgatewaynew.nacos.entity.ApiDefinitionEntity;
-import com.zz.scgatewaynew.nacos.entity.GatewayFlowRuleEntity;
-import com.zz.scgatewaynew.nacos.entity.RuleEntityWrapper;
 import com.zz.scgatewaynew.respdefine.IFailResponse;
 import com.zz.scgatewaynew.respdefine.ResponseFactoryService;
+import com.zz.scgatewaynew.routedefine.GatewayRouteManager;
+import com.zz.scgatewaynew.routedefine.RouteNacosProperties;
 import com.zz.scgatewaynew.util.GatewayUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
@@ -24,6 +34,8 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -40,10 +52,19 @@ import java.util.stream.Collectors;
  * ************************************
  */
 @Configuration
+@EnableConfigurationProperties(RouteNacosProperties.class)
 @Slf4j
-public class SentinelConfigForGateway {
+public class SentinelConfigForGateway implements InitializingBean {
     @Autowired
     private ResponseFactoryService responseFactoryService;
+    
+    @Autowired
+    private DefaultListableBeanFactory beanFactory;
+    @Autowired
+    private Optional<RouteNacosProperties> nacosRouteProperties;
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
+    
     /**
      * 注入限流异常处理
      * 可定制限流响应信息，默认为{@link com.alibaba.csp.sentinel.adapter.gateway.sc.callback.DefaultBlockRequestHandler}
@@ -132,5 +153,42 @@ public class SentinelConfigForGateway {
             
             return apiEntity.getRuleEntity().stream().map(ApiDefinitionEntity::toApiDefinition).collect(Collectors.toSet());
         };
+    }
+    
+    @Bean
+    public ContextBeanUtil initBeanUtil() {
+        return new ContextBeanUtil();
+    }
+    
+    @Bean("gateway-routeRuleDecoder")
+    public Converter<String, List<RouteRule>> routeRuleDecoder() {
+        return s -> {
+            RuleEntityWrapper<RouteRule> apiEntity = JSON.parseObject(s, new TypeReference<RuleEntityWrapper<RouteRule>>(){});
+    
+            return apiEntity.getRuleEntity();
+        };
+    }
+    
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        nacosRouteProperties.ifPresent(prop -> {
+            if(!prop.checkProp()) {
+                return;
+            }
+            try {
+                String convertClass = prop.getConverterClass();
+                String convertBeanName = "gateway-" + convertClass;
+                if (!this.beanFactory.containsBean(convertBeanName)) {
+                    this.beanFactory.registerBeanDefinition(convertBeanName,
+                            BeanDefinitionBuilder.genericBeanDefinition(Class.forName(convertClass)).getBeanDefinition());
+                }
+                Converter<String, List<RouteRule>> converter = (Converter<String, List<RouteRule>>) this.beanFactory.getBean(convertBeanName);
+                GatewayRouteManager.setEventPublisher(eventPublisher);
+                GatewayRouteManager.register2Property(
+                        new NacosDataSource<List<RouteRule>>(prop.getServerAddr(), prop.getGroupId(), prop.getDataId(), converter).getProperty());
+            } catch (ClassNotFoundException e) {
+                log.error("register nacos route bean error", e);
+            }
+        });
     }
 }

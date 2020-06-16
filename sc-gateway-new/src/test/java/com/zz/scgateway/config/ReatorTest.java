@@ -1,7 +1,9 @@
 package com.zz.scgateway.config;
 
 import com.google.common.collect.Lists;
+import com.zz.gateway.common.factory.CustomeReadBodyPredicateFactory;
 import org.junit.Test;
+import org.springframework.cloud.gateway.support.GatewayToStringStyler;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -69,5 +71,10 @@ public class ReatorTest {
             System.out.println("res:" + r);
             return Mono.just("3");
         }).subscribe(System.out::println);
+    }
+    
+    @Test
+    public void toStringStyler() {
+        System.out.println(GatewayToStringStyler.filterToStringCreator(CustomeReadBodyPredicateFactory.class));
     }
 }

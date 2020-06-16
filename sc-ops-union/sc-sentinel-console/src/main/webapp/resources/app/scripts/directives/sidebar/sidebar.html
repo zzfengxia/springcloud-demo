@@ -45,6 +45,15 @@
           </li>
 
           <li ui-sref-active="active" ng-if="entry.isGateway">
+            <a ui-sref="dashboard.gatewayRouteNacos({app: entry.app})">
+              <i class="fa fa-road"></i>&nbsp;&nbsp;&nbsp;路由配置-nacos</a>
+          </li>
+
+          <li ui-sref-active="active" ng-if="entry.isGateway">
+            <a ui-sref="dashboard.gatewayRoute({app: entry.app})">
+              <i class="fa fa-road"></i>&nbsp;&nbsp;&nbsp;本地路由信息</a>
+          </li>
+          <li ui-sref-active="active" ng-if="entry.isGateway">
             <a ui-sref="dashboard.gatewayApiNacos({app: entry.app})">
               <i class="glyphicon glyphicon-tags"></i>&nbsp;&nbsp;&nbsp;API 管理-nacos</a>
           </li>

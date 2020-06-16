@@ -17,12 +17,14 @@ import org.apache.commons.lang3.time.DateFormatUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -63,9 +65,10 @@ public class OrderController {
     
     @PostMapping("createOrder")
     @ResponseBody
-    public ApiResponse<OrderInfo> createOrder(@RequestBody OrderInfo json) {
+    public ApiResponse<OrderInfo> createOrder(@RequestBody OrderInfo json, @RequestHeader Map<String, String> header) {
         Date cur = new Date();
         log.info("requst time:" + DateFormatUtils.format(cur, "yyyy-MM-dd HH:mm:ss") + ",body:" + JSON.toJSONString(json));
+        log.info("request header:" + JSON.toJSONString(header));
         ConfigEntity entity = configService.getByIssueId("t_vfc_jilin");
         ConfigEntity entity2 = configService.selectByCardCode("000000");
         System.out.println("entity:" + entity.getServerUrl());

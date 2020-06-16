@@ -40,7 +40,7 @@
         <dependency>
             <groupId>com.alibaba.boot</groupId>
             <artifactId>nacos-config-spring-boot-starter</artifactId>
-            <version>${alibaba.nacos.version}</version>
+            <version>${alibaba.nacos.boot.version}</version>
         </dependency>
 
         <!--<dependency>
