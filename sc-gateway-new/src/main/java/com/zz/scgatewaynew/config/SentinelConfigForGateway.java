@@ -64,7 +64,6 @@ public class SentinelConfigForGateway implements InitializingBean {
     private Optional<RouteNacosProperties> nacosRouteProperties;
     @Autowired
     private ApplicationEventPublisher eventPublisher;
-    
     /**
      * 注入限流异常处理
      * 可定制限流响应信息，默认为{@link com.alibaba.csp.sentinel.adapter.gateway.sc.callback.DefaultBlockRequestHandler}

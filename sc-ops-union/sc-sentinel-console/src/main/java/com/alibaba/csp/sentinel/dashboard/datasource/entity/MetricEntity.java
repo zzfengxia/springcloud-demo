@@ -46,6 +46,7 @@ public class MetricEntity {
     private int count;
 
     private int resourceCode;
+    private int classification;
 
     public static MetricEntity copyOf(MetricEntity oldEntity) {
         MetricEntity entity = new MetricEntity();
@@ -197,7 +198,15 @@ public class MetricEntity {
     public void setSuccessQps(Long successQps) {
         this.successQps = successQps;
     }
-
+    
+    public int getClassification() {
+        return classification;
+    }
+    
+    public void setClassification(int classification) {
+        this.classification = classification;
+    }
+    
     @Override
     public String toString() {
         return "MetricEntity{" +
@@ -214,6 +223,7 @@ public class MetricEntity {
             ", rt=" + rt +
             ", count=" + count +
             ", resourceCode=" + resourceCode +
+            ", classification=" + classification +
             '}';
     }
 

@@ -16,9 +16,15 @@
 package com.alibaba.csp.sentinel.dashboard;
 
 import com.alibaba.csp.sentinel.init.InitExecutor;
-
+import com.alibaba.csp.sentinel.log.LogBase;
+import com.alibaba.csp.sentinel.transport.config.TransportConfig;
+import com.alibaba.csp.sentinel.util.AppNameUtil;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.util.StringUtils;
+
+import javax.annotation.PostConstruct;
 
 /**
  * Sentinel dashboard application.
@@ -34,13 +40,54 @@ public class DashboardApplication {
      * {@link com.alibaba.csp.sentinel.command.annotation.CommandMapping}注解用来注册接口实际处理逻辑。
      * 比如sentinel console实时监控界面获取metric信息的请求<code>metric</code>就是sentinel客户端的{@link com.alibaba.csp.sentinel.command.handler.SendMetricCommandHandler}类处理的。
      * 实际metric数据来源就是从sentinel的metric日志文件中读取的。
+     *
+     * triggerSentinelInit初始化InitFunc接口的实现类
      */
     public static void main(String[] args) {
-        triggerSentinelInit();
         SpringApplication.run(DashboardApplication.class, args);
     }
 
+    @Value("${csp.sentinel.log.dir:}")
+    private String baseLogDir;
+    
+    @Value("${project.name:}")
+    private String projectName;
+    
+    @Value("${csp.sentinel.dashboard.server:}")
+    private String consoleServer;
+    @Value("${csp.sentinel.api.port:}")
+    private String serverPort;
+    // 初始化InitFunc接口的所有实现类
     private static void triggerSentinelInit() {
         new Thread(() -> InitExecutor.doInit()).start();
+    }
+    
+    /**
+     * sentinel-client日志打印配置：通过yml配置属性`csp.sentinel.log.dir`注入到系统ENV或者直接在启动命令行配置`-Dcsp.sentinel.log.dir`参数
+     *
+     */
+    @PostConstruct
+    private void init() {
+        if (StringUtils.isEmpty(System.getProperty(LogBase.LOG_DIR))
+                && StringUtils.hasText(baseLogDir)) {
+            System.setProperty(LogBase.LOG_DIR, baseLogDir);
+        }
+    
+        if (StringUtils.isEmpty(System.getProperty(AppNameUtil.APP_NAME))
+                && StringUtils.hasText(projectName)) {
+            System.setProperty(AppNameUtil.APP_NAME, projectName);
+        }
+    
+        if (StringUtils.isEmpty(System.getProperty(TransportConfig.CONSOLE_SERVER))
+                && StringUtils.hasText(consoleServer)) {
+            System.setProperty(TransportConfig.CONSOLE_SERVER, consoleServer);
+        }
+    
+        if (StringUtils.isEmpty(System.getProperty(TransportConfig.SERVER_PORT))
+                && StringUtils.hasText(serverPort)) {
+            System.setProperty(TransportConfig.SERVER_PORT, serverPort);
+        }
+    
+        triggerSentinelInit();
     }
 }

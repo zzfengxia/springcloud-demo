@@ -1,6 +1,7 @@
 package com.zz.scorder;
 
 import com.alibaba.cloud.sentinel.feign.SentinelFeign;
+import com.alibaba.csp.sentinel.init.InitExecutor;
 import com.zz.api.common.config.SentinelMybatisConfig;
 import com.zz.sccommon.config.ClientSecurityConfig;
 import feign.Feign;
@@ -70,6 +71,16 @@ public class ScOrderApplication {
      * 否则默认使用{@link com.alibaba.csp.sentinel.adapter.spring.webmvc.callback.DefaultBlockExceptionHandler}类处理
      *
      * <h1>sentinel控制台交互</h1>
+     * <h2>sentinel客户端向sentinel-console上报心跳</h2>
+     * 1. {@link com.alibaba.csp.sentinel.cluster.ClusterStateManager} 调用 {@link InitExecutor#doInit} 来初始化通过SPI配置的所有{@link com.alibaba.csp.sentinel.init.InitFunc}接口的实现类
+     * 2. sentinel-transport客户端服务上报信息是初始化的实现类 {@link com.alibaba.csp.sentinel.transport.init.HeartbeatSenderInitFunc}
+     * 3. 最终调用通过SPI配置的接口{@link com.alibaba.csp.sentinel.transport.HeartbeatSender}的实现类{@link com.alibaba.csp.sentinel.transport.heartbeat.SimpleHttpHeartbeatSender}
+     *
+     * <h2>sentinel客户端开放接口</h2>
+     * ClusterStateManager初始化通过SPI配置的所有{@link com.alibaba.csp.sentinel.init.InitFunc}接口的实现类
+     * sentinel-transport客户端开启sentinel命令的接口 {@link com.alibaba.csp.sentinel.transport.init.CommandCenterInitFunc}
+     * 最终调用通过SPI配置的接口{@link com.alibaba.csp.sentinel.transport.CommandCenter}的实现类 {@link com.alibaba.csp.sentinel.transport.command.SimpleHttpCommandCenter}
+     *
      * spring.cloud.sentinel.transport.port 配置的端口会在{@link com.alibaba.csp.sentinel.transport.command.SimpleHttpCommandCenter}中用来开启socket监听服务（如果端口被占用，则会自动使用别的端口）.
      * 然后使用{@link com.alibaba.csp.sentinel.transport.command.http.HttpEventTask} 类做实际的处理操作。
      * {@link com.alibaba.csp.sentinel.command.annotation.CommandMapping}注解用来注册接口实际处理逻辑。
@@ -93,6 +104,11 @@ public class ScOrderApplication {
      * “POST:http://sc-service1/320200/createOrder” 为当前服务的createOrder接口需要调用的上游接口
      * 对“/createOrder”接口可以配置限流、降级，降级也会在prehandler中体现，如果降级的话就不会再执行Controller中的代码。所有如果需要定制客户端响应也需要在`BlockExceptionHandler`中处理
      * 而对于“POST:http://sc-service1/320200/createOrder”来说就只能配置降级了，因为限流是在Controller之前拦截的，这里的降级执行的就是 `InvocationHandler`。
+     *
+     * <h1>nacos、sentinel相关日志输出目录配置</h1>
+     * 1. sentinel客户端qps等日志：通过 `spring.cloud.sentinel.log.dir` 属性配置.
+     * 2. nacos-client日志通过重写`nacos-logback.xml`配置文件或者使用java启动命令行参数 `-Dnacos.logging.config=` 配置. {@link com.alibaba.nacos.client.logging.AbstractNacosLogging}
+     * 3. nacos-SNAPSHOT日志通过命令行参数 `-DJM.SNAPSHOT.PATH=` 配置. {@link com.alibaba.nacos.client.config.impl.LocalConfigInfoProcessor}
      * @param args
      */
     public static void main(String[] args) {

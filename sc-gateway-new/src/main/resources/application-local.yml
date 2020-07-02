@@ -101,7 +101,8 @@ spring:
 
 druid-public-key: MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAKdU10HP7aNZNvPjR/2bZlx3paIqefCSt3aLjIQdtgLNYla+T/I7UetNof7TymcX4eFuTO6OLiTIMD+jSzS5UTUCAwEAAQ==
 
-
+# logback-spring.xml中使用到的属性
+LOG_BASE: /app/biz_logs/${spring.application.name}
 
 # logback profile 配置
 logging:

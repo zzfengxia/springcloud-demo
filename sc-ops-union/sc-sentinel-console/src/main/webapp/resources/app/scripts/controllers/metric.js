@@ -209,7 +209,6 @@ app.controller('MetricCtl', ['$scope', '$stateParams', 'MetricService', '$interv
           $scope.metrics.push([]);
         } else {
           $scope.emptyServices = true;
-          console.log(data.msg);
         }
       });
     };

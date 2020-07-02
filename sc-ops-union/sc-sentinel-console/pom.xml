@@ -19,6 +19,7 @@
         <curator.version>4.0.1</curator.version>
         <!-- sentinel源码版本，这里更新的同时还要更新src源码文件到相应的版本 -->
         <sentinel.current.version>1.7.2</sentinel.current.version>
+        <influxdb-client.version>1.9.0</influxdb-client.version>
     </properties>
 
     <dependencies>
@@ -146,6 +147,18 @@
             <artifactId>system-rules</artifactId>
             <version>1.16.1</version>
             <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.influxdb</groupId>
+            <artifactId>influxdb-client-java</artifactId>
+            <version>${influxdb-client.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.influxdb</groupId>
+            <artifactId>flux-dsl</artifactId>
+            <version>${influxdb-client.version}</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 

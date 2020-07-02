@@ -30,6 +30,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.Properties;
+
 /**
  * @author Eric Zhao
  * @since 1.4.0
@@ -101,6 +103,7 @@ public class NacosConfig {
     
     @Bean
     public ConfigService nacosConfigService() throws Exception {
+        Properties properties = System.getProperties();
         return ConfigFactory.createConfigService(serverAddr);
     }
 }

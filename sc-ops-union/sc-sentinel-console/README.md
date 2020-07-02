@@ -22,7 +22,8 @@ mvn clean package
 java -Dserver.port=8080 \
 -Dcsp.sentinel.dashboard.server=localhost:8080 \
 -Dproject.name=sentinel-dashboard \
--jar target/sentinel-dashboard.jar
+-Dcsp.sentinel.log.dir=/app/biz_logs/${project.name}/csp/
+-jar target/sentinel-dashboard.jar 
 ```
 
 上述命令中我们指定几个 JVM 参数，其中 `-Dserver.port=8080` 是 Spring Boot 的参数，
