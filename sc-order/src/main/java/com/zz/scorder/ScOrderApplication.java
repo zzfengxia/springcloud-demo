@@ -8,6 +8,7 @@ import feign.Feign;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 
@@ -21,6 +22,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 @EnableFeignClients(basePackages = {"com.zz.scservice"})
 //@EnableCircuitBreaker
 @ImportAutoConfiguration({ClientSecurityConfig.class, SentinelMybatisConfig.class})
+@EnableCaching
 public class ScOrderApplication {
     /**
      * OpenFeign 执行流程分析参考：https://www.cnblogs.com/chiangchou/p/api.html
@@ -106,9 +108,18 @@ public class ScOrderApplication {
      * 而对于“POST:http://sc-service1/320200/createOrder”来说就只能配置降级了，因为限流是在Controller之前拦截的，这里的降级执行的就是 `InvocationHandler`。
      *
      * <h1>nacos、sentinel相关日志输出目录配置</h1>
-     * 1. sentinel客户端qps等日志：通过 `spring.cloud.sentinel.log.dir` 属性配置.
-     * 2. nacos-client日志通过重写`nacos-logback.xml`配置文件或者使用java启动命令行参数 `-Dnacos.logging.config=` 配置. {@link com.alibaba.nacos.client.logging.AbstractNacosLogging}
+     * 1. sentinel客户端metric记录日志(MetricWriter类)、transport接口上报日志(CommandCenterLog)、sentinel-record日志(RecordLog)：优先通过`csp.sentinel.log.dir`，
+     *    如果没有则查找`spring.cloud.sentinel.log.dir` 属性配置。
+     *    可以通过sentinel-core模块的{@link com.alibaba.csp.sentinel.log.jul.BaseJulLogger}设置等级或关闭，metric日志是直接写入文件的不会关闭。
+     * 2. nacos-client日志通过重写`nacos-logback.xml`配置文件或者使用java启动命令行参数 `-Dnacos.logging.config=` 配置.
+     *    {@link com.alibaba.nacos.client.logging.AbstractNacosLogging}
      * 3. nacos-SNAPSHOT日志通过命令行参数 `-DJM.SNAPSHOT.PATH=` 配置. {@link com.alibaba.nacos.client.config.impl.LocalConfigInfoProcessor}
+     *
+     * <h1>nacos-discovery服务注册</h1>
+     * @see {@link com.alibaba.cloud.nacos.NacosDiscoveryProperties} 服务注册属性配置，比如可以配置客户端IP(多网卡的服务器配置指定网卡)
+     * @see {@link com.alibaba.cloud.nacos.registry.NacosRegistration}
+     * @see {@link com.alibaba.cloud.nacos.registry.NacosServiceRegistry#register}
+     * @see {@link com.alibaba.nacos.client.naming.NacosNamingService#registerInstance} 发送register请求，注册服务
      * @param args
      */
     public static void main(String[] args) {

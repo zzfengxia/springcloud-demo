@@ -37,7 +37,9 @@ spring:
       web-stat-filter:
         enabled: false
         session-stat-enable: false
-
+  redis:
+    password: root
+    host: localhost
   cloud:
     nacos:
       discovery:
