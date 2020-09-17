@@ -1,7 +1,7 @@
 server:
   port: 7093
 
-druid-public-key: MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAKdU10HP7aNZNvPjR/2bZlx3paIqefCSt3aLjIQdtgLNYla+T/I7UetNof7TymcX4eFuTO6OLiTIMD+jSzS5UTUCAwEAAQ==
+druid-public-key: MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAJPhHE3RXKSjw2LQIIXr/oYjy7p7tf0dg0wGRfGWnfK1uvNh7+v/s1T9BiOip9zE3ftKGh83lUaYOMlpmaVMkhMCAwEAAQ==
 
 spring:
   application:
@@ -10,9 +10,9 @@ spring:
     driver-class-name: com.mysql.jdbc.Driver # com.p6spy.engine.spy.P6SpyDriver #com.mysql.jdbc.Driver
     type: com.alibaba.druid.pool.DruidDataSource
     # jdbc:p6spy:mysql://172.16.80.106:3306/vfc_sptsm?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
-    url: jdbc:mysql://172.16.80.106:3306/vfc_sptsm?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
-    username: vfc_sptsm_qa
-    password: ftETtJ/EDOIB4MpNwX8+M0ehP9g4XSzo9puATWjsAUzeZszdqW0Em5PruVhwb4ZNocUbduR2vN+IjKMnlBPeqg==
+    url: jdbc:mysql://localhost:3306/sptsm-pms?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+    username: root
+    password: ZBUpE6njXUj5hFe1Qo7bDz9VUasWvqAI9hz5BbrAscEci6f1j8YqT4x977WZeMeXuqy2xROprQvRDDHnvT091g==
     druid:
       initial-size: 1
       # 启用数据库密码加密
@@ -43,7 +43,7 @@ spring:
   cloud:
     nacos:
       discovery:
-        server-addr: 172.16.80.132:8848
+        server-addr: 192.168.5.105:8848
         metadata:
           user:
             name: ${spring.security.user.name}  # 向注册中心注册本服务端点访问认证信息。这里不是配置访问客户端端点的认证信息，是本服务的
@@ -55,7 +55,7 @@ spring:
       transport:
         port: 8791
         dashboard: localhost:8096 # sentinel console地址
-        client-ip: localhost
+        client-ip: localhost  # 指定sentinel transport客户端IP，用于有多个IP的服务器时
       log:
         dir: /app/biz_logs/${spring.application.name}/csp # sentinel 日志目录
     # spring cloud alibaba sentinel动态数据源配置参考：https://github.com/alibaba/spring-cloud-alibaba/wiki/Sentinel
@@ -63,7 +63,7 @@ spring:
       datasource:
         ds1: # sentinel 限流规则动态配置
           nacos:
-            server-addr: 172.16.80.132:8848
+            server-addr: 192.168.5.105:8848
             data-id: ${spring.application.name}-flow-rules
             group-id: SENTINEL_GROUP
             # 支持json、xml、custom. 使用custom时必须指定converter-class。
@@ -72,7 +72,7 @@ spring:
             rule-type: flow
         ds2: # sentinel 降级动态配置
           nacos:
-            server-addr: 172.16.80.132:8848
+            server-addr: 192.168.5.105:8848
             data-id: ${spring.application.name}-degrade-rules
             group-id: SENTINEL_GROUP
             # 支持json、xml、custom. 使用custom时必须指定converter-class。

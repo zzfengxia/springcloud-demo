@@ -1,24 +1,19 @@
 package com.zz.scgatewaynew.filter;
 
 import com.alibaba.fastjson.JSONObject;
-import com.zz.scgatewaynew.respdefine.IFailResponse;
-import com.zz.scgatewaynew.respdefine.ResponseFactoryService;
-import com.zz.scgatewaynew.util.GatewayUtils;
-import com.zz.scgatewaynew.util.IPAddrUtils;
 import com.zz.sccommon.constant.BizConstants;
 import com.zz.sccommon.util.LogUtils;
 import com.zz.sccommon.util.UuidUtils;
+import com.zz.scgatewaynew.respdefine.ResponseFactoryService;
+import com.zz.scgatewaynew.util.GatewayUtils;
+import com.zz.scgatewaynew.util.IPAddrUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
-import org.springframework.cloud.gateway.filter.factory.rewrite.ModifyResponseBodyGatewayFilterFactory;
 import org.springframework.cloud.gateway.handler.predicate.ReadBodyPredicateFactory;
 import org.springframework.core.Ordered;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
@@ -35,8 +30,6 @@ import reactor.core.publisher.Mono;
 @Component
 @Slf4j
 public class GlobalRequestFilter implements GlobalFilter, Ordered {
-    @Autowired
-    private ModifyResponseBodyGatewayFilterFactory modifyResponseBodyGatewayFilterFactory;
     @Autowired
     private ReadBodyPredicateFactory readBodyPredicateFactory;
     @Autowired
@@ -124,48 +117,13 @@ public class GlobalRequestFilter implements GlobalFilter, Ordered {
         // 删除MDC缓存
         LogUtils.clearSessionForLog();
     
-        return wrapResponseFilter().filter(exchange.mutate().request(modifyRequestBuilder.build()).build(), chain).then(Mono.fromRunnable(() -> {
-            // post 执行完filter之后执行这里的操作，注意这里跟filter执行的线程是不一样的
-            
-        }));
-    }
-    
-    private GatewayFilter wrapResponseFilter() {
-        return modifyResponseBodyGatewayFilterFactory.apply((c -> c.setRewriteFunction(String.class, String.class, (serverWebExchange, body) -> {
-            /**
-             * 这里的modifyResponseBodyFilter的执行线程也有可能前面执行的filter线程不是同一个。所以traceId要从serverWebExchange缓存中取值
-             */
-            String uid = GatewayUtils.getTraceIdFromCache(serverWebExchange);
-            LogUtils.saveSessionIdForLog(uid);
-            Long startExecTime = serverWebExchange.getAttribute(BizConstants.REQUEST_START_TIME);
-            
-            log.info("response body:" + body);
-            log.info("response header:" + serverWebExchange.getResponse().getHeaders().toString());
-        
-            HttpStatus responseStatus = serverWebExchange.getResponse().getStatusCode();
-            if(responseStatus != null && responseStatus.value() != HttpStatus.OK.value()) {
-                // 后台服务响应不是正常的200状态， 这里只记录异常信息，给客户端响应正常状态码，使用json格式的信息标识错误信息
-                log.info("服务端响应http status:{}, name:{}, reason:{}", responseStatus.value(), responseStatus.name(), responseStatus.getReasonPhrase());
-                serverWebExchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
-                
-                // 保存日志到DB
-                Object cachedBody = GatewayUtils.fetchBody(readBodyPredicateFactory, serverWebExchange);
-                
-                IFailResponse.Response failResponseInfo = responseFactoryService.failResponseInfo(serverWebExchange, "服务器开小差啦", null);
-                body = failResponseInfo.getMsg();
-    
-                serverWebExchange.getResponse().setRawStatusCode(failResponseInfo.getCode());
-            }
-            
-            if(startExecTime != null) {
-                long end = System.currentTimeMillis();
-                log.info("request execute time [" + (end - startExecTime) + "] ms");
-            }
-            // 删除MDC缓存
-            LogUtils.clearSessionForLog();
-        
-            return Mono.just(body);
-        })));
+        // 使用chain.filter继续Filter调用链
+        return chain.filter(exchange.mutate().request(modifyRequestBuilder.build()).build())
+                .then(Mono.fromRunnable(() ->
+                {
+                    // then是在调用链中所有的Filter都执行完之后再执行的，所以这里也能获取到路由服务的响应信息
+                    //System.out.println("响应码：" + exchange.getResponse().getStatusCode());
+                }));
     }
     
     /**
@@ -176,6 +134,6 @@ public class GlobalRequestFilter implements GlobalFilter, Ordered {
     @Override
     public int getOrder() {
         // 在 SentinelGatewayFilter 之前执行
-        return -2;
+        return -3;
     }
 }

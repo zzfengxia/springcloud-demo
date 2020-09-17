@@ -13,10 +13,13 @@ import org.springframework.cloud.gateway.route.RouteDefinitionLocator;
 import org.springframework.cloud.gateway.route.RouteDefinitionRouteLocator;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.server.adapter.WebHttpHandlerBuilder;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
@@ -47,10 +50,60 @@ public class GatewayNewApplication {
      * api分组匹配逻辑:
      * @see {@link com.alibaba.csp.sentinel.adapter.gateway.sc.api.GatewayApiMatcherManager}
      * @see {@link com.alibaba.csp.sentinel.adapter.gateway.common.api.matcher.AbstractApiMatcher}
-     * 可以看出同一分组下配置的多个匹配规则是“或”的关系
+     * 可以看出同一分组下配置的多个匹配规则是“或”的关系。
+     *
+     * <h1>sentinel metric日志记录</h1>
+     * {@link com.alibaba.csp.sentinel.node.metric.MetricWriter} 将资源metric日志写入文件
+     * {@link com.alibaba.csp.sentinel.Tracer#traceContext}
+     * {@link com.alibaba.csp.sentinel.adapter.reactor.SentinelReactorSubscriber}.hookOnError
      *
      * <h1>yml转为javaBean</h1>
      * yaml解析代码参加{@link com.alibaba.nacos.spring.util.parse.DefaultYamlConfigParse}
+     *
+     * <h1>Spring WebFlux处理请求流程</h1>
+     * <img src="https://img-blog.csdnimg.cn/20190529064535152.jpg" style="width: 2241px;">
+     * {@link reactor.netty.http.server.HttpServerHandle}.onStateChange >
+     * {@link org.springframework.http.server.reactive.ReactorHttpHandlerAdapter}.apply >
+     * {@link org.springframework.web.server.adapter.HttpWebHandlerAdapter#handle}（ServerWebExchange管理上下文） >
+     * {@link org.springframework.web.server.handler.ExceptionHandlingWebHandler} 装饰 HttpWebHandlerAdapter >
+     * {@link org.springframework.cloud.gateway.handler.FilteringWebHandler} 装饰 ExceptionHandlingWebHandler >
+     * {@link org.springframework.web.reactive.DispatcherHandler}.handle
+     *
+     * HttpWebHandlerAdapter由{@link WebHttpHandlerBuilder#build()} 创建，因此 getDelegate 取到的是{@link org.springframework.web.server.handler.ExceptionHandlingWebHandler}
+     * {@link org.springframework.boot.autoconfigure.web.reactive.HttpHandlerAutoConfiguration} 注册 HttpHandler，
+     * 这里会调用 {@link WebHttpHandlerBuilder#applicationContext(ApplicationContext)} 和{@link WebHttpHandlerBuilder#build()}，
+     * 异常处理的{@link org.springframework.web.server.WebExceptionHandler}接口实现也是在这里注入到 ExceptionHandlingWebHandler 中。
+     *
+     * <h1>scg网关断言过滤路由处理流程解析</h1>
+     * {@link org.springframework.web.reactive.DispatcherHandler#handle(ServerWebExchange)}
+     * 1）handlerMappings中会依次执行predicateHandler实现类的getHandler方法，合并取到的Hanlder结果集并提取第一个Handler（.next()方法的作用，获取结果的第一个数据作为新的Mono）.
+     *
+     * 网关断言过滤器handler：{@link org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping}，调用lookupRoute从所有的路由中断言匹配Route，
+     * 然后返回{@link org.springframework.cloud.gateway.handler.FilteringWebHandler}并把匹配到的Route存入ServerWebExchange上下文。
+     *
+     * FilteringWebHandler存放了GlobalFilter实现类的列表，所有GlobalFilter实现类的Bean会注册进来（GatewayAutoConfiguration），
+     * 并使用其自定义的GatewayFilterAdapter或者OrderedGatewayFilter装饰。
+     *
+     * 2）如果匹配到Handler则执行invokeHandler方法，遍历HandlerAdapter查找支持上面响应的Handler处理类的适配器。
+     * 支持网关FilteringWebHandler的适配器是{@link org.springframework.web.reactive.result.SimpleHandlerAdapter}，
+     * 执行 {@link org.springframework.cloud.gateway.handler.FilteringWebHandler}.handle。
+     * 这里会将所有的 GlobalFilter和 Route中的GatewayFilter合并排序。然后执行 DefaultGatewayFilterChain 调用链的filter方法。
+     * 所以所有的Filter最后都必须调用chain.filter来继续调用链。
+     *
+     * 3）转发请求的过滤器一般优先级最低，最后执行。比如：
+     * {@link org.springframework.cloud.gateway.filter.NettyRoutingFilter}
+     * {@link org.springframework.cloud.gateway.filter.ForwardRoutingFilter}
+     * {@link org.springframework.cloud.gateway.filter.WebClientHttpRoutingFilter}
+     * {@link org.springframework.cloud.gateway.filter.WebsocketRoutingFilter} 等
+     * 这里会执行 NettyRoutingFilter 过滤器执行请求的转发，其中 getResponseTimeout 获取路由超时时间。
+     * 而 {@link org.springframework.cloud.gateway.filter.NettyWriteResponseFilter} 过滤器使用then方法确保在所有过滤器执行完之后再执行其方法，
+     * 其中会调用 response.writeWith 方法解析响应body，
+     * <b>所以可以通过提前替换 ServerWebExchange 的 ServerHttpResponse为代理代理，然后重新 writeWith 方法即可实现修改response body的目的</b>。
+     * 自定义的过滤器也可以通过 then 方法来实现转发请求获得响应后的一些处理操作。
+     * 过滤器链条上如果有多个 then, 那么遵从与链条相反的顺序执行，即最后执行的过滤器里面的then先执行。
+     *
+     * 异常处理是在 ExceptionHandlingWebHandler 中处理，装饰了 HttpWebHandlerAdapter。
+     * 最终会调用{@link ServerHttpResponse#setComplete()} 完成请求响应。
      */
     public static void main(String[] args) {
         SpringApplication.run(GatewayNewApplication.class, args);

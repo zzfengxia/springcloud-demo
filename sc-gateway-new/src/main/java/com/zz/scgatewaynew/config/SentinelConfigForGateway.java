@@ -7,6 +7,7 @@ import com.alibaba.csp.sentinel.datasource.Converter;
 import com.alibaba.csp.sentinel.datasource.nacos.NacosDataSource;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
+import com.alibaba.nacos.api.PropertyKeyConst;
 import com.zz.gateway.common.nacos.entity.ApiDefinitionEntity;
 import com.zz.gateway.common.nacos.entity.GatewayFlowRuleEntity;
 import com.zz.gateway.common.nacos.entity.RuleEntityWrapper;
@@ -20,6 +21,7 @@ import com.zz.scgatewaynew.routedefine.GatewayRouteManager;
 import com.zz.scgatewaynew.routedefine.RouteNacosProperties;
 import com.zz.scgatewaynew.util.GatewayUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -36,6 +38,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -183,8 +186,13 @@ public class SentinelConfigForGateway implements InitializingBean {
                 }
                 Converter<String, List<RouteRule>> converter = (Converter<String, List<RouteRule>>) this.beanFactory.getBean(convertBeanName);
                 GatewayRouteManager.setEventPublisher(eventPublisher);
+                Properties properties = new Properties();
+                properties.setProperty(PropertyKeyConst.SERVER_ADDR, prop.getServerAddr());
+                if(StringUtils.isNotEmpty(prop.getNamespace())) {
+                    properties.setProperty(PropertyKeyConst.NAMESPACE, prop.getNamespace());
+                }
                 GatewayRouteManager.register2Property(
-                        new NacosDataSource<List<RouteRule>>(prop.getServerAddr(), prop.getGroupId(), prop.getDataId(), converter).getProperty());
+                        new NacosDataSource<List<RouteRule>>(properties, prop.getGroupId(), prop.getDataId(), converter).getProperty());
             } catch (ClassNotFoundException e) {
                 log.error("register nacos route bean error", e);
             }

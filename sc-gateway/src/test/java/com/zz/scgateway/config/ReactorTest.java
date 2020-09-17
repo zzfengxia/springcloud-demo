@@ -1,9 +1,7 @@
 package com.zz.scgateway.config;
 
 import com.google.common.collect.Lists;
-import com.zz.gateway.common.factory.CustomeReadBodyPredicateFactory;
 import org.junit.Test;
-import org.springframework.cloud.gateway.support.GatewayToStringStyler;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -15,7 +13,7 @@ import reactor.core.publisher.Mono;
  * @date 2020-03-23 14:06
  * ************************************
  */
-public class ReatorTest {
+public class ReactorTest {
     @Test
     public void testCreate() {
         Mono<String> mono1 = Mono.just("hello");
@@ -60,21 +58,5 @@ public class ReatorTest {
         // 调用两个实现类的test方法，将输出结果合并. 如果不调用subscribe，那么就不会执行流中GetString的实现类的方法
         delegates.flatMap(GetString::test)
                 .subscribe(System.out::println);
-    }
-    
-    @Test
-    public void testEmpty() {
-        Mono.empty().map(r -> {
-            System.out.println("11");
-            return "1";
-        }).switchIfEmpty(Mono.just("2")).flatMap(r -> {
-            System.out.println("res:" + r);
-            return Mono.just("3");
-        }).subscribe(System.out::println);
-    }
-    
-    @Test
-    public void toStringStyler() {
-        System.out.println(GatewayToStringStyler.filterToStringCreator(CustomeReadBodyPredicateFactory.class));
     }
 }

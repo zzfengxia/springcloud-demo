@@ -1,6 +1,6 @@
 package com.zz.scgatewaynew.respdefine;
 
-import com.zz.scgatewaynew.common.GatewayConstants;
+import com.zz.gateway.common.GatewayConstants;
 import com.zz.scgatewaynew.config.SettingProp;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;

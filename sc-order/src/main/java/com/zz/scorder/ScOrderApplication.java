@@ -55,7 +55,8 @@ public class ScOrderApplication {
      * 1. 如果实现了fallback，那么只要请求服务报错就会执行fallback的降级方法(不管有没有触发降级配置)
      * @see {@link com.alibaba.cloud.sentinel.feign.SentinelInvocationHandler#invoke}
      * @see {@link com.alibaba.csp.sentinel.slots.block.degrade.DegradeRule#passCheck} 降级检查实现，可以通过提取sentinel-core模块
-     * 2. RT配置：同1s内的请求数大于5({@link com.alibaba.csp.sentinel.slots.block.degrade.DegradeRule#rtSlowRequestAmount})且平均响应时间大于阀值则在接下来的时间窗口触发熔断降级
+     * 2. RT配置：同1s内的请求数大于5({@link com.alibaba.csp.sentinel.slots.block.degrade.DegradeRule#rtSlowRequestAmount})
+     *    且平均响应时间大于阀值则在接下来的时间窗口触发熔断降级。
      * 其余规则配置具体参考：
      * https://mrbird.cc/Sentinel%E6%8E%A7%E5%88%B6%E5%8F%B0%E8%AF%A6%E8%A7%A3.html
      * https://github.com/alibaba/Sentinel/wiki/%E7%86%94%E6%96%AD%E9%99%8D%E7%BA%A7
@@ -74,21 +75,28 @@ public class ScOrderApplication {
      *
      * <h1>sentinel控制台交互</h1>
      * <h2>sentinel客户端向sentinel-console上报心跳</h2>
-     * 1. {@link com.alibaba.csp.sentinel.cluster.ClusterStateManager} 调用 {@link InitExecutor#doInit} 来初始化通过SPI配置的所有{@link com.alibaba.csp.sentinel.init.InitFunc}接口的实现类
+     * 1. {@link com.alibaba.csp.sentinel.cluster.ClusterStateManager} 调用 {@link InitExecutor#doInit}
+     *    来初始化通过SPI配置的所有{@link com.alibaba.csp.sentinel.init.InitFunc}接口的实现类
      * 2. sentinel-transport客户端服务上报信息是初始化的实现类 {@link com.alibaba.csp.sentinel.transport.init.HeartbeatSenderInitFunc}
-     * 3. 最终调用通过SPI配置的接口{@link com.alibaba.csp.sentinel.transport.HeartbeatSender}的实现类{@link com.alibaba.csp.sentinel.transport.heartbeat.SimpleHttpHeartbeatSender}
+     * 3. 最终调用通过SPI配置的接口{@link com.alibaba.csp.sentinel.transport.HeartbeatSender}
+     *    的实现类{@link com.alibaba.csp.sentinel.transport.heartbeat.SimpleHttpHeartbeatSender}。请求地址是“/registry/machine”。
+     * 不设置“csp.sentinel.dashboard.serve”参数console自身就不会注册，但是SimpleHttpHeartbeatSender的定时任务还是会继续运行。
      *
      * <h2>sentinel客户端开放接口</h2>
      * ClusterStateManager初始化通过SPI配置的所有{@link com.alibaba.csp.sentinel.init.InitFunc}接口的实现类
      * sentinel-transport客户端开启sentinel命令的接口 {@link com.alibaba.csp.sentinel.transport.init.CommandCenterInitFunc}
-     * 最终调用通过SPI配置的接口{@link com.alibaba.csp.sentinel.transport.CommandCenter}的实现类 {@link com.alibaba.csp.sentinel.transport.command.SimpleHttpCommandCenter}
+     * 最终调用通过SPI配置的接口{@link com.alibaba.csp.sentinel.transport.CommandCenter}
+     * 的实现类 {@link com.alibaba.csp.sentinel.transport.command.SimpleHttpCommandCenter}
      *
-     * spring.cloud.sentinel.transport.port 配置的端口会在{@link com.alibaba.csp.sentinel.transport.command.SimpleHttpCommandCenter}中用来开启socket监听服务（如果端口被占用，则会自动使用别的端口）.
+     * spring.cloud.sentinel.transport.port 配置的端口会在{@link com.alibaba.csp.sentinel.transport.command.SimpleHttpCommandCenter}
+     * 中用来开启socket监听服务（如果端口被占用，则会自动使用别的端口）。
      * 然后使用{@link com.alibaba.csp.sentinel.transport.command.http.HttpEventTask} 类做实际的处理操作。
      * {@link com.alibaba.csp.sentinel.command.annotation.CommandMapping}注解用来注册接口实际处理逻辑。
      * {@link com.alibaba.csp.sentinel.command.CommandHandlerProvider} 注册Handler
-     * 比如sentinel console实时监控界面获取metric信息的请求<code>metric</code>就是sentinel客户端的{@link com.alibaba.csp.sentinel.command.handler.SendMetricCommandHandler}类处理的。
+     * 比如sentinel console实时监控界面获取metric信息的请求<code>metric</code>
+     * 就是sentinel客户端的{@link com.alibaba.csp.sentinel.command.handler.SendMetricCommandHandler}类处理的。
      * 实际metric数据来源就是从sentinel的metric日志文件中读取的。
+     * <p>如果需要新增CommandHandler实现，则需要在SPI文件com.alibaba.csp.sentinel.command.CommandHandler中注册CommandHandler实现类才会生效。</p>
      *
      * <h1>动态规则</h1>
      * 参考{@link com.alibaba.csp.sentinel.datasource.nacos.NacosDataSource} nacos数据源属性
@@ -116,7 +124,7 @@ public class ScOrderApplication {
      * 3. nacos-SNAPSHOT日志通过命令行参数 `-DJM.SNAPSHOT.PATH=` 配置. {@link com.alibaba.nacos.client.config.impl.LocalConfigInfoProcessor}
      *
      * <h1>nacos-discovery服务注册</h1>
-     * @see {@link com.alibaba.cloud.nacos.NacosDiscoveryProperties} 服务注册属性配置，比如可以配置客户端IP(多网卡的服务器配置指定网卡)
+     * @see {@link com.alibaba.cloud.nacos.NacosDiscoveryProperties} 服务注册属性配置，比如可以配置客户端 IP(多网卡的服务器配置指定网卡)
      * @see {@link com.alibaba.cloud.nacos.registry.NacosRegistration}
      * @see {@link com.alibaba.cloud.nacos.registry.NacosServiceRegistry#register}
      * @see {@link com.alibaba.nacos.client.naming.NacosNamingService#registerInstance} 发送register请求，注册服务

@@ -1,7 +1,7 @@
 var app = angular.module('sentinelDashboardApp');
 
-app.controller('GatewayFlowNacosCtl', ['$scope', '$stateParams', 'GatewayFlowNacosService', 'GatewayApiNacosService', 'ngDialog', 'MachineService',
-  function ($scope, $stateParams, GatewayFlowNacosService, GatewayApiNacosService, ngDialog, MachineService) {
+app.controller('GatewayFlowNacosCtl', ['$scope', '$stateParams', 'GatewayFlowNacosService', 'GatewayApiNacosService', 'ngDialog', 'MachineService', 'GatewayRouteService',
+  function ($scope, $stateParams, GatewayFlowNacosService, GatewayApiNacosService, ngDialog, MachineService, GatewayRouteService) {
     $scope.app = $stateParams.app;
 
     $scope.rulesPageConfig = {
@@ -40,6 +40,20 @@ app.controller('GatewayFlowNacosCtl', ['$scope', '$stateParams', 'GatewayFlowNac
         });
     }
 
+    getRouteIds();
+    function getRouteIds() {
+        GatewayRouteService.queryRoutes($scope.app).success(
+            function (data) {
+                if (data.code == 0 && data.data) {
+                    $scope.routeIds = [];
+
+                    data.data.forEach(function (route) {
+                        $scope.routeIds.push(route["id"]);
+                    });
+                }
+            });
+    }
+
     $scope.intervalUnits = [{val: 0, desc: '秒'}, {val: 1, desc: '分'}, {val: 2, desc: '时'}, {val: 3, desc: '天'}];
 
     var gatewayFlowRuleDialog;
@@ -59,12 +73,9 @@ app.controller('GatewayFlowNacosCtl', ['$scope', '$stateParams', 'GatewayFlowNac
     };
 
     $scope.addNewRule = function () {
-      var mac = $scope.macInputModel.split(':');
       $scope.currentRule = {
         grade: 1,
         app: $scope.app,
-        ip: mac[0],
-        port: mac[1],
         resourceMode: 0,
         interval: 1,
         intervalUnit: 0,

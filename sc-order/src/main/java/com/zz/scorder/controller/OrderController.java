@@ -6,6 +6,8 @@ import com.zz.api.common.protocal.ApiResponse;
 import com.zz.sccommon.common.FeignDataThreadLocal;
 import com.zz.sccommon.common.RequestExtParams;
 import com.zz.sccommon.constant.BizConstants;
+import com.zz.sccommon.exception.BizException;
+import com.zz.sccommon.exception.ErrorCode;
 import com.zz.scorder.entity.ConfigEntity;
 import com.zz.scorder.entity.ServerIdConfig;
 import com.zz.scorder.service.ServerConfigService;
@@ -13,11 +15,13 @@ import com.zz.scservice.entity.OrderInfo;
 import com.zz.scservice.feignapi.OrderClient;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.math.RandomUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -89,6 +93,19 @@ public class OrderController {
         System.out.println("create order executed " + (end - start) + "ms");
         return result;
     }
+    
+    @RequestMapping("getApi")
+    @ResponseBody
+    public ApiResponse<String> getApi(String msg) throws InterruptedException {
+        if(RandomUtils.nextInt(5) == 1) {
+            throw new BizException(ErrorCode.SYSTEM_ERROR);
+        }
+        if(msg.contains("timeout")) {
+            Thread.sleep(1500);
+        }
+        return ApiResponse.ofSuccessMsg("success");
+    }
+    
     
     private static List<ServerIdConfig> serverIdConfig = Lists.newArrayList(
             ServerIdConfig.of("demo1", "", "sc-service", "sc-service2", "520000", null, null),

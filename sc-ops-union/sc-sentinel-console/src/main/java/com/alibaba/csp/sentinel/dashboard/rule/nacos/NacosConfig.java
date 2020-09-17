@@ -21,8 +21,10 @@ import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.DegradeRuleEnti
 import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.FlowRuleEntity;
 import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.RuleEntityWrapper;
 import com.alibaba.csp.sentinel.datasource.Converter;
+import com.alibaba.csp.sentinel.util.StringUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
+import com.alibaba.nacos.api.PropertyKeyConst;
 import com.alibaba.nacos.api.config.ConfigFactory;
 import com.alibaba.nacos.api.config.ConfigService;
 import com.zz.gateway.common.nacos.entity.route.RouteRuleEntity;
@@ -40,6 +42,8 @@ import java.util.Properties;
 public class NacosConfig {
     @Value("${nacos.config.addr:localhost}")
     private String serverAddr;
+    @Value("${nacos.config.namespace:}")
+    private String namespace;
     
     @Bean("flowRuleEncoder")
     public Converter<RuleEntityWrapper<FlowRuleEntity>, String> flowRuleEntityEncoder() {
@@ -104,6 +108,10 @@ public class NacosConfig {
     @Bean
     public ConfigService nacosConfigService() throws Exception {
         Properties properties = System.getProperties();
-        return ConfigFactory.createConfigService(serverAddr);
+        if(StringUtil.isNotBlank(namespace)) {
+            properties.setProperty(PropertyKeyConst.NAMESPACE, namespace);
+        }
+        properties.setProperty(PropertyKeyConst.SERVER_ADDR, serverAddr);
+        return ConfigFactory.createConfigService(properties);
     }
 }

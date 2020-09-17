@@ -15,13 +15,13 @@
  */
 package com.alibaba.csp.sentinel.init;
 
+import com.alibaba.csp.sentinel.log.RecordLog;
+import com.alibaba.csp.sentinel.spi.ServiceLoaderUtil;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ServiceLoader;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import com.alibaba.csp.sentinel.log.RecordLog;
-import com.alibaba.csp.sentinel.spi.ServiceLoaderUtil;
 
 /**
  * Load registered init functions and execute in order.
@@ -47,6 +47,7 @@ public final class InitExecutor {
             List<OrderWrapper> initList = new ArrayList<OrderWrapper>();
             for (InitFunc initFunc : loader) {
                 RecordLog.info("[InitExecutor] Found init func: " + initFunc.getClass().getCanonicalName());
+                System.out.println("[InitExecutor] Found init func: " + initFunc.getClass().getCanonicalName());
                 insertSorted(initList, initFunc);
             }
             for (OrderWrapper w : initList) {

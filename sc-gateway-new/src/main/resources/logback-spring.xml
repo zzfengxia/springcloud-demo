@@ -24,15 +24,8 @@
 
     <!-- profile配置，不能直接在logback.xml文件中使用 -->
     <springProfile name="local">
-        <!--<root level="info">
-            <appender-ref ref="CONSOLE"/>
-        </root>-->
-        <logger name="com.vfuchong" level="info" additivity="false">
-            <appender-ref ref="sptsm"/>
-        </logger>
         <root level="info">
             <appender-ref ref="CONSOLE"/>
-            <appender-ref ref="sptsm"/>
         </root>
     </springProfile>
     <springProfile name="uat|prod">
