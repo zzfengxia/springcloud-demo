@@ -15,7 +15,6 @@ import com.zz.scservice.entity.OrderInfo;
 import com.zz.scservice.feignapi.OrderClient;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.math.RandomUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -97,11 +96,11 @@ public class OrderController {
     @RequestMapping("getApi")
     @ResponseBody
     public ApiResponse<String> getApi(String msg) throws InterruptedException {
-        if(RandomUtils.nextInt(5) == 1) {
-            throw new BizException(ErrorCode.SYSTEM_ERROR);
-        }
         if(msg.contains("timeout")) {
             Thread.sleep(1500);
+        }
+        if(msg.contains("exception")) {
+            throw new BizException(ErrorCode.SYSTEM_ERROR);
         }
         return ApiResponse.ofSuccessMsg("success");
     }

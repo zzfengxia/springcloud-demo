@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.zz.sccommon.constant.BizConstants;
 import com.zz.sccommon.util.LogUtils;
 import com.zz.sccommon.util.UuidUtils;
-import com.zz.scgatewaynew.respdefine.ResponseFactoryService;
 import com.zz.scgatewaynew.util.GatewayUtils;
 import com.zz.scgatewaynew.util.IPAddrUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -32,8 +31,6 @@ import reactor.core.publisher.Mono;
 public class GlobalRequestFilter implements GlobalFilter, Ordered {
     @Autowired
     private ReadBodyPredicateFactory readBodyPredicateFactory;
-    @Autowired
-    private ResponseFactoryService responseFactoryService;
     /**
      * 校验请求信息，注入日志id,限流标识到请求头
      * 全局过滤器，在断言之后，特定路由过滤器之前执行
@@ -134,6 +131,6 @@ public class GlobalRequestFilter implements GlobalFilter, Ordered {
     @Override
     public int getOrder() {
         // 在 SentinelGatewayFilter 之前执行
-        return -3;
+        return -30;
     }
 }

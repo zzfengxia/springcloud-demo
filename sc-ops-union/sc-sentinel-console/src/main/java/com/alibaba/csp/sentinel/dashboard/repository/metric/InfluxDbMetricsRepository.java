@@ -149,8 +149,7 @@ public class InfluxDbMetricsRepository implements MetricsRepository<MetricEntity
                 .addField("exception_qps", (long) metric.getExceptionQps())
                 .addField("rt", metric.getRt())
                 .addField("classification", metric.getClassification())
-                .addField("count", metric.getCount())
-                .addField("create_time", System.currentTimeMillis());
+                .addField("count", metric.getCount());
     }
     
     @Measurement(name = MEASUREMENT)
@@ -176,12 +175,9 @@ public class InfluxDbMetricsRepository implements MetricsRepository<MetricEntity
         private Long classification;
         @Column(name = "count")
         private Long count;
-        @Column(name = "create_time")
-        private Long createTime;
         
         public MetricEntity toMetricEntity() {
             MetricEntity entity = new MetricEntity();
-            entity.setGmtCreate(new Date(createTime));
             entity.setApp(app);
             entity.setTimestamp(Date.from(time));
             entity.setResource(resource);

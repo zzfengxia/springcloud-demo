@@ -24,6 +24,7 @@ import reactor.core.publisher.Mono;
 
 import java.net.URI;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 /**
  * Created by Francis.zz on 2018/2/27.
@@ -52,13 +53,27 @@ public class GatewayNewApplication {
      * @see {@link com.alibaba.csp.sentinel.adapter.gateway.common.api.matcher.AbstractApiMatcher}
      * 可以看出同一分组下配置的多个匹配规则是“或”的关系。
      *
-     * <h1>sentinel metric日志记录</h1>
+     * <h1>sentinel metric监控记录</h1>
+     * {@link com.alibaba.csp.sentinel.slots.statistic.MetricEvent} 监控指标常量
      * {@link com.alibaba.csp.sentinel.node.metric.MetricWriter} 将资源metric日志写入文件
      * {@link com.alibaba.csp.sentinel.Tracer#traceContext}
      * {@link com.alibaba.csp.sentinel.adapter.reactor.SentinelReactorSubscriber}.hookOnError
+     * {@link com.alibaba.csp.sentinel.adapter.reactor.InheritableBaseSubscriber#onError}
      *
-     * <h1>yml转为javaBean</h1>
-     * yaml解析代码参加{@link com.alibaba.nacos.spring.util.parse.DefaultYamlConfigParse}
+     * <h1>WebFlux异常处理流程</h1>
+     * 响应结果Mono.onError异常处理首先由 {@link org.springframework.web.server.handler.ExceptionHandlingWebHandler#handle} 中处理，装饰了 HttpWebHandlerAdapter。
+     * 遍历所有异常处理器，如果没找到合适的处理器或者处理后还是Mono.error，
+     * 就会被外层的{{@link org.springframework.web.server.adapter.HttpWebHandlerAdapter#handleUnresolvedError} 处理。
+     *
+     * 使用try catch对handle包裹，所以只会在网关抛出异常时调用onError,
+     * sentinel使用InheritableBaseSubscriber监听了onError，路由服务器响应的httpstatus不会触发onError，所以也不会记录到监控日志的 exceptionQps 中。
+     * <code>
+     *     for (WebExceptionHandler handler : this.exceptionHandlers) {
+     *         completion = completion.onErrorResume(ex -> handler.handle(exchange, ex));
+     *     }
+     * </code>
+     * 注入的异常处理实现类中通过使用<code>Mono.error(throwable);</code>可以让其他的异常处理类接着处理。
+     * 在全局Filter中通过返回<code>Mono.error(throwable);</code>的方式触发异常处理。
      *
      * <h1>Spring WebFlux处理请求流程</h1>
      * <img src="https://img-blog.csdnimg.cn/20190529064535152.jpg" style="width: 2241px;">
@@ -84,6 +99,9 @@ public class GatewayNewApplication {
      * FilteringWebHandler存放了GlobalFilter实现类的列表，所有GlobalFilter实现类的Bean会注册进来（GatewayAutoConfiguration），
      * 并使用其自定义的GatewayFilterAdapter或者OrderedGatewayFilter装饰。
      *
+     * 如果未成功断言Path，则会调用{@link org.springframework.web.reactive.resource.ResourceWebHandler#handle} 资源path处理器匹配是否是资源path请求，
+     * {@link org.springframework.web.servlet.resource.PathResourceResolver#resolveResourceInternal}
+     *
      * 2）如果匹配到Handler则执行invokeHandler方法，遍历HandlerAdapter查找支持上面响应的Handler处理类的适配器。
      * 支持网关FilteringWebHandler的适配器是{@link org.springframework.web.reactive.result.SimpleHandlerAdapter}，
      * 执行 {@link org.springframework.cloud.gateway.handler.FilteringWebHandler}.handle。
@@ -97,12 +115,15 @@ public class GatewayNewApplication {
      * {@link org.springframework.cloud.gateway.filter.WebsocketRoutingFilter} 等
      * 这里会执行 NettyRoutingFilter 过滤器执行请求的转发，其中 getResponseTimeout 获取路由超时时间。
      * 而 {@link org.springframework.cloud.gateway.filter.NettyWriteResponseFilter} 过滤器使用then方法确保在所有过滤器执行完之后再执行其方法，
-     * 其中会调用 response.writeWith 方法解析响应body，
+     * 其中会调用 response.writeWith 方法解析响应body(ModifyResponseGatewayFilter重新封装的response对象ModifiedServerHttpResponse最后也会调用装饰对象的writeWith方法)，
+     * 由{@link org.springframework.http.server.reactive.ReactorServerHttpResponse#writeWith}装饰，
+     * 在这里调用 doCommit 会修改 response commit状态。{@link org.springframework.http.server.reactive.AbstractServerHttpResponse#doCommit(Supplier)}
+     * 
      * <b>所以可以通过提前替换 ServerWebExchange 的 ServerHttpResponse为代理代理，然后重新 writeWith 方法即可实现修改response body的目的</b>。
      * 自定义的过滤器也可以通过 then 方法来实现转发请求获得响应后的一些处理操作。
      * 过滤器链条上如果有多个 then, 那么遵从与链条相反的顺序执行，即最后执行的过滤器里面的then先执行。
      *
-     * 异常处理是在 ExceptionHandlingWebHandler 中处理，装饰了 HttpWebHandlerAdapter。
+     *
      * 最终会调用{@link ServerHttpResponse#setComplete()} 完成请求响应。
      */
     public static void main(String[] args) {

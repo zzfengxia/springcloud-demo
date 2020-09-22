@@ -139,11 +139,11 @@ public class MetricFetcher {
         if (map.isEmpty()) {
             return;
         }
-        Date date = new Date();
+        /*Date date = new Date();
         for (MetricEntity entity : map.values()) {
             entity.setGmtCreate(date);
             entity.setGmtModified(date);
-        }
+        }*/
         metricStore.saveAll(map.values());
     }
 

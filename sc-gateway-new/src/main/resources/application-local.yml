@@ -60,7 +60,7 @@ spring:
 
       # @see com.alibaba.cloud.sentinel.gateway.scg.SentinelSCGAutoConfiguration
       scg:
-        order: -1  # sentinel filter执行顺序，越小越优先不能超过GlobalRequestFilter的执行顺序
+        order: -10  # sentinel filter执行顺序，越小越优先不能超过GlobalRequestFilter的执行顺序
 
       log:
         dir: /app/biz_logs/${spring.application.name}/csp # sentinel 日志目录

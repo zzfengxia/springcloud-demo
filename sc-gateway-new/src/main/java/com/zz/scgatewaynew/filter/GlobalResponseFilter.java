@@ -44,10 +44,9 @@ public class GlobalResponseFilter implements GlobalFilter, Ordered {
      */
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+        // 这里是在 ModifyResponseGatewayFilter过滤器调用chain.filter继续调用链
         return modifyResponseBodyGatewayFilterFactory.apply((c -> c.setRewriteFunction(String.class, String.class, (serverWebExchange, body) -> {
-            /**
-             * 这里的modifyResponseBodyFilter的执行线程也有可能前面执行的filter线程不是同一个。所以traceId要从serverWebExchange缓存中取值
-             */
+            // 这里的modifyResponseBodyFilter的执行线程也有可能前面执行的filter线程不是同一个。所以traceId要从serverWebExchange缓存中取值
             String uid = GatewayUtils.getTraceIdFromCache(serverWebExchange);
             LogUtils.saveSessionIdForLog(uid);
             Long startExecTime = serverWebExchange.getAttribute(BizConstants.REQUEST_START_TIME);
@@ -76,7 +75,6 @@ public class GlobalResponseFilter implements GlobalFilter, Ordered {
             }
             // 删除MDC缓存
             LogUtils.clearSessionForLog();
-    
             return Mono.just(body);
         }))).filter(exchange, chain);
     }
