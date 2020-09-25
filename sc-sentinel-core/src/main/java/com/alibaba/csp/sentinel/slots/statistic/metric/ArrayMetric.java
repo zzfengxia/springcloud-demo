@@ -199,6 +199,7 @@ public class ArrayMetric implements Metric {
         MetricNode node = new MetricNode();
         node.setBlockQps(wrap.value().block());
         node.setExceptionQps(wrap.value().exception());
+        node.setUpstreamFailQps(wrap.value().upstreamFail());
         node.setPassQps(wrap.value().pass());
         long successQps = wrap.value().success();
         node.setSuccessQps(successQps);
@@ -222,6 +223,12 @@ public class ArrayMetric implements Metric {
     public void addException(int count) {
         WindowWrap<MetricBucket> wrap = data.currentWindow();
         wrap.value().addException(count);
+    }
+    
+    @Override
+    public void addUpstreamFail(int count) {
+        WindowWrap<MetricBucket> wrap = data.currentWindow();
+        wrap.value().addUpstreamFail(count);
     }
 
     @Override

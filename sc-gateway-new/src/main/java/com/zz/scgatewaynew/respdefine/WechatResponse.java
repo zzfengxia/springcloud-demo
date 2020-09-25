@@ -15,7 +15,7 @@ import java.util.Map;
  * @date 2020-04-17 15:47
  * ************************************
  */
-public class WechatResponse implements IFailResponse {
+public class WechatResponse implements UpstreamResponse {
     @Override
     public Response failResp(String code, String msg, ServerWebExchange exchange) {
         Map<String, String> resp = new HashMap<>();
@@ -26,6 +26,18 @@ public class WechatResponse implements IFailResponse {
             return Response.instance(httpStatus(), WXPayUtil.mapToXml(resp));
         } catch (Exception e) {
             return Response.instance(httpStatus(), "");
+        }
+    }
+    
+    @Override
+    public boolean isSuccessResponse(String respBody) {
+        try {
+            Map<String, String> respMap = WXPayUtil.xmlToMap(respBody);
+            String respCode = respMap.get(ApiConstants.WECHAT_RESP_CODE);
+            return "SUCCESS".equals(respCode);
+        }catch (Exception e) {
+            // no op
+            return true;
         }
     }
 }

@@ -20,7 +20,7 @@ public class ResponseFactoryService {
     @Autowired
     private SettingProp settingProp;
     
-    public IFailResponse getRespStrategy(int strategy) {
+    public UpstreamResponse getRespStrategy(int strategy) {
         if(GatewayConstants.SP_RESP_STRATEGY == strategy) {
             return new SPApiResponse(settingProp.getPrivateKeyStr());
         } else if(GatewayConstants.ORDER_RESP_STRATEGY == strategy) {
@@ -40,9 +40,9 @@ public class ResponseFactoryService {
      * @param code
      * @return
      */
-    public IFailResponse.Response failResponseInfo(ServerWebExchange exchange, String msg, String code) {
+    public UpstreamResponse.Response failResponseInfo(ServerWebExchange exchange, String msg, String code) {
         Object strObj = exchange.getAttribute(GatewayConstants.FAIL_RESPONSE_STRATEGY);
-        IFailResponse response;
+        UpstreamResponse response;
         if(strObj == null) {
             response = new NotFoundResponse();
         } else {
@@ -51,5 +51,21 @@ public class ResponseFactoryService {
         }
         
         return response.failResp(code, msg, exchange);
+    }
+    
+    /**
+     * 检查上游服务响应数据是否异常(业务响应判断)
+     *
+     * @param exchange
+     * @return
+     */
+    public boolean isFailResponse(ServerWebExchange exchange, String respBody) {
+        Object strObj = exchange.getAttribute(GatewayConstants.FAIL_RESPONSE_STRATEGY);
+        if(strObj == null) {
+            return false;
+        }
+    
+        int strategy = NumberUtils.toInt(strObj + "", GatewayConstants.SP_RESP_STRATEGY);
+        return !getRespStrategy(strategy).isSuccessResponse(respBody);
     }
 }

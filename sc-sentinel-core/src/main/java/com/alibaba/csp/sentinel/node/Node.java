@@ -185,7 +185,9 @@ public interface Node extends OccupySupport, DebugSupport {
      * @param count count to add
      */
     void increaseExceptionQps(int count);
-
+    
+    void increaseUpstreamFailQps(int count);
+    
     /**
      * Increase current thread count.
      */

@@ -1,7 +1,7 @@
 package com.zz.scgatewaynew.handler;
 
 import com.google.common.collect.Sets;
-import com.zz.scgatewaynew.respdefine.IFailResponse;
+import com.zz.scgatewaynew.respdefine.UpstreamResponse;
 import com.zz.scgatewaynew.respdefine.ResponseFactoryService;
 import com.zz.scgatewaynew.util.GatewayUtils;
 import com.zz.sccommon.util.LogUtils;
@@ -127,7 +127,7 @@ public class JsonErrorWebExceptionHandler extends DefaultErrorWebExceptionHandle
         Map<String, Object> error = getErrorAttributes(request, includeStackTrace);
         int httpStatus = getHttpStatus(error);
     
-        IFailResponse.Response failResponseInfo = responseFactoryService.failResponseInfo(request.exchange(), error.get(ATTR_MSG) + "", null);
+        UpstreamResponse.Response failResponseInfo = responseFactoryService.failResponseInfo(request.exchange(), error.get(ATTR_MSG) + "", null);
         
         // 响应json格式给客户端
         return ServerResponse.status(failResponseInfo.getCode())

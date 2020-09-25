@@ -323,6 +323,12 @@ public class StatisticNode implements Node {
         rollingCounterInSecond.addException(count);
         rollingCounterInMinute.addException(count);
     }
+    
+    @Override
+    public void increaseUpstreamFailQps(int count) {
+        rollingCounterInSecond.addUpstreamFail(count);
+        rollingCounterInMinute.addUpstreamFail(count);
+    }
 
     @Override
     public void increaseThreadNum() {

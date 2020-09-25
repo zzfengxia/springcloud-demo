@@ -151,8 +151,13 @@ public class GatewayNewApplication {
      * 但只有在项目初始化时获取动态路由信息，最终还是由CachingRouteLocator存储在本地缓存？
      * 动态路由实现参考{@link DynamicGatewayService}
      *
-     * @param builder
-     * @return
+     * <h1>网关流控</h1>
+     * {@link com.alibaba.csp.sentinel.adapter.reactor.SentinelReactorSubscriber#entryWhenSubscribed}
+     * {@link com.alibaba.csp.sentinel.CtSph#asyncEntryWithPriorityInternal}
+     * {@link com.alibaba.csp.sentinel.adapter.gateway.common.slot.GatewayFlowSlot}.checkGatewayParamFlow 网关流控的插槽
+     * {@link com.alibaba.csp.sentinel.slots.block.flow.param.ParamFlowChecker} 流控检查
+     *
+     * {@link com.alibaba.csp.sentinel.slots.statistic.StatisticSlot#entry} 这里调用 节点的 increaseBlockQps 方法将拦截数量写入metric
      */
     @Bean
     public RouteLocator myRoutes(RouteLocatorBuilder builder) {

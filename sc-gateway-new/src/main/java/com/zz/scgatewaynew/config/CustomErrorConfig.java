@@ -1,6 +1,7 @@
 package com.zz.scgatewaynew.config;
 
 import com.zz.scgatewaynew.handler.JsonErrorWebExceptionHandler;
+import com.zz.scgatewaynew.handler.UpstreamResponseFailHandler;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -56,6 +57,12 @@ public class CustomErrorConfig {
         exceptionHandler.setMessageWriters(serverCodecConfigurer.getWriters());
         exceptionHandler.setMessageReaders(serverCodecConfigurer.getReaders());
         return exceptionHandler;
+    }
+    
+    @Bean
+    @Order(0)
+    public UpstreamResponseFailHandler upstreamResponseFailHandler() {
+        return new UpstreamResponseFailHandler();
     }
     
     @Bean

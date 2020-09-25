@@ -12,7 +12,7 @@ import org.springframework.web.server.ServerWebExchange;
  * @date 2020-04-18 16:32
  * ************************************
  */
-public class NotFoundResponse implements IFailResponse {
+public class NotFoundResponse implements UpstreamResponse {
     @Override
     public Response failResp(String code, String msg, ServerWebExchange exchange) {
         return Response.instance(httpStatus(), HttpStatus.NOT_FOUND.getReasonPhrase());

@@ -63,6 +63,7 @@
     modified:   java/com/alibaba/csp/sentinel/node/IntervalProperty.java
     modified:   java/com/alibaba/csp/sentinel/node/Node.java
     modified:   java/com/alibaba/csp/sentinel/node/StatisticNode.java
+    modified:   java/com/alibaba/csp/sentinel/Tracer.java
     modified:   java/com/alibaba/csp/sentinel/slots/block/degrade/DegradeRule.java
     modified:   java/com/alibaba/csp/sentinel/slots/block/degrade/DegradeRuleManager.java
     modified:   java/com/alibaba/csp/sentinel/slots/clusterbuilder/ClusterBuilderSlot.java
@@ -74,6 +75,9 @@
     modified:   java/com/alibaba/csp/sentinel/dashboard/DashboardApplication.java
     modified:   java/com/alibaba/csp/sentinel/dashboard/controller/MetricController.java
     modified:   java/com/alibaba/csp/sentinel/dashboard/datasource/entity/MetricEntity.java
+    modified:   java/com/alibaba/csp/sentinel/node/metric/MetricNode.java
+    modified:   java/com/alibaba/csp/sentinel/slots/statistic/MetricEvent.java
+    modified:   java/com/alibaba/csp/sentinel/dashboard/domain/vo/MetricVo.java
     modified:   java/com/alibaba/csp/sentinel/dashboard/metric/MetricFetcher.java
 	modified:   README_zh.md
     modified:   sc-ops-union/sc-sentinel-console/src/main/webapp/resources/app/scripts/controllers/metric.js

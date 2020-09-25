@@ -18,6 +18,8 @@ public enum ErrorCode implements IErrorCode {
     // 系统内部错误
     SYSTEM_ERROR("00001", "system error", "system error, %s"),
     
+    UPSTREAM_RESP_FAIL("98888", "上游服务业务处理失败"),
+    
     TOO_MANY_REQUESTS("99998", "服务器繁忙，请稍后重试"),
     SERVER_DEGRADE("99997", "服务降级，请稍后重试"),
     /*==================================其他(比如身份认证、领取发票等) end========================================*/

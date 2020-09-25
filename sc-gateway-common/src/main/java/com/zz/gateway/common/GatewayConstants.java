@@ -32,6 +32,10 @@ public class GatewayConstants {
      */
     public static final String FAIL_RESPONSE_STRATEGY = "failRespStrategy";
     
+    /**
+     * exchange参数-网关转发失败时给客户端的响应策略
+     */
+    public static final String CACHE_RESPONSE_BODY = "cacheResponseBody";
     
     /**
      * sptsm接口响应

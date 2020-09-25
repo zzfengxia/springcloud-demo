@@ -1,8 +1,9 @@
 package com.zz.scgatewaynew.filter;
 
+import com.zz.gateway.common.GatewayConstants;
 import com.zz.sccommon.constant.BizConstants;
 import com.zz.sccommon.util.LogUtils;
-import com.zz.scgatewaynew.respdefine.IFailResponse;
+import com.zz.scgatewaynew.respdefine.UpstreamResponse;
 import com.zz.scgatewaynew.respdefine.ResponseFactoryService;
 import com.zz.scgatewaynew.util.GatewayUtils;
 import org.slf4j.Logger;
@@ -41,6 +42,8 @@ public class GlobalResponseFilter implements GlobalFilter, Ordered {
     /**
      * {@link org.springframework.cloud.gateway.filter.factory.rewrite.ModifyResponseBodyGatewayFilterFactory.ModifyResponseGatewayFilter}
      * 调用ModifyResponseGatewayFilter.filter，writeWith方法回调
+     * 在{@link org.springframework.cloud.gateway.filter.NettyWriteResponseFilter}的then方法调用后回调writeWith.
+     * 因此如果要在这里调用之后再处理某个操作，只需要创建比 NettyWriteResponseFilter 优先级高的过滤器然后调用then方法即可。then方法与过滤器优先级成反比
      */
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
@@ -54,6 +57,9 @@ public class GlobalResponseFilter implements GlobalFilter, Ordered {
             log.info("response body:" + body);
             log.info("response header:" + serverWebExchange.getResponse().getHeaders().toString());
     
+            // 缓存responseBody
+            serverWebExchange.getAttributes().put(GatewayConstants.CACHE_RESPONSE_BODY, body);
+            
             HttpStatus responseStatus = serverWebExchange.getResponse().getStatusCode();
             if(responseStatus != null && responseStatus.value() != HttpStatus.OK.value()) {
                 // 后台服务响应不是正常的200状态， 这里只记录异常信息，给客户端响应正常状态码，使用json格式的信息标识错误信息
@@ -63,7 +69,7 @@ public class GlobalResponseFilter implements GlobalFilter, Ordered {
                 // 保存日志到DB
                 Object cachedBody = GatewayUtils.fetchBody(readBodyPredicateFactory, serverWebExchange);
         
-                IFailResponse.Response failResponseInfo = responseFactoryService.failResponseInfo(serverWebExchange, "服务器开小差啦", null);
+                UpstreamResponse.Response failResponseInfo = responseFactoryService.failResponseInfo(serverWebExchange, "服务器开小差啦", null);
                 body = failResponseInfo.getMsg();
         
                 serverWebExchange.getResponse().setRawStatusCode(failResponseInfo.getCode());

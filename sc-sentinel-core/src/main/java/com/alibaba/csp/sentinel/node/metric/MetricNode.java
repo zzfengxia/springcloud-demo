@@ -39,6 +39,7 @@ public class MetricNode {
     private long blockQps;
     private long successQps;
     private long exceptionQps;
+    private long upstreamFailQps;
     private long rt;
 
     /**
@@ -131,7 +132,15 @@ public class MetricNode {
         this.concurrency = concurrency;
         return this;
     }
-
+    
+    public long getUpstreamFailQps() {
+        return upstreamFailQps;
+    }
+    
+    public void setUpstreamFailQps(long upstreamFailQps) {
+        this.upstreamFailQps = upstreamFailQps;
+    }
+    
     @Override
     public String toString() {
         return "MetricNode{" +
@@ -142,6 +151,7 @@ public class MetricNode {
             ", blockQps=" + blockQps +
             ", successQps=" + successQps +
             ", exceptionQps=" + exceptionQps +
+            ", upstreamFailQps=" + upstreamFailQps +
             ", rt=" + rt +
             ", concurrency=" + concurrency +
             ", occupiedPassQps=" + occupiedPassQps +
@@ -152,7 +162,7 @@ public class MetricNode {
      * To formatting string. All "|" in {@link #resource} will be replaced with
      * "_", format is: <br/>
      * <code>
-     * timestamp|resource|passQps|blockQps|successQps|exceptionQps|rt|occupiedPassQps
+     * timestamp|resource|passQps|blockQps|successQps|exceptionQps|rt|occupiedPassQps|upstreamFailQps
      * </code>
      *
      * @return string format of this.
@@ -169,7 +179,8 @@ public class MetricNode {
         sb.append(rt).append("|");
         sb.append(occupiedPassQps).append("|");
         sb.append(concurrency).append("|");
-        sb.append(classification);
+        sb.append(classification).append("|");
+        sb.append(getUpstreamFailQps());
         return sb.toString();
     }
 
@@ -198,6 +209,9 @@ public class MetricNode {
         if (strs.length == 10) {
             node.setClassification(Integer.parseInt(strs[9]));
         }
+        if (strs.length == 11) {
+            node.setUpstreamFailQps(Integer.parseInt(strs[10]));
+        }
         return node;
     }
 
@@ -205,7 +219,7 @@ public class MetricNode {
      * To formatting string. All "|" in {@link MetricNode#resource} will be
      * replaced with "_", format is: <br/>
      * <code>
-     * timestamp|yyyy-MM-dd HH:mm:ss|resource|passQps|blockQps|successQps|exceptionQps|rt|occupiedPassQps\n
+     * timestamp|yyyy-MM-dd HH:mm:ss|resource|passQps|blockQps|successQps|exceptionQps|rt|occupiedPassQps|upstreamFailQps\n
      * </code>
      *
      * @return string format of this.
@@ -225,7 +239,8 @@ public class MetricNode {
         sb.append(getRt()).append("|");
         sb.append(getOccupiedPassQps()).append("|");
         sb.append(concurrency).append("|");
-        sb.append(classification);
+        sb.append(classification).append("|");
+        sb.append(getUpstreamFailQps());
         sb.append('\n');
         return sb.toString();
     }
@@ -255,6 +270,9 @@ public class MetricNode {
         }
         if (strs.length == 11) {
             node.setClassification(Integer.parseInt(strs[10]));
+        }
+        if (strs.length == 12) {
+            node.setUpstreamFailQps(Integer.parseInt(strs[11]));
         }
         return node;
     }

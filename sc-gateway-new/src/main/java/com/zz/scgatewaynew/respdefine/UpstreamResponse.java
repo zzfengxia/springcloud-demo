@@ -12,7 +12,7 @@ import org.springframework.web.server.ServerWebExchange;
  * @date 2020-04-17 15:41
  * ************************************
  */
-public interface IFailResponse {
+public interface UpstreamResponse {
     Response failResp(String code, String msg, ServerWebExchange exchange);
     
     default int httpStatus() {
@@ -40,4 +40,12 @@ public interface IFailResponse {
             return msg;
         }
     }
+    
+    /**
+     * 检验上游服务业务响应数据是否是成功的
+     */
+    default boolean isSuccessResponse(String respBody) {
+        return true;
+    }
+    
 }

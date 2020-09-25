@@ -95,6 +95,10 @@ public class MetricBucket {
     public long exception() {
         return get(MetricEvent.EXCEPTION);
     }
+    
+    public long upstreamFail() {
+        return get(MetricEvent.UPSTREAMFAIL);
+    }
 
     public long rt() {
         return get(MetricEvent.RT);
@@ -118,6 +122,10 @@ public class MetricBucket {
 
     public void addException(int n) {
         add(MetricEvent.EXCEPTION, n);
+    }
+    
+    public void addUpstreamFail(int n) {
+        add(MetricEvent.UPSTREAMFAIL, n);
     }
 
     public void addBlock(int n) {

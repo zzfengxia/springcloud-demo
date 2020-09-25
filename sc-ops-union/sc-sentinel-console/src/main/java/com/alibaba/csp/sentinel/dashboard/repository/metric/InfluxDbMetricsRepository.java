@@ -73,8 +73,6 @@ public class InfluxDbMetricsRepository implements MetricsRepository<MetricEntity
                 .filter(Restrictions.and(Restrictions.measurement().equal(MEASUREMENT), Restrictions.tag("app").equal(app), Restrictions.tag("resource").equal(resource)))
                 .pivot(new String[]{"_time"}, new String[]{"_field"}, "_value");
         
-        System.out.println("queryByAppAndResourceBetween sql:" + flux.toString());
-       
         List<SentinelMetric> queryResult = influxDBClient.getQueryApi().query(flux.toString(), SentinelMetric.class);
         queryResult.forEach(r -> results.add(r.toMetricEntity()));
         return results;
@@ -102,7 +100,6 @@ public class InfluxDbMetricsRepository implements MetricsRepository<MetricEntity
                 .filter(Restrictions.and(Restrictions.measurement().equal(MEASUREMENT), Restrictions.tag("app").equal(app)))
                 .pivot(new String[]{"_time"}, new String[]{"_field"}, "_value");
         
-        System.out.println("listResourcesOfApp sql:" + flux.toString());
         List<SentinelMetric> queryResult = influxDBClient.getQueryApi().query(flux.toString(), SentinelMetric.class);
         Map<String, MetricEntity> resourceCount = new HashMap<>(32);
         
@@ -147,6 +144,7 @@ public class InfluxDbMetricsRepository implements MetricsRepository<MetricEntity
                 .addField("success_qps", (long) metric.getSuccessQps())
                 .addField("block_qps", (long) metric.getBlockQps())
                 .addField("exception_qps", (long) metric.getExceptionQps())
+                .addField("upstream_fail_qps", (long) metric.getUpstreamFailQps())
                 .addField("rt", metric.getRt())
                 .addField("classification", metric.getClassification())
                 .addField("count", metric.getCount());
@@ -169,6 +167,8 @@ public class InfluxDbMetricsRepository implements MetricsRepository<MetricEntity
         private Long blockQps;
         @Column(name = "exception_qps")
         private Long exceptionQps;
+        @Column(name = "upstream_fail_qps")
+        private Long upstreamFailQps;
         @Column(name = "rt")
         private double rt;
         @Column(name = "classification")
@@ -185,6 +185,7 @@ public class InfluxDbMetricsRepository implements MetricsRepository<MetricEntity
             entity.setBlockQps(blockQps);
             entity.setSuccessQps(successQps);
             entity.setExceptionQps(exceptionQps);
+            entity.setUpstreamFailQps(upstreamFailQps);
             entity.setRt(rt);
             entity.setClassification(NumberUtils.toInt(classification+""));
             entity.setCount(NumberUtils.toInt(count+"",0));

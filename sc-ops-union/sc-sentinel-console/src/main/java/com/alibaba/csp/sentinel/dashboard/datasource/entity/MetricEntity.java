@@ -34,6 +34,7 @@ public class MetricEntity {
     private Long successQps;
     private Long blockQps;
     private Long exceptionQps;
+    private Long upstreamFailQps;
 
     /**
      * summary rt of all success exit qps.
@@ -60,6 +61,7 @@ public class MetricEntity {
         entity.setBlockQps(oldEntity.getBlockQps());
         entity.setSuccessQps(oldEntity.getSuccessQps());
         entity.setExceptionQps(oldEntity.getExceptionQps());
+        entity.setUpstreamFailQps(oldEntity.getUpstreamFailQps());
         entity.setRt(oldEntity.getRt());
         entity.setCount(oldEntity.getCount());
         entity.setResource(oldEntity.getResource());
@@ -207,6 +209,18 @@ public class MetricEntity {
         this.classification = classification;
     }
     
+    public Long getUpstreamFailQps() {
+        return upstreamFailQps;
+    }
+    
+    public void setUpstreamFailQps(Long upstreamFailQps) {
+        this.upstreamFailQps = upstreamFailQps;
+    }
+    
+    public synchronized void addUpstreamFailQps(Long upstreamFailQps) {
+        this.upstreamFailQps += upstreamFailQps;
+    }
+    
     @Override
     public String toString() {
         return "MetricEntity{" +
@@ -220,6 +234,7 @@ public class MetricEntity {
             ", blockQps=" + blockQps +
             ", successQps=" + successQps +
             ", exceptionQps=" + exceptionQps +
+            ", upstreamFailQps=" + upstreamFailQps +
             ", rt=" + rt +
             ", count=" + count +
             ", resourceCode=" + resourceCode +

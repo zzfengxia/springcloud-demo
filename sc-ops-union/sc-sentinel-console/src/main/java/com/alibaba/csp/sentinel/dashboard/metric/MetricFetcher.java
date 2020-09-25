@@ -338,6 +338,7 @@ public class MetricFetcher {
                     entity.addBlockQps(node.getBlockQps());
                     entity.addRtAndSuccessQps(node.getRt(), node.getSuccessQps());
                     entity.addExceptionQps(node.getExceptionQps());
+                    entity.addUpstreamFailQps(node.getUpstreamFailQps());
                     entity.addCount(1);
                 } else {
                     entity = new MetricEntity();
@@ -347,6 +348,7 @@ public class MetricFetcher {
                     entity.setBlockQps(node.getBlockQps());
                     entity.setRtAndSuccessQps(node.getRt(), node.getSuccessQps());
                     entity.setExceptionQps(node.getExceptionQps());
+                    entity.setUpstreamFailQps(node.getUpstreamFailQps());
                     entity.setCount(1);
                     entity.setResource(node.getResource());
                     entity.setClassification(node.getClassification());

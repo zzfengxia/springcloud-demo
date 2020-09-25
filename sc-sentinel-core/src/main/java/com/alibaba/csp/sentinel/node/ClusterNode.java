@@ -150,4 +150,15 @@ public class ClusterNode extends StatisticNode {
             this.increaseExceptionQps(count);
         }
     }
+    
+    
+    
+    public void traceUpstream(Throwable throwable, int count) {
+        if (count <= 0) {
+            return;
+        }
+        if (!BlockException.isBlockException(throwable)) {
+            this.increaseUpstreamFailQps(count);
+        }
+    }
 }

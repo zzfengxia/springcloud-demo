@@ -18,11 +18,12 @@ package com.alibaba.csp.sentinel;
 import com.alibaba.csp.sentinel.context.Context;
 import com.alibaba.csp.sentinel.context.ContextUtil;
 import com.alibaba.csp.sentinel.context.NullContext;
+import com.alibaba.csp.sentinel.metric.extension.MetricExtension;
 import com.alibaba.csp.sentinel.metric.extension.MetricExtensionProvider;
 import com.alibaba.csp.sentinel.node.ClusterNode;
 import com.alibaba.csp.sentinel.node.DefaultNode;
 import com.alibaba.csp.sentinel.slots.block.BlockException;
-import com.alibaba.csp.sentinel.metric.extension.MetricExtension;
+import com.alibaba.csp.sentinel.slots.block.UpstreamRespException;
 import com.alibaba.csp.sentinel.util.AssertUtil;
 
 /**
@@ -119,7 +120,12 @@ public class Tracer {
         if (clusterNode == null) {
             return;
         }
-        clusterNode.trace(t, count);
+        if(t instanceof UpstreamRespException) {
+            clusterNode.traceUpstream(t, count);
+        } else {
+            clusterNode.trace(t, count);
+        }
+        
     }
 
     /**

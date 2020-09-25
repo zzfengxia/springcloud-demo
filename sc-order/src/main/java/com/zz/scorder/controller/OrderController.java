@@ -102,6 +102,10 @@ public class OrderController {
         if(msg.contains("exception")) {
             throw new BizException(ErrorCode.SYSTEM_ERROR);
         }
+        
+        if(msg.contains("bizException")) {
+            return ApiResponse.ofFail("-999", "fail");
+        }
         return ApiResponse.ofSuccessMsg("success");
     }
     

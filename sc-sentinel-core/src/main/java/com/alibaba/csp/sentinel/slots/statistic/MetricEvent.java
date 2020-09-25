@@ -29,6 +29,7 @@ public enum MetricEvent {
      */
     BLOCK,
     EXCEPTION,
+    UPSTREAMFAIL,
     SUCCESS,
     RT,
 

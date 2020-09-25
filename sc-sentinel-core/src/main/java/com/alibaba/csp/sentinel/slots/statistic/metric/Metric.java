@@ -107,7 +107,9 @@ public interface Metric extends DebugSupport {
      * @param n count to add
      */
     void addException(int n);
-
+    
+    void addUpstreamFail(int n);
+    
     /**
      * Add current block count.
      *

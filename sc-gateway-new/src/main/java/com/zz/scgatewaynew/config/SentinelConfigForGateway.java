@@ -15,8 +15,8 @@ import com.zz.gateway.common.routedefine.RouteRule;
 import com.zz.sccommon.exception.ErrorCode;
 import com.zz.sccommon.util.ContextBeanUtil;
 import com.zz.sccommon.util.LogUtils;
-import com.zz.scgatewaynew.respdefine.IFailResponse;
 import com.zz.scgatewaynew.respdefine.ResponseFactoryService;
+import com.zz.scgatewaynew.respdefine.UpstreamResponse;
 import com.zz.scgatewaynew.routedefine.GatewayRouteManager;
 import com.zz.scgatewaynew.routedefine.RouteNacosProperties;
 import com.zz.scgatewaynew.util.GatewayUtils;
@@ -84,7 +84,7 @@ public class SentinelConfigForGateway implements InitializingBean {
                 LogUtils.saveSessionIdForLog(uid);
                 log.info("请求已被限流");
     
-                IFailResponse.Response failResponseInfo = responseFactoryService.failResponseInfo(exchange, ErrorCode.TOO_MANY_REQUESTS.getReturnMsg(), ErrorCode.TOO_MANY_REQUESTS.getErrorCode());
+                UpstreamResponse.Response failResponseInfo = responseFactoryService.failResponseInfo(exchange, ErrorCode.TOO_MANY_REQUESTS.getReturnMsg(), ErrorCode.TOO_MANY_REQUESTS.getErrorCode());
     
                 // JSON result by default.
                 return ServerResponse.status(failResponseInfo.getCode())
