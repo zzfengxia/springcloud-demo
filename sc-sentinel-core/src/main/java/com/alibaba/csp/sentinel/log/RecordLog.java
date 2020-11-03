@@ -28,7 +28,7 @@ public class RecordLog {
     public static final String LOGGER_NAME = "sentinelRecordLogger";
     public static final String DEFAULT_LOG_FILENAME = "sentinel-record.log";
 
-    private static Logger logger = null;
+    private static com.alibaba.csp.sentinel.log.Logger logger = null;
 
     static {
         try {

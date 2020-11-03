@@ -1,0 +1,99 @@
+# db配置
+spring:
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+    url: jdbc:mysql://192.168.5.105:3306/upms?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+    username: root
+    # 生成的加密后的密码
+    password: ZBUpE6njXUj5hFe1Qo7bDz9VUasWvqAI9hz5BbrAscEci6f1j8YqT4x977WZeMeXuqy2xROprQvRDDHnvT091g==
+    # 使用druid连接池
+    type: com.alibaba.druid.pool.DruidDataSource
+    druid:
+      initial-size: 1
+      # 启用数据库密码加密
+      connection-properties: config.decrypt=true;config.decrypt.key=${druid-public-key}
+      filter:
+        stat:
+          enabled: false
+        wall:
+          enabled: false
+        slf4j:
+          enabled: false
+        log4j2:
+          enabled: false
+        log4j:
+          enabled: false
+        commons-log:
+          enabled: false
+        config: # 该配置要启用才能加密数据库密码
+          enabled: true
+      stat-view-servlet:
+        enabled: false # 关闭监控
+      web-stat-filter:
+        enabled: false
+        session-stat-enable: false
+
+  cloud:
+    # spring cloud alibaba sentinel动态数据源配置参考：https://github.com/alibaba/spring-cloud-alibaba/wiki/Sentinel
+    # @see SentinelDataSourceHandler
+    sentinel:
+      datasource:
+        ds1: # sentinel 网关限流规则动态配置
+          nacos:
+            server-addr: ${sentinel.server-addr}
+            data-id: ${spring.application.name}-gateway-flow-rules
+            group-id: SENTINEL_GROUP
+            namespace: ${sentinel.namespace}
+            # namespace: ${sentinel.namespace}
+            # 支持json、xml、custom. 使用custom时必须指定converter-class或bean。
+            data-type: custom
+            converter-class: gatewayFlowDecoder
+            rule-type: gw-flow
+        ds2: # sentinel api组定义动态配置
+          nacos:
+            server-addr: ${sentinel.server-addr}
+            data-id: ${spring.application.name}-api-definition
+            group-id: SENTINEL_GROUP
+            namespace: ${sentinel.namespace}
+            # 支持json、xml、custom. 使用custom时必须指定converter-class。
+            data-type: custom
+            converter-class: apiDefinitionDecoder
+            rule-type: gw-api-group
+      # @see com.alibaba.cloud.sentinel.gateway.scg.SentinelSCGAutoConfiguration
+      scg:
+        order: -10  # sentinel filter执行顺序，越小越优先不能超过GlobalRequestFilter的执行顺序
+
+      log:
+        dir: /app/biz_logs/${spring.application.name}/csp # sentinel 日志目录
+      metric:
+        fileTotalCount: 10
+        file-single-size: 209715200 # 单个sentinel metric文件大小，200M
+      transport:
+        port: 8791
+        dashboard: 192.168.5.105:8096 # sentinel console地址
+        #client-ip: localhost # 指定本地sentinel客户端的IP
+
+    gateway:
+      route: # 动态路由配置
+        nacos:
+          server-addr: ${sentinel.server-addr}
+          data-id: ${spring.application.name}-gateway-route-rules
+          group-id: SENTINEL_GROUP
+          namespace: ${sentinel.namespace}
+          # 支持json、xml、custom. 使用custom时必须指定converter-class或bean。
+          converter-class: routeRuleDecoder
+
+#    gateway:
+#      discovery:
+#        locator:
+#          enabled: true  # 开启DiscoveryClient gateway integration。自动配置服务注册中心的所有服务列表的路由。对外网关不需要开启这个
+#          url-expression: "'lb://' + serviceId" # 路由的目标地址的表达式，默认为 "'lb://' + serviceId"。lb://标识开启负载均衡
+
+druid-public-key: MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAJPhHE3RXKSjw2LQIIXr/oYjy7p7tf0dg0wGRfGWnfK1uvNh7+v/s1T9BiOip9zE3ftKGh83lUaYOMlpmaVMkhMCAwEAAQ==
+
+# logback-spring.xml中使用到的属性
+LOG_BASE: /app/biz_logs/${spring.application.name}
+
+# logback profile 配置, 这里指定了logback配置文件，仍然会同时加载名为 logback.xml 的配置文件
+logging:
+  config: classpath:logback-spring.xml

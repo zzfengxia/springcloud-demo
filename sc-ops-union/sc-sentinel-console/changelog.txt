@@ -1,4 +1,25 @@
 # 定制sentinel-console修改文件记录
+
+    new file:   sc-sentinel-core/src/main/java/com/alibaba/csp/sentinel/node/metric/StatisticConfig.java
+
+
+    modified:   java/com/alibaba/csp/sentinel/node/ClusterNode.java
+    modified:   java/com/alibaba/csp/sentinel/node/IntervalProperty.java
+    modified:   java/com/alibaba/csp/sentinel/node/Node.java
+    modified:   java/com/alibaba/csp/sentinel/node/StatisticNode.java
+    modified:   java/com/alibaba/csp/sentinel/slots/statistic/StatisticSlot.java
+    modified:   java/com/alibaba/csp/sentinel/slots/block/degrade/DegradeRule.java
+    modified:   java/com/alibaba/csp/sentinel/slots/block/degrade/DegradeRuleManager.java
+    modified:   java/com/alibaba/csp/sentinel/slots/clusterbuilder/ClusterBuilderSlot.java
+    modified:   java/com/alibaba/csp/sentinel/slots/statistic/data/MetricBucket.java
+    modified:   java/com/alibaba/csp/sentinel/slots/statistic/metric/ArrayMetric.java
+    modified:   java/com/alibaba/csp/sentinel/slots/statistic/metric/BucketLeapArray.java
+    modified:   java/com/alibaba/csp/sentinel/slots/statistic/metric/Metric.java
+    modified:   java/com/alibaba/csp/sentinel/node/metric/MetricNode.java
+    modified:   java/com/alibaba/csp/sentinel/slots/statistic/MetricEvent.java
+
+
+# sentinel-console
 	new file:   java/com/alibaba/csp/sentinel/dashboard/controller/gateway/GatewayApiNacosController.java
 	new file:   java/com/alibaba/csp/sentinel/dashboard/controller/gateway/GatewayFlowRuleNacosController.java
 	new file:   java/com/alibaba/csp/sentinel/dashboard/controller/nacos/DegradeControllerNacos.java
@@ -19,8 +40,8 @@
     new file:   java/com/alibaba/csp/sentinel/dashboard/config/InfluxDbConfig.java
     new file:   java/com/alibaba/csp/sentinel/dashboard/config/InitialConfig.java
     new file:   java/com/alibaba/csp/sentinel/dashboard/repository/metric/InfluxDbMetricsRepository.java
-    new file:   sc-sentinel-core/src/main/java/com/alibaba/csp/sentinel/node/metric/StatisticConfig.java
-	renamed:    test/java/com/alibaba/csp/sentinel/dashboard/rule/nacos/FlowRuleNacosPublisher.java -> ava/com/alibaba/csp/sentinel/dashboard/rule/nacos/GatewayFlowRuleNacosPublisher.java
+
+	renamed:    test/java/com/alibaba/csp/sentinel/dashboard/rule/nacos/FlowRuleNacosPublisher.java -> java/com/alibaba/csp/sentinel/dashboard/rule/nacos/GatewayFlowRuleNacosPublisher.java
 	new file:   app/scripts/controllers/degrade_nacos.js
 	new file:   app/scripts/controllers/gateway/api_nacos.js
 	new file:   app/scripts/controllers/gateway/flow_nacos.js
@@ -59,24 +80,12 @@
 	modified:   java/com/alibaba/csp/sentinel/dashboard/rule/nacos/NacosConfig.java
 	modified:   java/com/alibaba/csp/sentinel/dashboard/rule/nacos/NacosConfigUtil.java
 	modified:   java/com/alibaba/csp/sentinel/dashboard/client/SentinelApiClient.java
-    modified:   java/com/alibaba/csp/sentinel/node/ClusterNode.java
-    modified:   java/com/alibaba/csp/sentinel/node/IntervalProperty.java
-    modified:   java/com/alibaba/csp/sentinel/node/Node.java
-    modified:   java/com/alibaba/csp/sentinel/node/StatisticNode.java
-    modified:   java/com/alibaba/csp/sentinel/Tracer.java
-    modified:   java/com/alibaba/csp/sentinel/slots/block/degrade/DegradeRule.java
-    modified:   java/com/alibaba/csp/sentinel/slots/block/degrade/DegradeRuleManager.java
-    modified:   java/com/alibaba/csp/sentinel/slots/clusterbuilder/ClusterBuilderSlot.java
-    modified:   java/com/alibaba/csp/sentinel/slots/statistic/data/MetricBucket.java
-    modified:   java/com/alibaba/csp/sentinel/slots/statistic/metric/ArrayMetric.java
-    modified:   java/com/alibaba/csp/sentinel/slots/statistic/metric/BucketLeapArray.java
-    modified:   java/com/alibaba/csp/sentinel/slots/statistic/metric/Metric.java
+
 
     modified:   java/com/alibaba/csp/sentinel/dashboard/DashboardApplication.java
     modified:   java/com/alibaba/csp/sentinel/dashboard/controller/MetricController.java
     modified:   java/com/alibaba/csp/sentinel/dashboard/datasource/entity/MetricEntity.java
-    modified:   java/com/alibaba/csp/sentinel/node/metric/MetricNode.java
-    modified:   java/com/alibaba/csp/sentinel/slots/statistic/MetricEvent.java
+
     modified:   java/com/alibaba/csp/sentinel/dashboard/domain/vo/MetricVo.java
     modified:   java/com/alibaba/csp/sentinel/dashboard/metric/MetricFetcher.java
 	modified:   README_zh.md

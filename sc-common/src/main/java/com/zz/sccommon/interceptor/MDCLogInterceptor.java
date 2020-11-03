@@ -27,7 +27,7 @@ public class MDCLogInterceptor extends HandlerInterceptorAdapter {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         String traceId = request.getHeader(BizConstants.HEADER_TRACE_ID);
         if(StringUtils.isEmpty(traceId)) {
-            traceId = UuidUtils.generateUuid();
+            traceId = UuidUtils.generateUuid(UuidUtils.CaseType.LOWER_CASE);
         }
         MDC.put(BizConstants.MDC_TRACE_ID, traceId);
         if(StringUtils.isEmpty(traceId)) {

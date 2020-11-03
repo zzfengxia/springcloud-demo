@@ -15,22 +15,23 @@
  */
 package com.alibaba.csp.sentinel.slots.statistic;
 
-import java.util.Collection;
-
-import com.alibaba.csp.sentinel.config.SentinelConfig;
-import com.alibaba.csp.sentinel.slotchain.ProcessorSlotEntryCallback;
-import com.alibaba.csp.sentinel.slotchain.ProcessorSlotExitCallback;
-import com.alibaba.csp.sentinel.slots.block.flow.PriorityWaitException;
-import com.alibaba.csp.sentinel.spi.SpiOrder;
-import com.alibaba.csp.sentinel.util.TimeUtil;
 import com.alibaba.csp.sentinel.Constants;
 import com.alibaba.csp.sentinel.EntryType;
 import com.alibaba.csp.sentinel.context.Context;
 import com.alibaba.csp.sentinel.node.ClusterNode;
 import com.alibaba.csp.sentinel.node.DefaultNode;
+import com.alibaba.csp.sentinel.node.Node;
 import com.alibaba.csp.sentinel.slotchain.AbstractLinkedProcessorSlot;
+import com.alibaba.csp.sentinel.slotchain.ProcessorSlotEntryCallback;
+import com.alibaba.csp.sentinel.slotchain.ProcessorSlotExitCallback;
 import com.alibaba.csp.sentinel.slotchain.ResourceWrapper;
 import com.alibaba.csp.sentinel.slots.block.BlockException;
+import com.alibaba.csp.sentinel.slots.block.UpstreamRespException;
+import com.alibaba.csp.sentinel.slots.block.flow.PriorityWaitException;
+import com.alibaba.csp.sentinel.spi.SpiOrder;
+import com.alibaba.csp.sentinel.util.TimeUtil;
+
+import java.util.Collection;
 
 /**
  * <p>
@@ -95,7 +96,7 @@ public class StatisticSlot extends AbstractLinkedProcessorSlot<DefaultNode> {
             }
         } catch (BlockException e) {
             // Blocked, set block exception to current entry.
-            context.getCurEntry().setError(e);
+            context.getCurEntry().setBlockError(e);
 
             // Add block count.
             node.increaseBlockQps(count);
@@ -115,52 +116,31 @@ public class StatisticSlot extends AbstractLinkedProcessorSlot<DefaultNode> {
 
             throw e;
         } catch (Throwable e) {
-            // Unexpected error, set error to current entry.
+            // Unexpected internal error, set error to current entry.
             context.getCurEntry().setError(e);
 
-            // This should not happen.
-            node.increaseExceptionQps(count);
-            if (context.getCurEntry().getOriginNode() != null) {
-                context.getCurEntry().getOriginNode().increaseExceptionQps(count);
-            }
-
-            if (resourceWrapper.getEntryType() == EntryType.IN) {
-                Constants.ENTRY_NODE.increaseExceptionQps(count);
-            }
             throw e;
         }
     }
 
     @Override
     public void exit(Context context, ResourceWrapper resourceWrapper, int count, Object... args) {
-        DefaultNode node = (DefaultNode)context.getCurNode();
+        Node node = context.getCurNode();
 
-        if (context.getCurEntry().getError() == null) {
-            // Calculate response time (max RT is statisticMaxRt from SentinelConfig).
-            long rt = TimeUtil.currentTimeMillis() - context.getCurEntry().getCreateTime();
-            int maxStatisticRt = SentinelConfig.statisticMaxRt();
-            if (rt > maxStatisticRt) {
-                rt = maxStatisticRt;
-            }
+        if (context.getCurEntry().getBlockError() == null) {
+            // Calculate response time (use completeStatTime as the time of completion).
+            long completeStatTime = TimeUtil.currentTimeMillis();
+            context.getCurEntry().setCompleteTimestamp(completeStatTime);
+            long rt = completeStatTime - context.getCurEntry().getCreateTimestamp();
+
+            Throwable error = context.getCurEntry().getError();
 
             // Record response time and success count.
-            node.addRtAndSuccess(rt, count);
-            if (context.getCurEntry().getOriginNode() != null) {
-                context.getCurEntry().getOriginNode().addRtAndSuccess(rt, count);
-            }
-
-            node.decreaseThreadNum();
-
-            if (context.getCurEntry().getOriginNode() != null) {
-                context.getCurEntry().getOriginNode().decreaseThreadNum();
-            }
-
+            recordCompleteFor(node, count, rt, error);
+            recordCompleteFor(context.getCurEntry().getOriginNode(), count, rt, error);
             if (resourceWrapper.getEntryType() == EntryType.IN) {
-                Constants.ENTRY_NODE.addRtAndSuccess(rt, count);
-                Constants.ENTRY_NODE.decreaseThreadNum();
+                recordCompleteFor(Constants.ENTRY_NODE, count, rt, error);
             }
-        } else {
-            // Error may happen.
         }
 
         // Handle exit event with registered exit callback handlers.
@@ -170,5 +150,22 @@ public class StatisticSlot extends AbstractLinkedProcessorSlot<DefaultNode> {
         }
 
         fireExit(context, resourceWrapper, count);
+    }
+
+    private void recordCompleteFor(Node node, int batchCount, long rt, Throwable error) {
+        if (node == null) {
+            return;
+        }
+        node.addRtAndSuccess(rt, batchCount);
+        node.decreaseThreadNum();
+
+        if (error != null && !(error instanceof BlockException)) {
+            // [定制实现]，写入后端服务响应码非成功的数量
+            if(error instanceof UpstreamRespException) {
+                node.increaseUpstreamFailQps(batchCount);
+            } else {
+                node.increaseExceptionQps(batchCount);
+            }
+        }
     }
 }

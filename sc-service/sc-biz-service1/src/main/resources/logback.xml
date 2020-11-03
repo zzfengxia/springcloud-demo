@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 
-    <property name="appName" value="sptsm-pms-web"/>
+    <property name="appName" value="sc-pms-web"/>
     <property name="logDir" value="/app/biz_logs/${appName}"/>
 
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
@@ -10,7 +10,7 @@
         </encoder>
     </appender>
 
-    <appender name="sptsm" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <appender name="demo" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <File>${logDir}/${appName}.log</File>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <!-- daily rollover -->

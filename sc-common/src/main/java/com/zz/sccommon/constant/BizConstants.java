@@ -20,7 +20,11 @@ public final class BizConstants {
     /**
      * 请求执行开始时间
      */
-    public final static String REQUEST_START_TIME = "startExecTime";
+    public final static String REQUEST_START_TIME = "routeStartTime";
+    /**
+     * 网关开始执行时间
+     */
+    public final static String GATEWAY_START_TIME = "gatewayStartTime";
     /**
      * 流控标识 “true”时会被计数，请求头全小写
      */

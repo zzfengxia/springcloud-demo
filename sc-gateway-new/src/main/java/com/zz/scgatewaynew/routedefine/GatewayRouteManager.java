@@ -80,7 +80,7 @@ public class GatewayRouteManager {
             }
             // 刷新路由配置
             if(PUBLISHER == null) {
-                log.info("not init ApplicationEventPublisher, so could not publish RefreshRoutesEvent");
+                log.debug("not init ApplicationEventPublisher, so could not publish RefreshRoutesEvent");
                 return;
             }
             log.info("update route rule from nacos, refresh RefreshRoutesEvent");

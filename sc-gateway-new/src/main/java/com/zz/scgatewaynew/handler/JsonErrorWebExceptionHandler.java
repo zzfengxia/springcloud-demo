@@ -1,10 +1,9 @@
 package com.zz.scgatewaynew.handler;
 
 import com.google.common.collect.Sets;
-import com.zz.scgatewaynew.respdefine.UpstreamResponse;
 import com.zz.scgatewaynew.respdefine.ResponseFactoryService;
+import com.zz.scgatewaynew.respdefine.UpstreamResponse;
 import com.zz.scgatewaynew.util.GatewayUtils;
-import com.zz.sccommon.util.LogUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +12,7 @@ import org.springframework.boot.autoconfigure.web.ResourceProperties;
 import org.springframework.boot.autoconfigure.web.reactive.error.DefaultErrorWebExceptionHandler;
 import org.springframework.boot.web.reactive.error.ErrorAttributes;
 import org.springframework.cloud.gateway.handler.predicate.ReadBodyPredicateFactory;
+import org.springframework.cloud.gateway.route.Route;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.NestedExceptionUtils;
 import org.springframework.http.HttpStatus;
@@ -29,6 +29,8 @@ import reactor.core.publisher.Mono;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
 
 /**
  * ************************************
@@ -80,11 +82,6 @@ public class JsonErrorWebExceptionHandler extends DefaultErrorWebExceptionHandle
      */
     @Override
     protected Map<String, Object> getErrorAttributes(ServerRequest request, boolean includeStackTrace) {
-        /**
-         * 这里的modifyResponseBodyFilter的执行线程也有可能前面执行的filter线程不是同一个。所以traceId要从serverWebExchange缓存中取值
-         */
-        String uid = GatewayUtils.getTraceIdFromCache(request.exchange());
-        LogUtils.saveSessionIdForLog(uid);
         // http status一律 200
         int code = 200;
         String message = "服务器开小差啦";
@@ -99,7 +96,10 @@ public class JsonErrorWebExceptionHandler extends DefaultErrorWebExceptionHandle
             // 可以响应给客户端200，使用自定义的returnCode标识错误
             message = error.getMessage();
         }*/
-        
+        Route route = request.exchange().getAttribute(GATEWAY_ROUTE_ATTR);
+        if(route != null) {
+            log.info(String.format("匹配到的路由信息：{id:%s, routeUrl:%s}", route.getId(), route.getUri()));
+        }
         Object cachedBody = GatewayUtils.fetchBody(readBodyPredicateFactory, request.exchange());
         if(cachedBody != null) {
             log.info("[路由转发失败] request data:" + cachedBody);

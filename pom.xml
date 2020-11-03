@@ -13,7 +13,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.2.5.RELEASE</version>
+        <version>2.3.3.RELEASE</version>
         <!--<relativePath/>--> <!-- lookup parent from repository -->
     </parent>
 
@@ -21,14 +21,14 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.version>1.8</java.version>
-        <alibaba.sentinel.version>1.7.2</alibaba.sentinel.version>
+        <alibaba.sentinel.version>1.8.0</alibaba.sentinel.version>
         <alibaba.nacos.boot.version>0.2.7</alibaba.nacos.boot.version>
-        <nacos.version>1.3.2</nacos.version>
-        <!-- spring-cloud H.SR3版本匹配springboot2.2.5,版本不能随便修改 -->
-        <spring-cloud.version>Hoxton.SR3</spring-cloud.version>
+        <nacos.version>1.3.3</nacos.version>
+        <!-- spring-cloud H.SR8版本匹配springboot2.3.x,版本不能随便修改 -->
+        <spring-cloud.version>Hoxton.SR8</spring-cloud.version>
         <!-- alibaba spring cloud全家桶,与springcloud版本匹配不能随便修改.
             版本匹配关系参考：https://github.com/alibaba/spring-cloud-alibaba/wiki/%E7%89%88%E6%9C%AC%E8%AF%B4%E6%98%8E -->
-        <spring.cloud.alibaba.version>2.2.1.RELEASE</spring.cloud.alibaba.version>
+        <spring.cloud.alibaba.version>2.2.3.RELEASE</spring.cloud.alibaba.version>
         <!-- spring boot cloud集群服务监控 -->
         <spring.boot.admin.version>2.2.3</spring.boot.admin.version>
 
@@ -96,12 +96,6 @@
                 <groupId>com.alibaba</groupId>
                 <artifactId>druid-spring-boot-starter</artifactId>
                 <version>1.1.21</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.vfuchong</groupId>
-                <artifactId>utils</artifactId>
-                <version>1.0.5</version>
             </dependency>
 
             <dependency>
@@ -217,16 +211,16 @@
     <build>
         <plugins>
             <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-            </plugin>
-
-            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>
+                    <encoding>UTF-8</encoding>
+                    <compilerArguments>
+                        <verbose/>
+                        <bootclasspath>${java.home}/lib/rt.jar${path.separator}${java.home}/lib/jce.jar${path.separator}${java.home}/lib/plugin.jar</bootclasspath>
+                    </compilerArguments>
                 </configuration>
             </plugin>
         </plugins>
@@ -236,7 +230,6 @@
         <module>sc-order</module>
         <module>sc-service</module>
         <module>sc-service-api</module>
-        <module>sc-gateway</module>
         <module>sc-gateway-new</module>
         <module>sc-common</module>
         <module>sc-ops-union</module>

@@ -17,6 +17,6 @@ import org.springframework.stereotype.Component;
 @Getter
 @Setter
 public class SettingProp {
-    @Value("${sptsm.private.key}")
+    @Value("${private.key:}")
     private String privateKeyStr;
 }

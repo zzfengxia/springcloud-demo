@@ -8,7 +8,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>sc-order</artifactId>
-
+    <packaging>jar</packaging>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
@@ -78,10 +78,6 @@
             <artifactId>sentinel-datasource-nacos</artifactId>
             <exclusions>
                 <exclusion>
-                    <groupId>com.alibaba.nacos</groupId>
-                    <artifactId>nacos-client</artifactId>
-                </exclusion>
-                <exclusion>
                     <groupId>com.alibaba.csp</groupId>
                     <artifactId>sentinel-core</artifactId>
                 </exclusion>
@@ -117,6 +113,12 @@
     </dependencies>
 
     <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
         <resources>
             <resource>
                 <directory>src/main/java</directory>
@@ -125,6 +127,10 @@
                     <include>**/*.xml</include>
                 </includes>
                 <filtering>false</filtering>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
             </resource>
         </resources>
     </build>

@@ -75,8 +75,12 @@ public class ScOrderApplication {
      *
      * <h1>sentinel控制台交互</h1>
      * <h2>sentinel客户端向sentinel-console上报心跳</h2>
-     * 1. {@link com.alibaba.csp.sentinel.cluster.ClusterStateManager} 调用 {@link InitExecutor#doInit}
-     *    来初始化通过SPI配置的所有{@link com.alibaba.csp.sentinel.init.InitFunc}接口的实现类
+     * 1. 通过{@link com.alibaba.csp.sentinel.Env}和{@link com.alibaba.csp.sentinel.cluster.ClusterStateManager} 调用 {@link InitExecutor#doInit}
+     *    来初始化通过SPI配置的所有{@link com.alibaba.csp.sentinel.init.InitFunc}接口的实现类。
+     * Env在sentinel过滤器中才会被调用，因此上报心跳是延迟的，等网关成功路由才会上报，所以这里第一次记录的metric信息就无法被console读取到，这就是为什么console统计的
+     *    metric信息总是会少metric文件第1s的数据（服务启动后第一次成功路由后上报心跳的那一次metric信息）。
+     * 可以自定义在服务启动时就调用{@link InitExecutor#doInit}，立马注册服务到sentinel-console。
+     *
      * 2. sentinel-transport客户端服务上报信息是初始化的实现类 {@link com.alibaba.csp.sentinel.transport.init.HeartbeatSenderInitFunc}
      * 3. 最终调用通过SPI配置的接口{@link com.alibaba.csp.sentinel.transport.HeartbeatSender}
      *    的实现类{@link com.alibaba.csp.sentinel.transport.heartbeat.SimpleHttpHeartbeatSender}。请求地址是“/registry/machine”。

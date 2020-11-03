@@ -15,10 +15,10 @@
  */
 package com.alibaba.csp.sentinel.dashboard;
 
+import com.alibaba.csp.sentinel.config.SentinelConfig;
 import com.alibaba.csp.sentinel.init.InitExecutor;
 import com.alibaba.csp.sentinel.log.LogBase;
 import com.alibaba.csp.sentinel.transport.config.TransportConfig;
-import com.alibaba.csp.sentinel.util.AppNameUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -73,9 +73,9 @@ public class DashboardApplication {
             System.setProperty(LogBase.LOG_DIR, baseLogDir);
         }
     
-        if (StringUtils.isEmpty(System.getProperty(AppNameUtil.APP_NAME))
+        if (StringUtils.isEmpty(System.getProperty(SentinelConfig.APP_NAME_PROP_KEY))
                 && StringUtils.hasText(projectName)) {
-            System.setProperty(AppNameUtil.APP_NAME, projectName);
+            System.setProperty(SentinelConfig.APP_NAME_PROP_KEY, projectName);
         }
     
         if (StringUtils.isEmpty(System.getProperty(TransportConfig.CONSOLE_SERVER))

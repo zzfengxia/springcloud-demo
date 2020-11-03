@@ -66,11 +66,11 @@ spring:
         dir: /app/biz_logs/${spring.application.name}/csp # sentinel 日志目录
       metric:
         fileTotalCount: 10
-        file-single-size: 1024 * 1024 * 200 # 单个sentinel metric文件大小，200M
+        file-single-size: 209715200 # 单个sentinel metric文件大小，200M
       transport:
         port: 8791
         dashboard: localhost:8096 # sentinel console地址
-        client-ip: localhost # 指定本地sentinel客户端的IP
+        #client-ip: localhost # 指定本地sentinel客户端的IP
 
     gateway:
       route: # 动态路由配置
@@ -92,6 +92,6 @@ druid-public-key: MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAJPhHE3RXKSjw2LQIIXr/oYjy7p7tf
 # logback-spring.xml中使用到的属性
 LOG_BASE: /app/biz_logs/${spring.application.name}
 
-# logback profile 配置
+# logback profile 配置, 这里指定了logback配置文件，仍然会同时加载名为 logback.xml 的配置文件
 logging:
   config: classpath:logback-spring.xml

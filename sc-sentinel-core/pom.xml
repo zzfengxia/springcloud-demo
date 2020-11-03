@@ -10,7 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
     <packaging>jar</packaging>
     <artifactId>sc-sentinel-core</artifactId>
-
+    <version>${alibaba.sentinel.version}</version>
     <dependencies>
 
     </dependencies>
@@ -22,7 +22,7 @@
                 <configuration>
                     <archive>
                         <manifestEntries>
-                            <Implementation-Version>${project.version}</Implementation-Version>
+                            <Implementation-Version>${alibaba.sentinel.version}</Implementation-Version>
                         </manifestEntries>
                     </archive>
                 </configuration>

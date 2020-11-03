@@ -3,7 +3,7 @@
     <contextName>nacos</contextName>
     <!-- 定制nacos log打印配置，也可以通过在启动命令行添加 -Dnacos.logging.config= 方式设置日志目录(需要去掉该配置文件) -->
     <!-- @see {@link AbstractNacosLogging} -->
-    <property name="nacos.logging.path" value="/app/biz_logs/sc-alibaba-gateway/nacos/"/>
+    <property name="nacos.logging.path" value="/app/biz_logs/sc-gateway/nacos/"/>
     <appender name="CONFIG_LOG_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${nacos.logging.path}/config.log</file>
 

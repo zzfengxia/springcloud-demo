@@ -38,7 +38,7 @@ public class GatewayConstants {
     public static final String CACHE_RESPONSE_BODY = "cacheResponseBody";
     
     /**
-     * sptsm接口响应
+     * sp接口响应
      */
     public static final int SP_RESP_STRATEGY = 0;
     /**
@@ -49,4 +49,12 @@ public class GatewayConstants {
      * 微信支付通知接口响应
      */
     public static final int WECHAT_RESP_STRATEGY = 2;
+    
+    public static final String CACHE_REQUEST_BODY_OBJECT_KEY = "cachedRequestBodyObject";
+    
+    /**
+     * sleuth日志追踪
+     */
+    public static final String TRACE_ID_NAME = "X-B3-TraceId";
+    public static final String SPAN_ID_NAME = "X-B3-SpanId";
 }

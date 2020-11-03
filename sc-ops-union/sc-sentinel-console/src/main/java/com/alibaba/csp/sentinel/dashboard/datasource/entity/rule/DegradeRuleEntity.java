@@ -46,6 +46,8 @@ public class DegradeRuleEntity implements RuleEntity {
      * 统计窗口单位
      */
     private Integer intervalUnit;
+    private Double slowRatioThreshold;
+    private Integer statIntervalMs;
     /**
      * 慢响应时间(毫秒)
      */
@@ -93,6 +95,8 @@ public class DegradeRuleEntity implements RuleEntity {
         entity.setIntervalUnit((Integer) intervalSecResult[1]);
         entity.setMinRequestAmount(rule.getMinRequestAmount());
         entity.setSlowRt(rule.getSlowRt());
+        entity.setSlowRatioThreshold(rule.getSlowRatioThreshold());
+        entity.setStatIntervalMs(rule.getStatIntervalMs());
         return entity;
     }
 
@@ -222,6 +226,22 @@ public class DegradeRuleEntity implements RuleEntity {
         this.minRequestAmount = minRequestAmount;
     }
     
+    public Double getSlowRatioThreshold() {
+        return slowRatioThreshold;
+    }
+    
+    public void setSlowRatioThreshold(Double slowRatioThreshold) {
+        this.slowRatioThreshold = slowRatioThreshold;
+    }
+    
+    public Integer getStatIntervalMs() {
+        return statIntervalMs;
+    }
+    
+    public void setStatIntervalMs(Integer statIntervalMs) {
+        this.statIntervalMs = statIntervalMs;
+    }
+    
     @Override
     public DegradeRule toRule() {
         DegradeRule rule = new DegradeRule();
@@ -231,8 +251,16 @@ public class DegradeRuleEntity implements RuleEntity {
         rule.setTimeWindow(timeWindow);
         rule.setGrade(grade);
         rule.setStatisticsTimeWindow(calIntervalSec(statisticsTimeWindow, intervalUnit));
-        rule.setMinRequestAmount(minRequestAmount);
         rule.setSlowRt(slowRt);
+        if (minRequestAmount != null) {
+            rule.setMinRequestAmount(minRequestAmount);
+        }
+        if (slowRatioThreshold != null) {
+            rule.setSlowRatioThreshold(slowRatioThreshold);
+        }
+        if (statIntervalMs != null) {
+            rule.setStatIntervalMs(statIntervalMs);
+        }
         return rule;
     }
 }

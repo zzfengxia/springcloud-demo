@@ -5,10 +5,13 @@ spring:
       httpclient:
         response-timeout: PT10.1S
         connect-timeout: 10000
+        pool:
+          # https://blog.csdn.net/rickiyeat/article/details/107900585
+          max-idle-time: 8s  # 必须设置该时间，且要比所有后端服务的connectTimeout时间短，否则可能会报错：Connection prematurely closed BEFORE response。
+
     sentinel:
       filter: # 屏蔽URL资源，显示网关路由资源
         enabled: false
-
   security:
     user: # http端点认证用户
       name: admin

@@ -15,15 +15,15 @@
  */
 package com.alibaba.csp.sentinel.node;
 
-import java.util.HashSet;
-import java.util.Set;
-
-import com.alibaba.csp.sentinel.log.RecordLog;
 import com.alibaba.csp.sentinel.SphO;
 import com.alibaba.csp.sentinel.SphU;
 import com.alibaba.csp.sentinel.context.Context;
+import com.alibaba.csp.sentinel.log.RecordLog;
 import com.alibaba.csp.sentinel.slotchain.ResourceWrapper;
 import com.alibaba.csp.sentinel.slots.nodeselector.NodeSelectorSlot;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * <p>
@@ -116,6 +116,12 @@ public class DefaultNode extends StatisticNode {
     public void increaseExceptionQps(int count) {
         super.increaseExceptionQps(count);
         this.clusterNode.increaseExceptionQps(count);
+    }
+    
+    @Override
+    public void increaseUpstreamFailQps(int count) {
+        super.increaseUpstreamFailQps(count);
+        this.clusterNode.increaseUpstreamFailQps(count);
     }
 
     @Override

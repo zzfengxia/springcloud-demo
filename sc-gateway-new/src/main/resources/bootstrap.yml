@@ -13,7 +13,7 @@ server:
   port: 8087
 spring:
   application:
-    name: sc-alibaba-gateway
+    name: sc-gateway
   cloud:
     nacos:
       config:
@@ -51,11 +51,16 @@ spring:
 sentinel:
   server-addr: 192.168.5.105:8848
   namespace: fd0e394c-e82d-4bad-bf56-264b4ec89191
-
+---
+spring:
+  profiles: pressure
+sentinel:
+  server-addr: 192.168.5.105:8848
+  namespace: 6963187d-afaf-433c-ba14-42831641cabd
 # bootstrap配置加载优先于application配置。
 ---
 spring:
   profiles:
     # maven变量，打包时会被替换成相应的profile。如果需要本地启动，则需要修改为对应的profile
     # 这里的profile激活只用于本地启动，实际线上环境会使用启动参数激活profile
-    active: local #@profileActive@
+    active: pressure #@profileActive@

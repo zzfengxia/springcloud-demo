@@ -24,7 +24,7 @@ app.controller('GatewayRouteNacosCtl', ['$scope', '$stateParams', 'GatewayRouteS
     };
 
     $scope.strategyList = [{val: 'and', desc: 'AND'}, {val: 'or', desc: 'OR'}];
-    $scope.respStrategy = [{val: 0, desc: 'SPTSM通用响应'}, {val: 1, desc: '订单系统通用响应'},
+    $scope.respStrategy = [{val: 0, desc: 'SP通用响应'}, {val: 1, desc: '订单系统通用响应'},
                            {val: 2, desc: '微信支付通用响应'}, {val: 3, desc: '银联支付通用响应'}];
 
     getRoutes();

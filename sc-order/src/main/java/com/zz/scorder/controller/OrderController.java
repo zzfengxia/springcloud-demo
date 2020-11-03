@@ -1,6 +1,7 @@
 package com.zz.scorder.controller;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.TypeReference;
 import com.google.common.collect.Lists;
 import com.zz.api.common.protocal.ApiResponse;
 import com.zz.sccommon.common.FeignDataThreadLocal;
@@ -15,6 +16,7 @@ import com.zz.scservice.entity.OrderInfo;
 import com.zz.scservice.feignapi.OrderClient;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,6 +27,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.websocket.server.PathParam;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -95,9 +98,12 @@ public class OrderController {
     
     @RequestMapping("getApi")
     @ResponseBody
-    public ApiResponse<String> getApi(String msg) throws InterruptedException {
+    public ApiResponse<String> getApi(String issueId, String msg, String t, @RequestHeader Map<String, String> headers) throws InterruptedException {
+        log.info("[" + t + "] request headers:" + headers);
+        log.info("[" + t + "] [getApi] request msg:" + msg);
+        ConfigEntity result = null;//configService.getByIssueId(issueId);
         if(msg.contains("timeout")) {
-            Thread.sleep(1500);
+            Thread.sleep(2500);
         }
         if(msg.contains("exception")) {
             throw new BizException(ErrorCode.SYSTEM_ERROR);
@@ -106,7 +112,30 @@ public class OrderController {
         if(msg.contains("bizException")) {
             return ApiResponse.ofFail("-999", "fail");
         }
-        return ApiResponse.ofSuccessMsg("success");
+        
+        if(RandomUtils.nextInt(1, 5000) == 5) {
+            return ApiResponse.ofFail("-5", "中奖");
+        }
+        log.info("[" + t + "] [getApi] response");
+        return ApiResponse.ofSuccess(JSON.toJSONString(result));
+    }
+    
+    @PostMapping("postApi")
+    @ResponseBody
+    public ApiResponse<String> postApi(@RequestBody String json, @PathParam("t") String t,  @RequestHeader Map<String, String> headers) throws InterruptedException {
+        log.info("[" + t + "] [postApi] request json:" + json);
+        log.info("[" + t + "] request headers:" + headers);
+        Map<String, String> req = JSON.parseObject(json, new TypeReference<Map<String, String>>(){});
+        ConfigEntity result = null;
+        if(req != null) {
+            //result = configService.getByIssueId(req.get("issueId"));
+        }
+        
+        if(RandomUtils.nextInt(1, 5000) == 555) {
+            return ApiResponse.ofFail("-555", "中奖");
+        }
+        log.info("[" + t + "] [postApi] response");
+        return ApiResponse.ofSuccess(JSON.toJSONString(result));
     }
     
     

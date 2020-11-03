@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 
-    <property name="appName" value="sc-sptsm-gateway"/>
+    <property name="appName" value="sc-gateway"/>
     <property name="logDir" value="/app/biz_logs/${appName}"/>
 
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
@@ -10,7 +10,7 @@
         </encoder>
     </appender>
 
-    <appender name="sptsm" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <appender name="gateway" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <File>${logDir}/${appName}.log</File>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <!-- daily rollover -->
@@ -22,11 +22,11 @@
         </encoder>
     </appender>
 
-    <logger name="com.vfuchong" level="info" additivity="false">
-        <appender-ref ref="sptsm"/>
+    <logger name="com.zz" level="info" additivity="false">
+        <appender-ref ref="gateway"/>
     </logger>
 
     <root level="info">
-        <appender-ref ref="sptsm"/>
+        <appender-ref ref="gateway"/>
     </root>
 </configuration>

@@ -14,12 +14,10 @@ import com.zz.gateway.common.nacos.entity.RuleEntityWrapper;
 import com.zz.gateway.common.routedefine.RouteRule;
 import com.zz.sccommon.exception.ErrorCode;
 import com.zz.sccommon.util.ContextBeanUtil;
-import com.zz.sccommon.util.LogUtils;
 import com.zz.scgatewaynew.respdefine.ResponseFactoryService;
 import com.zz.scgatewaynew.respdefine.UpstreamResponse;
 import com.zz.scgatewaynew.routedefine.GatewayRouteManager;
 import com.zz.scgatewaynew.routedefine.RouteNacosProperties;
-import com.zz.scgatewaynew.util.GatewayUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.InitializingBean;
@@ -36,6 +34,8 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
@@ -80,8 +80,6 @@ public class SentinelConfigForGateway implements InitializingBean {
             @Override
             public Mono<ServerResponse> handleRequest(ServerWebExchange exchange,
                                                       Throwable t) {
-                String uid = GatewayUtils.getTraceIdFromCache(exchange);
-                LogUtils.saveSessionIdForLog(uid);
                 log.info("请求已被限流");
     
                 UpstreamResponse.Response failResponseInfo = responseFactoryService.failResponseInfo(exchange, ErrorCode.TOO_MANY_REQUESTS.getReturnMsg(), ErrorCode.TOO_MANY_REQUESTS.getErrorCode());
@@ -125,7 +123,9 @@ public class SentinelConfigForGateway implements InitializingBean {
     public Converter<String, Set<GatewayFlowRule>> gatewayFlowDecoder() {
         return s -> {
             RuleEntityWrapper<GatewayFlowRuleEntity> ruleEntityWrapper = JSON.parseObject(s, new TypeReference<RuleEntityWrapper<GatewayFlowRuleEntity>>(){});
-            
+            if(ruleEntityWrapper == null) {
+                return new HashSet<>();
+            }
             return ruleEntityWrapper.getRuleEntity().stream().map(GatewayFlowRuleEntity::toGatewayFlowRule).collect(Collectors.toSet());
         };
     }
@@ -152,7 +152,9 @@ public class SentinelConfigForGateway implements InitializingBean {
     public Converter<String, Set<ApiDefinition>> apiDefinitionDecoder() {
         return s -> {
             RuleEntityWrapper<ApiDefinitionEntity> apiEntity = JSON.parseObject(s, new TypeReference<RuleEntityWrapper<ApiDefinitionEntity>>(){});
-            
+            if(apiEntity == null) {
+                return new HashSet<>();
+            }
             return apiEntity.getRuleEntity().stream().map(ApiDefinitionEntity::toApiDefinition).collect(Collectors.toSet());
         };
     }
@@ -167,6 +169,9 @@ public class SentinelConfigForGateway implements InitializingBean {
         return s -> {
             RuleEntityWrapper<RouteRule> apiEntity = JSON.parseObject(s, new TypeReference<RuleEntityWrapper<RouteRule>>(){});
     
+            if(apiEntity == null) {
+                return new ArrayList<>();
+            }
             return apiEntity.getRuleEntity();
         };
     }

@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 
-    <property name="appName" value="sc-sptsm-gateway"/>
+    <springProperty scope="context" name="appName" source="spring.application.name" defaultValue="sc-gateway"/>
     <property name="logDir" value="/app/biz_logs/${appName}"/>
     <springProperty scope="context" name="baseLogDir" source="LOG_BASE" defaultValue="${logDir}"/>
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>[%-5level] [%X{sessionId}] [] %d{yyy-MM-dd HH:mm:ss.SSS} %t %class{20}\(%class{0}:%line\) - %msg%n</pattern>
+            <pattern>[%-5level] [%X{X-B3-TraceId}] [%X{X-B3-SpanId}] %d{yyy-MM-dd HH:mm:ss.SSS} %t %class{20}\(%class{0}:%line\) - %msg%n</pattern>
         </encoder>
     </appender>
 
-    <appender name="sptsm" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <appender name="gateway" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <File>${baseLogDir}/${appName}.log</File>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <!-- daily rollover -->
@@ -18,7 +18,7 @@
         </rollingPolicy>
         <encoder>
             <charset>UTF-8</charset>
-            <Pattern>[%-5level] [%X{sessionId}] [] %d{yyy-MM-dd HH:mm:ss.SSS} %t %class{20}\(%class{0}:%line\) - %msg%n</Pattern>
+            <Pattern>[%-5level] [%X{X-B3-TraceId}] [%X{X-B3-SpanId}] %d{yyy-MM-dd HH:mm:ss.SSS} %t %class{20}\(%class{0}:%line\) - %msg%n</Pattern>
         </encoder>
     </appender>
 
@@ -28,13 +28,14 @@
             <appender-ref ref="CONSOLE"/>
         </root>
     </springProfile>
-    <springProfile name="uat|prod">
-        <logger name="com.vfuchong" level="info" additivity="false">
-            <appender-ref ref="sptsm"/>
+    <springProfile name="pressure|uat|prod">
+        <logger name="com.zz" level="info" additivity="false">
+            <appender-ref ref="gateway"/>
+            <appender-ref ref="CONSOLE"/>
         </logger>
         <root level="info">
+            <appender-ref ref="gateway"/>
             <appender-ref ref="CONSOLE"/>
-            <appender-ref ref="sptsm"/>
         </root>
     </springProfile>
 </configuration>

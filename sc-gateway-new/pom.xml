@@ -26,7 +26,20 @@
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-gateway</artifactId>
         </dependency>
-
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-sleuth</artifactId>
+            <exclusions>
+                <exclusion>
+                    <artifactId>brave-instrumentation-kafka-clients</artifactId>
+                    <groupId>io.zipkin.brave</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>brave-instrumentation-kafka-streams</artifactId>
+                    <groupId>io.zipkin.brave</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
         <!-- alibaba sentinel 网关限流,集成spring cloud gateway、zuul、feign、dubbo限流-->
         <dependency>
             <groupId>com.alibaba.cloud</groupId>
@@ -45,7 +58,7 @@
         <dependency>
             <groupId>com.zz</groupId>
             <artifactId>sc-sentinel-core</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>${alibaba.sentinel.version}</version>
         </dependency>
         <dependency>
             <groupId>com.alibaba.csp</groupId>
@@ -61,6 +74,10 @@
                     <groupId>com.alibaba.csp</groupId>
                     <artifactId>sentinel-core</artifactId>
                 </exclusion>
+                <exclusion>
+                    <artifactId>sentinel-zuul-adapter</artifactId>
+                    <groupId>com.alibaba.csp</groupId>
+                </exclusion>
             </exclusions>
         </dependency>
 
@@ -75,39 +92,17 @@
         <dependency>
             <groupId>com.alibaba.csp</groupId>
             <artifactId>sentinel-datasource-nacos</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.alibaba.nacos</groupId>
-                    <artifactId>nacos-client</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <!-- nacos 配置中心 -->
         <dependency>
             <groupId>com.alibaba.cloud</groupId>
             <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.alibaba.nacos</groupId>
-                    <artifactId>nacos-client</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <!-- nacos 服务发现 -->
         <dependency>
             <groupId>com.alibaba.cloud</groupId>
             <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.alibaba.nacos</groupId>
-                    <artifactId>nacos-client</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>com.alibaba.nacos</groupId>
-            <artifactId>nacos-client</artifactId>
         </dependency>
         <!--<dependency>
             <groupId>org.springframework.boot</groupId>
@@ -188,17 +183,17 @@
             </properties>
         </profile>
 
-        <!-- 生产环境 -->
+        <!-- 压测环境 -->
         <profile>
-            <id>prod</id>
+            <id>pressure</id>
             <properties>
-                <profileActive>prod</profileActive>
+                <profileActive>pressure</profileActive>
             </properties>
         </profile>
     </profiles>
 
     <build>
-        <finalName>sc-sptsm-gateway</finalName>
+        <finalName>sc-gateway</finalName>
         <resources>
             <resource>
                 <directory>src/main/resources</directory>

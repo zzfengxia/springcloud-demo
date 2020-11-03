@@ -19,7 +19,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.logging.*;
 
 /**
- * This Handler publishes log records to console by using {@link StreamHandler}.
+ * This Handler publishes log records to console by using {@link java.util.logging.StreamHandler}.
  *
  * Print log of WARNING level or above to System.err,
  * and print log of INFO level or below to System.out.

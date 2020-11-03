@@ -1,12 +1,20 @@
 package com.zz.scgatewaynew;
 
+import brave.Tracer;
+import brave.http.HttpServerRequest;
+import brave.propagation.TraceContext;
+import brave.propagation.TraceContextOrSamplingFlags;
+import com.alibaba.csp.sentinel.slotchain.ResourceWrapper;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.zz.scgatewaynew.service.DynamicGatewayService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.reactivestreams.Publisher;
+import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.web.reactive.context.ReactiveWebServerApplicationContext;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.gateway.route.CompositeRouteLocator;
 import org.springframework.cloud.gateway.route.RouteDefinitionLocator;
@@ -14,16 +22,22 @@ import org.springframework.cloud.gateway.route.RouteDefinitionRouteLocator;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.server.WebFilterChain;
 import org.springframework.web.server.adapter.WebHttpHandlerBuilder;
+import org.springframework.web.server.handler.FilteringWebHandler;
 import reactor.core.publisher.Mono;
+import reactor.util.context.Context;
 
 import java.net.URI;
 import java.util.UUID;
+import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
 /**
@@ -36,6 +50,37 @@ import java.util.function.Supplier;
 @Slf4j
 public class GatewayNewApplication {
     /**
+     * <h1>sentinel控制台交互</h1>
+     * <h2>sentinel客户端向sentinel-console上报心跳</h2>
+     * 1. 通过{@link com.alibaba.csp.sentinel.Env}和{@link com.alibaba.csp.sentinel.cluster.ClusterStateManager} 调用 {@link InitExecutor#doInit}
+     *    来初始化通过SPI配置的所有{@link com.alibaba.csp.sentinel.init.InitFunc}接口的实现类。
+     * Env在sentinel过滤器中才会被调用，因此上报心跳是延迟的，等网关成功路由才会上报，这会让sentinel-console收集metric的起始时间大于第一次记录metric的时间(尽验证，这里不会有影响，而且提前调用InitExecutor.doInit();会导致无法初始化appType)；
+     * 还有就是由于FlowRuleManager也是在第一次路由时加载，导致的MetricTimerListener中的MetricWriter也是延迟创建，
+     * 从而导致第一次write metric时会走`else if (second == lastSecond) {`逻辑，该逻辑不会写入位置信息到idx文件，这样就会导致这条metric数据无法被MetricSearcher读取到。
+     * 解决方法：参考{@link com.zz.scgatewaynew.config.SpringStartCallback#run(ApplicationArguments)}中的调用
+     *
+     * 2. sentinel-transport客户端服务上报信息是初始化的实现类 {@link com.alibaba.csp.sentinel.transport.init.HeartbeatSenderInitFunc}
+     * 3. 最终调用通过SPI配置的接口{@link com.alibaba.csp.sentinel.transport.HeartbeatSender}
+     *    的实现类{@link com.alibaba.csp.sentinel.transport.heartbeat.SimpleHttpHeartbeatSender}。请求地址是“/registry/machine”。
+     * 不设置“csp.sentinel.dashboard.serve”参数console自身就不会注册，但是SimpleHttpHeartbeatSender的定时任务还是会继续运行。
+     *
+     * <h2>sentinel客户端开放接口</h2>
+     * ClusterStateManager初始化通过SPI配置的所有{@link com.alibaba.csp.sentinel.init.InitFunc}接口的实现类
+     * sentinel-transport客户端开启sentinel命令的接口 {@link com.alibaba.csp.sentinel.transport.init.CommandCenterInitFunc}
+     * 最终调用通过SPI配置的接口{@link com.alibaba.csp.sentinel.transport.CommandCenter}
+     * 的实现类 {@link com.alibaba.csp.sentinel.transport.command.SimpleHttpCommandCenter}
+     *
+     * spring.cloud.sentinel.transport.port 配置的端口会在{@link com.alibaba.csp.sentinel.transport.command.SimpleHttpCommandCenter}
+     * 中用来开启socket监听服务（如果端口被占用，则会自动使用别的端口）。
+     * 然后使用{@link com.alibaba.csp.sentinel.transport.command.http.HttpEventTask} 类做实际的处理操作。
+     * {@link com.alibaba.csp.sentinel.command.annotation.CommandMapping}注解用来注册接口实际处理逻辑。
+     * {@link com.alibaba.csp.sentinel.command.CommandHandlerProvider} 注册Handler
+     * 比如sentinel console实时监控界面获取metric信息的请求<code>metric</code>
+     * 就是sentinel客户端的{@link com.alibaba.csp.sentinel.command.handler.SendMetricCommandHandler}类处理的。
+     * 实际metric数据来源就是从sentinel的metric日志文件中读取的。
+     * <p>如果需要新增CommandHandler实现，则需要在SPI文件com.alibaba.csp.sentinel.command.CommandHandler中注册CommandHandler实现类才会生效。</p>
+     *
+     *
      * <h1>sentinel动态规则</h1>
      * 参考{@link com.alibaba.csp.sentinel.datasource.nacos.NacosDataSource} nacos数据源属性
      * {@link com.alibaba.cloud.sentinel.custom.SentinelDataSourceHandler} 注册动态数据源Bean
@@ -53,12 +98,26 @@ public class GatewayNewApplication {
      * @see {@link com.alibaba.csp.sentinel.adapter.gateway.common.api.matcher.AbstractApiMatcher}
      * 可以看出同一分组下配置的多个匹配规则是“或”的关系。
      *
+     * <h2>scg sentinel加载slot实现流控、降级解析</h2>
+     * @see {@link com.alibaba.csp.sentinel.adapter.gateway.sc.SentinelGatewayFilter} sentinel全局过滤器，实现网关限流、API分组限流。
+     * 拦截网关响应，让{@link com.alibaba.csp.sentinel.adapter.reactor.SentinelReactorTransformer#apply(Publisher)} 返回的Publisher代理。
+     * {@link com.alibaba.csp.sentinel.adapter.reactor.MonoSentinelOperator}，最终订阅时会调用{@link com.alibaba.csp.sentinel.adapter.reactor.SentinelReactorSubscriber#entryWhenSubscribed}.
+     * 调用{@link com.alibaba.csp.sentinel.CtSph#asyncEntryWithType}#{@link com.alibaba.csp.sentinel.CtSph#asyncEntryWithPriorityInternal},然后调用chain.entry进行相关处理。
+     * 其中{@link com.alibaba.csp.sentinel.CtSph#lookProcessChain(ResourceWrapper)} 用来创建ProcessorSlot，即Slot链也就是流控、降级等逻辑的处理链。
+     * 创建ProcessorSlot：
+     * 通过SPI方式获取配置的 {@link com.alibaba.csp.sentinel.slotchain.SlotChainBuilder} 接口实现类，没有则默认是{@link com.alibaba.csp.sentinel.slots.DefaultSlotChainBuilder}。
+     * 然后调用实现类的build方法，这里又会通过SPI方式加载接口{@link com.alibaba.csp.sentinel.slotchain.ProcessorSlot}配置的所有实现类，这些实现类就是真正的处理限流、降级逻辑，
+     * 然后按顺序放入{@link com.alibaba.csp.sentinel.slotchain.DefaultProcessorSlotChain}创建的调用链。
+     * 网关流控由{@link com.alibaba.csp.sentinel.adapter.gateway.common.slot.GatewayFlowSlot}处理
+     *
      * <h1>sentinel metric监控记录</h1>
      * {@link com.alibaba.csp.sentinel.slots.statistic.MetricEvent} 监控指标常量
      * {@link com.alibaba.csp.sentinel.node.metric.MetricWriter} 将资源metric日志写入文件
      * {@link com.alibaba.csp.sentinel.Tracer#traceContext}
      * {@link com.alibaba.csp.sentinel.adapter.reactor.SentinelReactorSubscriber}.hookOnError
      * {@link com.alibaba.csp.sentinel.adapter.reactor.InheritableBaseSubscriber#onError}
+     * {@link com.alibaba.csp.sentinel.node.StatisticNode}，写入文件使用的是 rollingCounterInMinute
+     * {@link com.alibaba.csp.sentinel.slots.statistic.StatisticSlot}
      *
      * <h1>WebFlux异常处理流程</h1>
      * 响应结果Mono.onError异常处理首先由 {@link org.springframework.web.server.handler.ExceptionHandlingWebHandler#handle} 中处理，装饰了 HttpWebHandlerAdapter。
@@ -77,24 +136,57 @@ public class GatewayNewApplication {
      *
      * <h1>Spring WebFlux处理请求流程</h1>
      * <img src="https://img-blog.csdnimg.cn/20190529064535152.jpg" style="width: 2241px;">
-     * {@link reactor.netty.http.server.HttpServerHandle}.onStateChange >
+     * {@link reactor.netty.http.server.HttpServerHandle#onStateChange} >
      * {@link org.springframework.http.server.reactive.ReactorHttpHandlerAdapter}.apply >
      * {@link org.springframework.web.server.adapter.HttpWebHandlerAdapter#handle}（ServerWebExchange管理上下文） >
      * {@link org.springframework.web.server.handler.ExceptionHandlingWebHandler} 装饰 HttpWebHandlerAdapter >
-     * {@link org.springframework.cloud.gateway.handler.FilteringWebHandler} 装饰 ExceptionHandlingWebHandler >
-     * {@link org.springframework.web.reactive.DispatcherHandler}.handle
+     * {@link org.springframework.web.server.handler.FilteringWebHandler} 装饰 ExceptionHandlingWebHandler，处理WebFilter过滤器（非网关的GlobalFilter）实现 >
+     * {@link org.springframework.web.reactive.DispatcherHandler}.handle 上面所有的WebFilter调用完成后会调用这里
      *
-     * HttpWebHandlerAdapter由{@link WebHttpHandlerBuilder#build()} 创建，因此 getDelegate 取到的是{@link org.springframework.web.server.handler.ExceptionHandlingWebHandler}
-     * {@link org.springframework.boot.autoconfigure.web.reactive.HttpHandlerAutoConfiguration} 注册 HttpHandler，
-     * 这里会调用 {@link WebHttpHandlerBuilder#applicationContext(ApplicationContext)} 和{@link WebHttpHandlerBuilder#build()}，
+     * 在{@link org.springframework.boot.autoconfigure.web.reactive.HttpHandlerAutoConfiguration}#httpHandler
+     * 调用 {@link WebHttpHandlerBuilder#build()} 方法创建{@link org.springframework.http.server.reactive.HttpHandler}，
+     * 由{@link org.springframework.web.server.adapter.HttpWebHandlerAdapter}代理，
+     * 这里会调用 {@link WebHttpHandlerBuilder#applicationContext(ApplicationContext)} 和{@link WebHttpHandlerBuilder#build()}。
+     * WebHanlder和 {@link org.springframework.web.server.WebFilter} 过滤器也会在这里注入，
+     * 其中注册的 WebFilter 实现类会在{@link WebHttpHandlerBuilder#applicationContext(ApplicationContext)} 这里排序，
      * 异常处理的{@link org.springframework.web.server.WebExceptionHandler}接口实现也是在这里注入到 ExceptionHandlingWebHandler 中。
+     *
+     * WebHandler和WebFilter作为属性注入到FilteringWebHandler中。其中WebHanlder是{@link org.springframework.web.reactive.DispatcherHandler}，
+     * 在{@link org.springframework.web.reactive.config.WebFluxConfigurationSupport}注册的WebHandler是被装饰的。
+     *
+     *
+     * 服务启动时执行{@link SpringApplication#run(String...)}，调用 refreshContext，refresh
+     * {@link ReactiveWebServerApplicationContext#onRefresh()}，调用 {@link ReactiveWebServerApplicationContext#createWebServer()}
+     * 获取{{@link org.springframework.boot.web.reactive.server.ReactiveWebServerFactory}接口的Bean对象
+     * {@link org.springframework.boot.web.embedded.netty.NettyReactiveWebServerFactory}（在ReactiveWebServerFactoryConfiguration中创建Bean），
+     * 然后作为属性初始化进{@link org.springframework.boot.web.reactive.context.ReactiveWebServerApplicationContext.ServerManager}。
+     * ServerManager 构造方法中调用的 {@link org.springframework.boot.web.embedded.netty.NettyReactiveWebServerFactory#getWebServer}以及 createHttpServer，
+     * 初始化 {@link org.springframework.http.server.reactive.ReactorHttpHandlerAdapter}（初始化 HttpHandler 属性，此处为ServerManager对象，代理了实际的HttpHandler对象，即后面通过getHttpHandler取到的HttpWebHandlerAdapter）
+     * 和 {@link org.springframework.boot.web.embedded.netty.NettyWebServer}。ReactorHttpHandlerAdapter 对象放入NettyWebServer中。
+     *
+     * {@link ReactiveWebServerApplicationContext#finishRefresh()}#startReactiveWebServer#start
+     * 方法中调用了getHttpHandler获取初始化的 HttpWebHandlerAdapter，这个就是上面 {@link WebHttpHandlerBuilder#build()}创建的HttpHandler。
+     * 然后会调用 {@link org.springframework.boot.web.embedded.netty.NettyWebServer#start} 和 startHttpServer，
+     * 在startHttpServer方法中会调用{@link reactor.netty.http.server.HttpServer#handle(BiFunction)} 创建HttpServerHandle监听请求，
+     * 并把ReactorHttpHandlerAdapter放入HttpServerHandle对象中。
+     * 
+     * 综上：
+     * {@link reactor.netty.http.server.HttpServerHandle#onStateChange}中的handler对象为 {@link org.springframework.http.server.reactive.ReactorHttpHandlerAdapter}。
+     * {@link org.springframework.http.server.reactive.ReactorHttpHandlerAdapter} 中的httpHandler对象为 {@link org.springframework.boot.web.reactive.context.ReactiveWebServerApplicationContext.ServerManager}。
+     * ServerManager代理了 HttpHandler为 {@link org.springframework.web.server.adapter.HttpWebHandlerAdapter#handle(ServerHttpRequest, ServerHttpResponse)}对象，
+     * 然后由{@link WebHttpHandlerBuilder#build()}得知最后会依次代理 {@link org.springframework.web.server.handler.ExceptionHandlingWebHandler}、
+     * {@link FilteringWebHandler}以及最终的 {@link org.springframework.web.reactive.DispatcherHandler}。
+     * 其中 FilteringWebHandler 是用来处理所有的 WebFilter 过滤链，处理完成后才会调用最终的 DispatcherHandler。
+     *
      *
      * <h1>scg网关断言过滤路由处理流程解析</h1>
      * {@link org.springframework.web.reactive.DispatcherHandler#handle(ServerWebExchange)}
      * 1）handlerMappings中会依次执行predicateHandler实现类的getHandler方法，合并取到的Hanlder结果集并提取第一个Handler（.next()方法的作用，获取结果的第一个数据作为新的Mono）.
      *
      * 网关断言过滤器handler：{@link org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping}，调用lookupRoute从所有的路由中断言匹配Route，
-     * 然后返回{@link org.springframework.cloud.gateway.handler.FilteringWebHandler}并把匹配到的Route存入ServerWebExchange上下文。
+     * 然后返回{@link org.springframework.cloud.gateway.handler.FilteringWebHandler}Gateway的GlobalFilter过滤器处理Handler，
+     * 这里要区别于WebFlux的 {@link org.springframework.web.server.handler.FilteringWebHandler} WebFilter（类似springmvc的Filter），
+     * 并把匹配到的Route存入ServerWebExchange上下文。
      *
      * FilteringWebHandler存放了GlobalFilter实现类的列表，所有GlobalFilter实现类的Bean会注册进来（GatewayAutoConfiguration），
      * 并使用其自定义的GatewayFilterAdapter或者OrderedGatewayFilter装饰。
@@ -125,6 +217,36 @@ public class GatewayNewApplication {
      *
      *
      * 最终会调用{@link ServerHttpResponse#setComplete()} 完成请求响应。
+     *
+     *
+     * <h1>spring-cloud-sleuth调用链追踪(日志追踪)组件</h1>
+     * {@link org.springframework.cloud.sleuth.instrument.web.TraceWebFilter#filter(ServerWebExchange, WebFilterChain)}
+     * 服务启动时先在{{@link org.springframework.cloud.sleuth.instrument.reactor.HookRegisteringBeanDefinitionRegistryPostProcessor#setupHooks(ConfigurableApplicationContext)}
+     * 注册Mono、Flux的钩子，此钩子会在之前执行。注册钩子调用的是{@link org.springframework.cloud.sleuth.instrument.reactor.ReactorSleuth#scopePassingSpanOperator}。
+     * {@link org.springframework.cloud.sleuth.autoconfig.TraceAutoConfiguration#sleuthCurrentTraceContext} 创建 {@link brave.propagation.ThreadLocalCurrentTraceContext}。
+     *
+     * {@link org.springframework.cloud.sleuth.instrument.web.TraceWebFilter.MonoWebFilterTrace#findOrCreateSpan(Context)}方法中会从请求Request中获取一些信息，并创建Span，
+     * 具体在{@link brave.http.HttpServerHandler#handleReceive}（后面详细解析这里生成traceid的代码）
+     * 上面的方法执行之后才会走到scopePassingSpanOperator方法的new {@link org.springframework.cloud.sleuth.instrument.reactor.ScopePassingSpanSubscriber#onSubscribe}，
+     * 然后Mono响应被该类代理，从而执行其中的 onSubscribe。
+     * 然后会执行到{@link brave.propagation.ThreadLocalCurrentTraceContext#newScope(TraceContext)}，
+     * 其父类 CurrentTraceContext的scopeDecorators属性会有 {@link org.springframework.cloud.sleuth.log.Slf4jScopeDecorator}，
+     * 在{@link org.springframework.cloud.sleuth.log.SleuthLogAutoConfiguration.Slf4jConfiguration}中被注入。
+     * 因此又会执行到{@link org.springframework.cloud.sleuth.log.Slf4jScopeDecorator#decorateScope}，
+     * 然后执行{@link brave.baggage.CorrelationScopeDecorator.Multiple#decorateScope}，其中的context.update 这里会把日志相关信息存入MDC，
+     * 即{@link brave.context.slf4j.MDCScopeDecorator.MDCContext#update(String, String)}。
+     * {@link brave.propagation.TraceIdContext#toTraceIdString(long, long)} 新版本取traceid
+     *
+     * {@link brave.http.HttpServerHandler#handleReceive}中先调用defaultExtractor.extract(request)，即{@link brave.propagation.B3Propagation.B3Extractor#extract}
+     * 获取request头部信息相关key，
+     * 然后执行{@link brave.http.HttpServerHandler#nextSpan(TraceContextOrSamplingFlags, HttpServerRequest)}，前面请求头中没有相关key则TranceContext为null，
+     * 执行{@link Tracer#nextSpan(TraceContextOrSamplingFlags)}，在{@link Tracer#decorateContext}方法中生成traceID和spanID，{@link Tracer#nextId}，这里显然生成的id是不唯一的，只是一个随机数。
+     *
+     *
+     * 总结：
+     * sleuth通过注册Mono/Flux的Hook钩子实现向MDC中写入追踪信息以及使用WebFlux过滤器代理请求响应Mono，
+     * 定制onSubscribe、onComplete等方法向转发的请求头中添加信息来实现日志、调用链的追踪。
+     *
      */
     public static void main(String[] args) {
         SpringApplication.run(GatewayNewApplication.class, args);
