@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.web.ErrorProperties;
 import org.springframework.boot.autoconfigure.web.ResourceProperties;
 import org.springframework.boot.autoconfigure.web.reactive.error.DefaultErrorWebExceptionHandler;
+import org.springframework.boot.web.error.ErrorAttributeOptions;
 import org.springframework.boot.web.reactive.error.ErrorAttributes;
 import org.springframework.cloud.gateway.handler.predicate.ReadBodyPredicateFactory;
 import org.springframework.cloud.gateway.route.Route;
@@ -81,7 +82,7 @@ public class JsonErrorWebExceptionHandler extends DefaultErrorWebExceptionHandle
      * @return
      */
     @Override
-    protected Map<String, Object> getErrorAttributes(ServerRequest request, boolean includeStackTrace) {
+    protected Map<String, Object> getErrorAttributes(ServerRequest request, ErrorAttributeOptions options) {
         // http status一律 200
         int code = 200;
         String message = "服务器开小差啦";
@@ -106,7 +107,7 @@ public class JsonErrorWebExceptionHandler extends DefaultErrorWebExceptionHandle
         }
         
         // 原始错误响应信息
-        log.info("origin error msg:" + super.getErrorAttributes(request, includeStackTrace));
+        log.info("origin error msg:" + super.getErrorAttributes(request, options));
         
         Map<String, Object> errorAttributes = new HashMap<>();
         errorAttributes.put(ATTR_CODE, code);
@@ -123,8 +124,7 @@ public class JsonErrorWebExceptionHandler extends DefaultErrorWebExceptionHandle
     
     @Override
     protected Mono<ServerResponse> renderErrorResponse(ServerRequest request) {
-        boolean includeStackTrace = isIncludeStackTrace(request, MediaType.ALL);
-        Map<String, Object> error = getErrorAttributes(request, includeStackTrace);
+        Map<String, Object> error = getErrorAttributes(request, getErrorAttributeOptions(request, MediaType.ALL));
         int httpStatus = getHttpStatus(error);
     
         UpstreamResponse.Response failResponseInfo = responseFactoryService.failResponseInfo(request.exchange(), error.get(ATTR_MSG) + "", null);

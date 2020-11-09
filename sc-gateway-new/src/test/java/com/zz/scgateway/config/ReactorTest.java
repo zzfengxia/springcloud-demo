@@ -4,9 +4,12 @@ import com.alibaba.csp.sentinel.util.function.Function;
 import com.google.common.collect.Lists;
 import com.zz.gateway.common.factory.CustomeReadBodyPredicateFactory;
 import org.junit.Test;
+import org.reactivestreams.Subscription;
 import org.springframework.cloud.gateway.support.GatewayToStringStyler;
+import reactor.core.CoreSubscriber;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.MonoOperator;
 
 import java.time.Duration;
 import java.util.Date;
@@ -135,15 +138,68 @@ public class ReactorTest {
                 .flatMap(Flux::fromArray)
                 //.then()
                 .subscribe(System.out::println);
-        
-        Flux.defer(() -> {
-            try {
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+    }
+    
+    @Test
+    public void testThen2() {
+        Mono.defer(() -> {
+            if(1 == 1) {
+                return Mono.error(new IllegalArgumentException("1 == 1"));
             }
-            return Flux.empty();
-        }).then();
+            return Mono.empty();
+        }).then(Mono.defer(() -> {
+            System.out.println("then exec...");
+            return Mono.empty();
+            })
+        ).onErrorResume(e -> {
+            System.out.println("onErrorResume exec...");
+            return Mono.empty();
+        }).subscribe();
+    }
+    
+    @Test
+    public void testOnError() {
+        Mono.defer(() -> {
+            if(1 == 1) {
+                throw new IllegalArgumentException("1 == 1");
+            }
+            return Mono.empty();
+        }).transform(publisher -> publisher.onErrorResume(e -> {
+            System.out.println("onErrorResume1 exec...");
+            if(e instanceof IllegalArgumentException) {
+                return new MonoOperator<Object, Void>(publisher) {
+                    @Override
+                    public void subscribe(CoreSubscriber actual) {
+                        publisher.subscribe(new CoreSubscriber<Object>() {
+                            @Override
+                            public void onSubscribe(Subscription s) {
+                                actual.onSubscribe(s);
+                            }
+    
+                            @Override
+                            public void onNext(Object o) {
+                                actual.onNext(o);
+                            }
+    
+                            @Override
+                            public void onError(Throwable t) {
+                                System.out.println("do somethings on error");
+                                actual.onError(t);
+                            }
+    
+                            @Override
+                            public void onComplete() {
+                                actual.onComplete();
+                            }
+                        });
+                    }
+                };
+            }
+            return Mono.error(e);
+        })).onErrorResume(e2 -> {
+            System.out.println("onErrorResume2 exec...");
+            return Mono.empty();
+        }).subscribe();
     }
     
     @Test

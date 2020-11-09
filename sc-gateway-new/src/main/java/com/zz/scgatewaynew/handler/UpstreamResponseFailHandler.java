@@ -20,7 +20,6 @@ public class UpstreamResponseFailHandler implements WebExceptionHandler {
             // 拦截上游服务响应体非成功的请求异常，不做任何处理。只用来触发sentinel的onError
             return Mono.empty();
         }
-    
         return Mono.error(throwable);
     }
 }

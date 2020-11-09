@@ -136,10 +136,10 @@ public class StatisticSlot extends AbstractLinkedProcessorSlot<DefaultNode> {
             Throwable error = context.getCurEntry().getError();
 
             // Record response time and success count.
-            recordCompleteFor(node, count, rt, error);
-            recordCompleteFor(context.getCurEntry().getOriginNode(), count, rt, error);
+            recordCompleteFor(node, count, rt, error, resourceWrapper.getName());
+            recordCompleteFor(context.getCurEntry().getOriginNode(), count, rt, error, resourceWrapper.getName());
             if (resourceWrapper.getEntryType() == EntryType.IN) {
-                recordCompleteFor(Constants.ENTRY_NODE, count, rt, error);
+                recordCompleteFor(Constants.ENTRY_NODE, count, rt, error, resourceWrapper.getName());
             }
         }
 
@@ -167,5 +167,21 @@ public class StatisticSlot extends AbstractLinkedProcessorSlot<DefaultNode> {
                 node.increaseExceptionQps(batchCount);
             }
         }
+    }
+    
+    /**
+     * [定制实现]，拦截noroute资源，noroute次数使用ExceptionQps记录
+     */
+    private void recordCompleteFor(Node node, int batchCount, long rt, Throwable error, String resourceName) {
+        if(!"resource-no-route".equals(resourceName)) {
+            recordCompleteFor(node, batchCount, rt, error);
+            return;
+        }
+        
+        if (node == null) {
+            return;
+        }
+        
+        node.decreaseThreadNum();
     }
 }

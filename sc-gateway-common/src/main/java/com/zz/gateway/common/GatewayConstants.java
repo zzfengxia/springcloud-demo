@@ -57,4 +57,10 @@ public class GatewayConstants {
      */
     public static final String TRACE_ID_NAME = "X-B3-TraceId";
     public static final String SPAN_ID_NAME = "X-B3-SpanId";
+    
+    /**
+     * 记录未找到Route metric信息的resourceName
+     * 在{@link com.alibaba.csp.sentinel.slots.statistic.StatisticSlot}中会用到
+     */
+    public static final String RESOURCE_FOR_NOROUTE = "resource-no-route";
 }

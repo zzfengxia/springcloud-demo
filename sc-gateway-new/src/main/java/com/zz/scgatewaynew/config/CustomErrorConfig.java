@@ -60,7 +60,7 @@ public class CustomErrorConfig {
     }
     
     @Bean
-    @Order(0)
+    @Order(-2)
     public UpstreamResponseFailHandler upstreamResponseFailHandler() {
         return new UpstreamResponseFailHandler();
     }
@@ -68,6 +68,6 @@ public class CustomErrorConfig {
     @Bean
     @ConditionalOnMissingBean(value = ErrorAttributes.class, search = SearchStrategy.CURRENT)
     public DefaultErrorAttributes errorAttributes() {
-        return new DefaultErrorAttributes(this.serverProperties.getError().isIncludeException());
+        return new DefaultErrorAttributes();
     }
 }

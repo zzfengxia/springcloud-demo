@@ -1,5 +1,6 @@
 package com.zz.gateway.common.factory;
 
+import com.zz.gateway.common.GatewayConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.handler.predicate.AbstractRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.GatewayPredicate;
@@ -35,7 +36,6 @@ import static org.springframework.http.server.PathContainer.parsePath;
 public class CustomPathRoutePredicateFactory extends AbstractRoutePredicateFactory<CustomPathRoutePredicateFactory.Config> {
     
     private static final String MATCH_OPTIONAL_TRAILING_SEPARATOR_KEY = "matchOptionalTrailingSeparator";
-    private static final String FAIL_RESPONSE_STRATEGY = "failRespStrategy";
     private PathPatternParser pathPatternParser = new PathPatternParser();
     private static final List<HttpMessageReader<?>> messageReaders = HandlerStrategies
             .withDefaults().messageReaders();
@@ -107,7 +107,7 @@ public class CustomPathRoutePredicateFactory extends AbstractRoutePredicateFacto
                     putUriTemplateVariables(exchange, pathMatchInfo.getUriVariables());
                     
                     // 保存异常响应策略
-                    exchange.getAttributes().put(FAIL_RESPONSE_STRATEGY, config.getRespStrategy());
+                    exchange.getAttributes().put(GatewayConstants.FAIL_RESPONSE_STRATEGY, config.getRespStrategy());
                     return true;
                 }
                 else {

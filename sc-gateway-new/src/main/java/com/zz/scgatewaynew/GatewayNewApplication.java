@@ -110,6 +110,8 @@ public class GatewayNewApplication {
      * 然后按顺序放入{@link com.alibaba.csp.sentinel.slotchain.DefaultProcessorSlotChain}创建的调用链。
      * 网关流控由{@link com.alibaba.csp.sentinel.adapter.gateway.common.slot.GatewayFlowSlot}处理
      *
+     * {@link com.alibaba.csp.sentinel.slots.statistic.StatisticSlot} 是sentinel统计metric信息的插槽，metric信息都在这里处理。除了BlockException外，其他metric信息都是在exit中记录。
+     *
      * <h1>sentinel metric监控记录</h1>
      * {@link com.alibaba.csp.sentinel.slots.statistic.MetricEvent} 监控指标常量
      * {@link com.alibaba.csp.sentinel.node.metric.MetricWriter} 将资源metric日志写入文件
