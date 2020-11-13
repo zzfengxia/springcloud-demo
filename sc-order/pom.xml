@@ -11,6 +11,8 @@
     <packaging>jar</packaging>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <sentinel.current.version>1.8.0</sentinel.current.version>
+        <influxdb-client.version>1.9.0</influxdb-client.version>
     </properties>
 
     <dependencies>
@@ -98,6 +100,18 @@
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>druid-spring-boot-starter</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.influxdb</groupId>
+            <artifactId>influxdb-client-java</artifactId>
+            <version>${influxdb-client.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.influxdb</groupId>
+            <artifactId>flux-dsl</artifactId>
+            <version>${influxdb-client.version}</version>
+            <scope>compile</scope>
         </dependency>
 
         <dependency>

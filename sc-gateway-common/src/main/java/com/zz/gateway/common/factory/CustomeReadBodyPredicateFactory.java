@@ -1,5 +1,6 @@
 package com.zz.gateway.common.factory;
 
+import com.alibaba.fastjson.JSON;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.reactivestreams.Publisher;
@@ -95,7 +96,12 @@ public class CustomeReadBodyPredicateFactory extends AbstractRoutePredicateFacto
                 List<String> descList = new ArrayList<>(attrMap.size() + 1);
                 
                 attrMap.forEach((k, v) -> {
-                    String desc = String.format("[%s pattern %s]", k, v.toString());
+                    String desc = null;
+                    if(v.size() == 0) {
+                        desc = String.format("[%s must be empty]", k);
+                    } else {
+                        desc = String.format("[%s pattern %s]", k, JSON.toJSON(v));
+                    }
                     descList.add(desc);
                 });
                 descList.add(String.format("strategy = %s", config.getStrategy()));

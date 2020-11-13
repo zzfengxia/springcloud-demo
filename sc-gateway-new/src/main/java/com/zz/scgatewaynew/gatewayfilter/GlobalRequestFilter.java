@@ -11,11 +11,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.handler.predicate.ReadBodyPredicateFactory;
+import org.springframework.cloud.gateway.route.Route;
 import org.springframework.core.Ordered;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
 
 /**
  * ************************************
@@ -46,6 +49,10 @@ public class GlobalRequestFilter implements GlobalFilter, Ordered {
         String flowCtrlFlag = "true";
         long startTime = System.currentTimeMillis();
         ServerHttpRequest request = exchange.getRequest();
+        Route route = exchange.getAttribute(GATEWAY_ROUTE_ATTR);
+        if(route != null) {
+            log.info(String.format("匹配到的路由信息：{id:%s, routeUrl:%s}", route.getId(), route.getUri()));
+        }
         /**
          * 获取body的方法参考{@link org.springframework.cloud.gateway.filter.factory.rewrite.ModifyRequestBodyGatewayFilterFactory}
          * 或者{@link ReadBodyPredicateFactory}

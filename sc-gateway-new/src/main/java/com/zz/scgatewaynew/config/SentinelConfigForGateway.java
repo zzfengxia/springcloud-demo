@@ -167,6 +167,7 @@ public class SentinelConfigForGateway implements InitializingBean {
     @Bean("gateway-routeRuleDecoder")
     public Converter<String, List<RouteRule>> routeRuleDecoder() {
         return s -> {
+            log.debug("[nacos] route config json:" + s);
             RuleEntityWrapper<RouteRule> apiEntity = JSON.parseObject(s, new TypeReference<RuleEntityWrapper<RouteRule>>(){});
     
             if(apiEntity == null) {

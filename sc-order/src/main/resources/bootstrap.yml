@@ -1,7 +1,8 @@
 server:
   port: 7093
   tomcat:
-    max-threads: 1000
+    threads:
+      max: 500
 spring:
   application:
     name: sc-order

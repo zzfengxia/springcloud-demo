@@ -227,6 +227,7 @@ public class MetricFetcher {
 
                 @Override
                 public void failed(final Exception ex) {
+                    // TODO 增加失败重试机制，这里失败会导致influxdb丢失metric信息
                     latch.countDown();
                     fail.incrementAndGet();
                     httpGet.abort();

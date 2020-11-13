@@ -25,7 +25,7 @@ public class CheckResponseStatusFilter implements GlobalFilter, Ordered {
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         return chain.filter(exchange)
                 .then(Mono.defer(() -> {
-                    log.info("-- [CheckResponseStatusFilter] record exec time");
+                    log.debug("-- [CheckResponseStatusFilter] record exec time");
                     HttpStatus responseStatus = exchange.getResponse().getStatusCode();
                     if(responseStatus != null && responseStatus.value() != HttpStatus.OK.value()) {
                         return Mono.error(new ResponseStatusException(responseStatus));

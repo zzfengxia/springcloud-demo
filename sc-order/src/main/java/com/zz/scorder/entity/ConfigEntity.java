@@ -4,8 +4,6 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
-import javax.validation.constraints.NotNull;
-
 /**
  * ************************************
  * create by Intellij IDEA
@@ -22,7 +20,6 @@ public class ConfigEntity {
     /**
      * 卡片外部编码（用于对接其他系统中的卡片唯一标识）
      */
-    @NotNull
     private String cardExternalCode;
     /**
      * 流程代码
@@ -35,7 +32,6 @@ public class ConfigEntity {
     /**
      * 卡片编码
      */
-    @NotNull
     private String cardCode;
     /**
      * 卡片编码描述，用于创建订单时显示
