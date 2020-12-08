@@ -5,4 +5,6 @@
 * nacos-config、discovery
 * sentinel
 * spring cloud gateway
-* spring boot admin监控
+* spring boot
+* influxdb
+* grafana监控
