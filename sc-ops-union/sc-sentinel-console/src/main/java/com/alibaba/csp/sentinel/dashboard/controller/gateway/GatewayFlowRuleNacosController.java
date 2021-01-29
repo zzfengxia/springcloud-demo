@@ -62,7 +62,7 @@ import static com.alibaba.csp.sentinel.slots.block.RuleConstant.FLOW_GRADE_THREA
 @RestController
 @RequestMapping(value = "/gateway/flow/nacos/")
 public class GatewayFlowRuleNacosController {
-
+    
     private final Logger logger = LoggerFactory.getLogger(GatewayFlowRuleNacosController.class);
     
     @Autowired
@@ -73,15 +73,15 @@ public class GatewayFlowRuleNacosController {
     private DynamicRulePublisher<RuleEntityWrapper<GatewayFlowRuleEntity>> gatewayFlowNacosPublisher;
     @Autowired
     private InMemoryRuleRepositoryAdapter<GatewayFlowRuleEntity> repository;
-
+    
     @GetMapping("/list.json")
     @AuthAction(AuthService.PrivilegeType.READ_RULE)
     public Result<List<GatewayFlowRuleEntity>> queryFlowRules(String app) {
-
+        
         if (StringUtil.isEmpty(app)) {
             return Result.ofFail(-1, "app can't be null or empty");
         }
-
+        
         try {
             RuleEntityWrapper<GatewayFlowRuleEntity> rules = gatewayFlowNacosProvider.getRules(app);
             if (rules != null && !rules.getRuleEntity().isEmpty()) {
@@ -96,19 +96,19 @@ public class GatewayFlowRuleNacosController {
             return Result.ofThrowable(-1, throwable);
         }
     }
-
+    
     @PostMapping("/new.json")
     @AuthAction(AuthService.PrivilegeType.WRITE_RULE)
     public Result<GatewayFlowRuleEntity> addFlowRule(@RequestBody AddFlowRuleReqVo reqVo) {
-
+        
         String app = reqVo.getApp();
         if (StringUtil.isBlank(app)) {
             return Result.ofFail(-1, "app can't be null or empty");
         }
-
+        
         GatewayFlowRuleEntity entity = new GatewayFlowRuleEntity();
         entity.setApp(app.trim());
-
+        
         // API类型, Route ID或API分组
         Integer resourceMode = reqVo.getResourceMode();
         if (resourceMode == null) {
@@ -118,30 +118,30 @@ public class GatewayFlowRuleNacosController {
             return Result.ofFail(-1, "invalid resourceMode: " + resourceMode);
         }
         entity.setResourceMode(resourceMode);
-
+        
         // API名称
         String resource = reqVo.getResource();
         if (StringUtil.isBlank(resource)) {
             return Result.ofFail(-1, "resource can't be null or empty");
         }
         entity.setResource(resource.trim());
-
+        
         // 针对请求属性
         GatewayParamFlowItemVo paramItem = reqVo.getParamItem();
         if (paramItem != null) {
             GatewayParamFlowItemEntity itemEntity = new GatewayParamFlowItemEntity();
             entity.setParamItem(itemEntity);
-
+            
             // 参数属性 0-ClientIP 1-Remote Host 2-Header 3-URL参数 4-Cookie
             Integer parseStrategy = paramItem.getParseStrategy();
             if (!Arrays.asList(PARAM_PARSE_STRATEGY_CLIENT_IP, PARAM_PARSE_STRATEGY_HOST, PARAM_PARSE_STRATEGY_HEADER
-                    , PARAM_PARSE_STRATEGY_URL_PARAM, PARAM_PARSE_STRATEGY_COOKIE).contains(parseStrategy)) {
+                    , PARAM_PARSE_STRATEGY_URL_PARAM, PARAM_PARSE_STRATEGY_COOKIE, 5).contains(parseStrategy)) {
                 return Result.ofFail(-1, "invalid parseStrategy: " + parseStrategy);
             }
             itemEntity.setParseStrategy(paramItem.getParseStrategy());
-
+            
             // 当参数属性为2-Header 3-URL参数 4-Cookie时，参数名称必填
-            if (Arrays.asList(PARAM_PARSE_STRATEGY_HEADER, PARAM_PARSE_STRATEGY_URL_PARAM, PARAM_PARSE_STRATEGY_COOKIE).contains(parseStrategy)) {
+            if (Arrays.asList(PARAM_PARSE_STRATEGY_HEADER, PARAM_PARSE_STRATEGY_URL_PARAM, PARAM_PARSE_STRATEGY_COOKIE, 5).contains(parseStrategy)) {
                 // 参数名称
                 String fieldName = paramItem.getFieldName();
                 if (StringUtil.isBlank(fieldName)) {
@@ -149,7 +149,7 @@ public class GatewayFlowRuleNacosController {
                 }
                 itemEntity.setFieldName(paramItem.getFieldName());
             }
-
+            
             String pattern = paramItem.getPattern();
             // 如果匹配串不为空，验证匹配模式
             if (StringUtil.isNotEmpty(pattern)) {
@@ -161,7 +161,7 @@ public class GatewayFlowRuleNacosController {
                 itemEntity.setMatchStrategy(matchStrategy);
             }
         }
-
+        
         // 阈值类型 0-线程数 1-QPS
         Integer grade = reqVo.getGrade();
         if (grade == null) {
@@ -171,7 +171,7 @@ public class GatewayFlowRuleNacosController {
             return Result.ofFail(-1, "invalid grade: " + grade);
         }
         entity.setGrade(grade);
-
+        
         // QPS阈值
         Double count = reqVo.getCount();
         if (count == null) {
@@ -181,7 +181,7 @@ public class GatewayFlowRuleNacosController {
             return Result.ofFail(-1, "count should be at lease zero");
         }
         entity.setCount(count);
-
+        
         // 间隔
         Long interval = reqVo.getInterval();
         if (interval == null) {
@@ -191,7 +191,7 @@ public class GatewayFlowRuleNacosController {
             return Result.ofFail(-1, "interval should be greater than zero");
         }
         entity.setInterval(interval);
-
+        
         // 间隔单位
         Integer intervalUnit = reqVo.getIntervalUnit();
         if (intervalUnit == null) {
@@ -201,7 +201,7 @@ public class GatewayFlowRuleNacosController {
             return Result.ofFail(-1, "Invalid intervalUnit: " + intervalUnit);
         }
         entity.setIntervalUnit(intervalUnit);
-
+        
         // 流控方式 0-快速失败 2-匀速排队
         Integer controlBehavior = reqVo.getControlBehavior();
         if (controlBehavior == null) {
@@ -211,7 +211,7 @@ public class GatewayFlowRuleNacosController {
             return Result.ofFail(-1, "invalid controlBehavior: " + controlBehavior);
         }
         entity.setControlBehavior(controlBehavior);
-
+        
         if (CONTROL_BEHAVIOR_DEFAULT == controlBehavior) {
             // 0-快速失败, 则Burst size必填
             Integer burst = reqVo.getBurst();
@@ -233,11 +233,11 @@ public class GatewayFlowRuleNacosController {
             }
             entity.setMaxQueueingTimeoutMs(maxQueueingTimeoutMs);
         }
-
+        
         Date date = new Date();
         entity.setGmtCreate(date);
         entity.setGmtModified(date);
-
+        
         try {
             // 先刷新缓存
             repository.refreshRuleCache(gatewayFlowNacosProvider, entity.getApp());
@@ -248,45 +248,45 @@ public class GatewayFlowRuleNacosController {
             logger.error("add gateway flow rule error:", throwable);
             return Result.ofThrowable(-1, throwable);
         }
-
+        
         return Result.ofSuccess(entity);
     }
-
+    
     @PostMapping("/save.json")
     @AuthAction(AuthService.PrivilegeType.WRITE_RULE)
     public Result<GatewayFlowRuleEntity> updateFlowRule(@RequestBody UpdateFlowRuleReqVo reqVo) {
-
+        
         String app = reqVo.getApp();
         if (StringUtil.isBlank(app)) {
             return Result.ofFail(-1, "app can't be null or empty");
         }
-
+        
         Long id = reqVo.getId();
         if (id == null) {
             return Result.ofFail(-1, "id can't be null");
         }
-
+        
         GatewayFlowRuleEntity entity = repository.findById(id);
         if (entity == null) {
             return Result.ofFail(-1, "gateway flow rule does not exist, id=" + id);
         }
-
+        
         // 针对请求属性
         GatewayParamFlowItemVo paramItem = reqVo.getParamItem();
         if (paramItem != null) {
             GatewayParamFlowItemEntity itemEntity = new GatewayParamFlowItemEntity();
             entity.setParamItem(itemEntity);
-
+            
             // 参数属性 0-ClientIP 1-Remote Host 2-Header 3-URL参数 4-Cookie
             Integer parseStrategy = paramItem.getParseStrategy();
             if (!Arrays.asList(PARAM_PARSE_STRATEGY_CLIENT_IP, PARAM_PARSE_STRATEGY_HOST, PARAM_PARSE_STRATEGY_HEADER
-                    , PARAM_PARSE_STRATEGY_URL_PARAM, PARAM_PARSE_STRATEGY_COOKIE).contains(parseStrategy)) {
+                    , PARAM_PARSE_STRATEGY_URL_PARAM, PARAM_PARSE_STRATEGY_COOKIE, 5).contains(parseStrategy)) {
                 return Result.ofFail(-1, "invalid parseStrategy: " + parseStrategy);
             }
             itemEntity.setParseStrategy(paramItem.getParseStrategy());
-
+            
             // 当参数属性为2-Header 3-URL参数 4-Cookie时，参数名称必填
-            if (Arrays.asList(PARAM_PARSE_STRATEGY_HEADER, PARAM_PARSE_STRATEGY_URL_PARAM, PARAM_PARSE_STRATEGY_COOKIE).contains(parseStrategy)) {
+            if (Arrays.asList(PARAM_PARSE_STRATEGY_HEADER, PARAM_PARSE_STRATEGY_URL_PARAM, PARAM_PARSE_STRATEGY_COOKIE, 5).contains(parseStrategy)) {
                 // 参数名称
                 String fieldName = paramItem.getFieldName();
                 if (StringUtil.isBlank(fieldName)) {
@@ -294,7 +294,7 @@ public class GatewayFlowRuleNacosController {
                 }
                 itemEntity.setFieldName(paramItem.getFieldName());
             }
-
+            
             String pattern = paramItem.getPattern();
             // 如果匹配串不为空，验证匹配模式
             if (StringUtil.isNotEmpty(pattern)) {
@@ -308,7 +308,7 @@ public class GatewayFlowRuleNacosController {
         } else {
             entity.setParamItem(null);
         }
-
+        
         // 阈值类型 0-线程数 1-QPS
         Integer grade = reqVo.getGrade();
         if (grade == null) {
@@ -318,7 +318,7 @@ public class GatewayFlowRuleNacosController {
             return Result.ofFail(-1, "invalid grade: " + grade);
         }
         entity.setGrade(grade);
-
+        
         // QPS阈值
         Double count = reqVo.getCount();
         if (count == null) {
@@ -328,7 +328,7 @@ public class GatewayFlowRuleNacosController {
             return Result.ofFail(-1, "count should be at lease zero");
         }
         entity.setCount(count);
-
+        
         // 间隔
         Long interval = reqVo.getInterval();
         if (interval == null) {
@@ -338,7 +338,7 @@ public class GatewayFlowRuleNacosController {
             return Result.ofFail(-1, "interval should be greater than zero");
         }
         entity.setInterval(interval);
-
+        
         // 间隔单位
         Integer intervalUnit = reqVo.getIntervalUnit();
         if (intervalUnit == null) {
@@ -348,7 +348,7 @@ public class GatewayFlowRuleNacosController {
             return Result.ofFail(-1, "Invalid intervalUnit: " + intervalUnit);
         }
         entity.setIntervalUnit(intervalUnit);
-
+        
         // 流控方式 0-快速失败 2-匀速排队
         Integer controlBehavior = reqVo.getControlBehavior();
         if (controlBehavior == null) {
@@ -358,7 +358,7 @@ public class GatewayFlowRuleNacosController {
             return Result.ofFail(-1, "invalid controlBehavior: " + controlBehavior);
         }
         entity.setControlBehavior(controlBehavior);
-
+        
         if (CONTROL_BEHAVIOR_DEFAULT == controlBehavior) {
             // 0-快速失败, 则Burst size必填
             Integer burst = reqVo.getBurst();
@@ -380,10 +380,10 @@ public class GatewayFlowRuleNacosController {
             }
             entity.setMaxQueueingTimeoutMs(maxQueueingTimeoutMs);
         }
-
+        
         Date date = new Date();
         entity.setGmtModified(date);
-
+        
         try {
             entity = repository.save(entity);
             publishRules(app);
@@ -391,24 +391,24 @@ public class GatewayFlowRuleNacosController {
             logger.error("update gateway flow rule error:", throwable);
             return Result.ofThrowable(-1, throwable);
         }
-
+        
         return Result.ofSuccess(entity);
     }
-
-
+    
+    
     @PostMapping("/delete.json")
     @AuthAction(AuthService.PrivilegeType.DELETE_RULE)
     public Result<Long> deleteFlowRule(Long id) {
-
+        
         if (id == null) {
             return Result.ofFail(-1, "id can't be null");
         }
-
+        
         GatewayFlowRuleEntity oldEntity = repository.findById(id);
         if (oldEntity == null) {
             return Result.ofSuccess(null);
         }
-
+        
         try {
             repository.delete(id);
             publishRules(oldEntity.getApp());
@@ -416,10 +416,10 @@ public class GatewayFlowRuleNacosController {
             logger.error("delete gateway flow rule error:", throwable);
             return Result.ofThrowable(-1, throwable);
         }
-
+        
         return Result.ofSuccess(id);
     }
-
+    
     private void publishRules(String app) throws Exception {
         RuleEntityWrapper<GatewayFlowRuleEntity> rules = repository.findRuleByApp(app);
         gatewayFlowNacosPublisher.publish(app, rules);

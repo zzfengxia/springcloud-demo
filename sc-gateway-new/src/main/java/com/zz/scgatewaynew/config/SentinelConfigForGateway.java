@@ -1,7 +1,9 @@
 package com.zz.scgatewaynew.config;
 
+import com.alibaba.cloud.sentinel.gateway.scg.SentinelGatewayProperties;
 import com.alibaba.csp.sentinel.adapter.gateway.common.api.ApiDefinition;
 import com.alibaba.csp.sentinel.adapter.gateway.common.rule.GatewayFlowRule;
+import com.alibaba.csp.sentinel.adapter.gateway.sc.SentinelGatewayFilter;
 import com.alibaba.csp.sentinel.adapter.gateway.sc.callback.BlockRequestHandler;
 import com.alibaba.csp.sentinel.datasource.Converter;
 import com.alibaba.csp.sentinel.datasource.nacos.NacosDataSource;
@@ -18,8 +20,11 @@ import com.zz.scgatewaynew.respdefine.ResponseFactoryService;
 import com.zz.scgatewaynew.respdefine.UpstreamResponse;
 import com.zz.scgatewaynew.routedefine.GatewayRouteManager;
 import com.zz.scgatewaynew.routedefine.RouteNacosProperties;
+import com.zz.scgatewaynew.sentinelcustom.CustomSentinelGatewayFilter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -28,6 +33,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.server.ServerResponse;
@@ -58,6 +64,8 @@ import java.util.stream.Collectors;
 @EnableConfigurationProperties(RouteNacosProperties.class)
 @Slf4j
 public class SentinelConfigForGateway implements InitializingBean {
+    private static final Logger logger = LoggerFactory.getLogger(SentinelConfigForGateway.class);
+    
     @Autowired
     private ResponseFactoryService responseFactoryService;
     
@@ -67,6 +75,18 @@ public class SentinelConfigForGateway implements InitializingBean {
     private Optional<RouteNacosProperties> nacosRouteProperties;
     @Autowired
     private ApplicationEventPublisher eventPublisher;
+    @Autowired
+    private SentinelGatewayProperties gatewayProperties;
+    
+    @Bean
+    @Order(-1)
+    public SentinelGatewayFilter sentinelGatewayFilter() {
+        logger.info(
+                "[Sentinel SpringCloudGateway] register SentinelGatewayFilter with order: {}",
+                gatewayProperties.getOrder());
+        return new CustomSentinelGatewayFilter(gatewayProperties.getOrder());
+    }
+    
     /**
      * 注入限流异常处理
      * 可定制限流响应信息，默认为{@link com.alibaba.csp.sentinel.adapter.gateway.sc.callback.DefaultBlockRequestHandler}

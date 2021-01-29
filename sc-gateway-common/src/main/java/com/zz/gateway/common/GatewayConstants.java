@@ -63,4 +63,6 @@ public class GatewayConstants {
      * 在{@link com.alibaba.csp.sentinel.slots.statistic.StatisticSlot}中会用到
      */
     public static final String RESOURCE_FOR_NOROUTE = "resource-no-route";
+    
+    public static final int PARAM_PARSE_STRATEGY_BODY = 5;
 }

@@ -63,4 +63,4 @@ spring:
   profiles:
     # maven变量，打包时会被替换成相应的profile。如果需要本地启动，则需要修改为对应的profile
     # 这里的profile激活只用于本地启动，实际线上环境会使用启动参数激活profile
-    active: pressure #@profileActive@
+    active: local #@profileActive@

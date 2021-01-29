@@ -9,6 +9,7 @@ import com.zz.sccommon.util.UuidUtils;
 import com.zz.scgatewaynew.util.GatewayUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpMethod;
@@ -62,24 +63,28 @@ public class TraceLogFilter implements WebFilter, Ordered {
                             .create(exchange.mutate().request(serverHttpRequest).build(), messageReaders)
                             .bodyToMono(String.class)
                             .map(reqBody -> {
+                                String traceId = traceId(exchange.getRequest().getHeaders().getContentType(), reqBody);
                                 ServerHttpRequest.Builder modifyRequestBuilder = exchange.getRequest().mutate()
                                         // SpanId必须是16位Hex字符串，必须小写
                                         .header(GatewayConstants.SPAN_ID_NAME, spanid)
                                         // ParentSpanId可以不存在
                                         //.header("X-B3-ParentSpanId", "")
                                         // TraceId必须为16位或32位 Hex字符串，必须小写
-                                        .header(GatewayConstants.TRACE_ID_NAME, traceId(exchange.getRequest().getHeaders().getContentType(), reqBody));
+                                        .header(GatewayConstants.TRACE_ID_NAME, traceId);
                             
                                 exchange.getAttributes().put(GatewayConstants.CACHE_REQUEST_BODY_OBJECT_KEY, reqBody);
+                                exchange.getAttributes().put(BizConstants.MDC_TRACE_ID, traceId);
                                 return exchange.mutate().request(modifyRequestBuilder.build()).build();
                             })
                             .doOnError(error -> log.warn("read and parse request body error", error)));
         } else {
             // 追踪id必须为小写
+            String traceId = UuidUtils.generateUuid(UuidUtils.CaseType.LOWER_CASE);
             ServerHttpRequest.Builder modifyRequestBuilder = exchange.getRequest().mutate()
                     .header(GatewayConstants.SPAN_ID_NAME, spanid)
-                    .header(GatewayConstants.TRACE_ID_NAME, UuidUtils.generateUuid(UuidUtils.CaseType.LOWER_CASE));
-            
+                    .header(GatewayConstants.TRACE_ID_NAME, traceId);
+        
+            exchange.getAttributes().put(BizConstants.MDC_TRACE_ID, traceId);
             exchangeWithTrace = Mono.just(exchange.mutate().request(modifyRequestBuilder.build()).build());
         }
         
@@ -88,10 +93,12 @@ public class TraceLogFilter implements WebFilter, Ordered {
                 .flatMap(chain::filter)
                 .then(Mono.defer(() -> {
                     Long startExecTime = exchange.getAttribute(BizConstants.GATEWAY_START_TIME);
-            
+                    Route route = exchange.getAttribute(ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR);
+                    String routeid = route != null ? route.getId() : "";
                     if (startExecTime != null) {
                         long end = System.currentTimeMillis();
-                        log.info("gateway total execute time [" + (end - startExecTime) + "] ms");
+        
+                        log.info("gateway for routeid [" + routeid + "] total execute time [" + (end - startExecTime) + "] ms");
                     }
                     return Mono.empty();
                 }));
